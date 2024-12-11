@@ -10,12 +10,13 @@ export async function makeHash(data){
 
   return base64Hash;
 /*
-result:
-    something like: "MV9b23bQeFPtrm5wn9m4xtXE5vx7uI0PEbE6X79OXTo="
-import:
-    import { makeHash } from './path/to/module';
-using:
-    const hash = await makeHash('key', 'data');
+result: something like: "MV9b23bQeFPtrm5wn9m4xtXE5vx7uI0PEbE6X79OXTo="
+import: import { makeHash } from './path/to/module';
+using: const hash = await makeHash('key', 'data');
 */
+}
+
+export function removeItemFromArray(arr, item) {
+  return arr.filter(el => el !== item);
 }
 

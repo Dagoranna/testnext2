@@ -1,6 +1,7 @@
 'use client';
-//import FormErrors from "../FormErrors";
 import { useState,useEffect } from "react";
+import { removeItemFromArray } from "../../../utils/generalUtils";
+import FormErrors from "../FormErrors";
 
 export default function AuthForm() {
   const [email, setEmail] = useState('');
@@ -8,13 +9,48 @@ export default function AuthForm() {
   const [password2, setPassword2] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [formMode, setFormMode] = useState('Login');//Login/Register/Reset password
-  const [formErrors, setFormErrors] = useState([]);
+  const [formLoginErrors, setFormLoginErrors] = useState([]);
 
+  useEffect(() => {
+    let errors = [...formLoginErrors];
+    
+    //email checks
+    if (email.trim() === "" && !errors.includes('Email is empty')) {
+      errors.push('Email is empty');
+    }
+    if (email.trim() !== "" && errors.includes('Email is empty')) {
+      errors = removeItemFromArray(errors,'Email is empty');
+    }
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email) && email.trim() !== "" && !errors.includes('Invalid email')) {
+      errors.push('Invalid email');
+    }
+    if (errors.includes('Invalid email') && (emailRegex.test(email) || email.trim() === "")) {
+      errors = removeItemFromArray(errors,'Invalid email');
+    }  
+
+    //password checks
+    if (password.trim() === "" && !errors.includes('Password is empty')) {
+      errors.push('Password is empty');
+    }
+    if (password.trim() !== "" && errors.includes('Password is empty')) {
+      errors = removeItemFromArray(errors,'Password is empty');
+    }    
+  
+    setFormLoginErrors(errors);
+  }, [email, password]);
+
+  
   async function handleSubmit(e){
     e.preventDefault();
     console.log(formMode);
     switch (formMode) {
       case 'Login': 
+        if (formLoginErrors.length !== 0) {
+          console.log(formLoginErrors);
+          break;
+        }
+
         const response = await fetch('/api/auth/login', {
           method: 'POST', 
           headers: {
@@ -55,7 +91,6 @@ export default function AuthForm() {
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          required
           className="mainInput"
         />
 
@@ -65,7 +100,6 @@ export default function AuthForm() {
             placeholder="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            required
             className="mainInput"
           /> 
         )}   
@@ -76,7 +110,6 @@ export default function AuthForm() {
             placeholder="confirm password"
             value={password2}
             onChange={(e) => setPassword2(e.target.value)}
-            required
             className="mainInput"
           /> 
         )}
@@ -89,7 +122,8 @@ export default function AuthForm() {
                 onChange={() => setRememberMe(!rememberMe)}
               />
               Remember me
-            </label>      
+            </label>   
+            <FormErrors formErrors={formLoginErrors} />
           </div>  
         )}
         <button id='authButton' className="mainButton" type="submit">{ formMode }</button>
