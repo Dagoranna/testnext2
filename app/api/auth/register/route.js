@@ -8,7 +8,7 @@ const supabase = createClient(
 );
 
 export async function POST(req) {
-  const body = await req.json(); // Парсинг тела запроса
+/*  const body = await req.json(); // Парсинг тела запроса
   const { email, password } = body;
 
   const baseData = await getPass(email);
@@ -44,6 +44,7 @@ export async function POST(req) {
       }
     }
   }
+    */
 }
 
 async function writeTokenToBase(email,token) {

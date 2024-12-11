@@ -1,6 +1,6 @@
 'use client';
-
-import { useState } from "react";
+//import FormErrors from "../FormErrors";
+import { useState,useEffect } from "react";
 
 export default function AuthForm() {
   const [email, setEmail] = useState('');
@@ -8,13 +8,14 @@ export default function AuthForm() {
   const [password2, setPassword2] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [formMode, setFormMode] = useState('Login');//Login/Register/Reset password
+  const [formErrors, setFormErrors] = useState([]);
 
   async function handleSubmit(e){
     e.preventDefault();
     console.log(formMode);
     switch (formMode) {
       case 'Login': 
-        fetch('/api/auth/login', {
+        const response = await fetch('/api/auth/login', {
           method: 'POST', 
           headers: {
             'Content-Type': 'application/json',
@@ -24,20 +25,17 @@ export default function AuthForm() {
             email: email, 
             password: password, 
           }),
-        })
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error('Failed to sign in');
-            }
-            return response.json();
-          })
-          .then((data) => {
-            console.log('Sign-in successful:');
-            console.table(data);
-          })
-          .catch((error) => {
-            console.error('Error signing in:', error);
-          });      
+        });
+
+        const baseResponse = await response.json();
+
+        if (response.ok) {
+          console.table(baseResponse);
+        } else {
+          console.table(response);
+          throw new Error('error in database response');
+        }
+
         break;
       case 'Register':
         break;
