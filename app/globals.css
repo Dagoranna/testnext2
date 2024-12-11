@@ -1,21 +1,55 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+body{
+  background-color: #7d7a7a;
+  color: #533a1e;
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+.mainButton{
+  background: linear-gradient(#dac1a5, #a9855d);
+  cursor: pointer;
+  text-align: center;
+  user-select: none;
+  text-decoration: none;
+  text-shadow: 0 -1px 1px #777;
+  color: #fff;
+  outline: none;
+
+  padding: .4em;
+  border-radius: .5em;
+  margin: .2em;
+  min-width: 5rem;
+
+  border: .1em solid #4d3a25;
+  box-shadow: .2em .2em .3em #d7c6b3 inset,.1em .1em .2em #4d3a25;  
+}
+
+.mainInput{
+  border-color: silver;
+  margin: .1em;
+}
+
+#authInputFields{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#authSwitchers{
+  display: flex;
+  flex-direction: column;
+}
+
+.switcher{
+  margin: .1em;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.tableTitle{
+  font-size: 1.5rem;
 }

@@ -1,0 +1,29 @@
+.baseTable{
+  position: relative;
+  border: 5px ridge #caa67e;
+  padding: .5em;
+  border-radius: .5em;
+  background-color: #e3d6c7; 
+  width: fit-content;
+  box-shadow: .2em .2em .1em #444;
+  margin-left: .2em;
+  margin-top: .2em;
+}
+
+.closeButton{
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 1.3em;
+  height: 1.3em;
+  background-color: #caa67e;
+  color: black;
+  background-color: transparent;
+  text-shadow: 2px 2px 2px white;
+  border-bottom-left-radius: .3em;
+  border: 1px solid #a9855d;
+  line-height: .5em;
+  border-top: none;
+  border-right: none;
+  cursor: pointer;
+}
