@@ -28,6 +28,14 @@ body{
   box-shadow: .2em .2em .3em #d7c6b3 inset,.1em .1em .2em #4d3a25;  
 }
 
+.mainButton:hover{
+  box-shadow: .2em .2em .3em #d7c6b3 inset, 0 0 .3rem .1rem white;  
+}
+
+.mainButton:active{
+  box-shadow: .2em .2em .3em #d7c6b3 inset;  
+}
+
 .mainInput{
   border-color: silver;
   margin: .1em;

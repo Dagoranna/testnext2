@@ -1,7 +1,9 @@
 'use client';
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import { removeItemFromArray } from "../../../utils/generalUtils";
+import { useRootContext } from '../../../app/layout';
 import FormErrors from "../FormErrors";
+import stylesFormWrapper from "../FormWrapper.module.css";
 
 export default function AuthForm() {
   const [email, setEmail] = useState('');
@@ -10,9 +12,36 @@ export default function AuthForm() {
   const [rememberMe, setRememberMe] = useState(false);
   const [formMode, setFormMode] = useState('Login');//Login/Register/Reset password
   const [formLoginErrors, setFormLoginErrors] = useState([]);
+  const [formRegisterErrors, setFormRegisterErrors] = useState([]);
+  const [formResetPassErrors, setFormResetPassErrors] = useState([]);
+  const [actionResult, setActionResult] = useState(false);
+  const [actionMessage, setActionMessage] = useState('');
+
+  const { loginState, setLoginState } = useRootContext();
 
   useEffect(() => {
-    let errors = [...formLoginErrors];
+    setFormLoginErrors([]);
+    setFormRegisterErrors([]);
+    setFormResetPassErrors([]);
+    setEmail('');
+    setPassword('');
+    setPassword2('');
+    setRememberMe(false);    
+  }, [formMode]);
+
+  useEffect(() => {
+    let errors = [];
+    switch (formMode) {
+      case 'Login':
+        errors = [...formLoginErrors];
+        break;
+      case 'Register':
+        errors = [...formRegisterErrors];
+        break;
+      case 'Reset password':
+        errors = [...formResetPassErrors];
+        break;
+    }
     
     //email checks
     if (email.trim() === "" && !errors.includes('Email is empty')) {
@@ -29,18 +58,40 @@ export default function AuthForm() {
       errors = removeItemFromArray(errors,'Invalid email');
     }  
 
-    //password checks
-    if (password.trim() === "" && !errors.includes('Password is empty')) {
-      errors.push('Password is empty');
+    if (formMode !== 'Reset password'){
+      //password checks
+      if (password.trim() === "" && !errors.includes('Password is empty')) {
+        errors.push('Password is empty');
+      }
+      if (password.trim() !== "" && errors.includes('Password is empty')) {
+        errors = removeItemFromArray(errors,'Password is empty');
+      }    
     }
-    if (password.trim() !== "" && errors.includes('Password is empty')) {
-      errors = removeItemFromArray(errors,'Password is empty');
-    }    
-  
-    setFormLoginErrors(errors);
-  }, [email, password]);
 
-  
+    //second password checks
+    if (formMode === 'Register'){
+      if (password2.trim() !== password.trim() && !errors.includes('Passwords do not match')) {
+        errors.push('Passwords do not match');
+      }
+      if (password2.trim() === password.trim() && errors.includes('Passwords do not match')) {
+        errors = removeItemFromArray(errors,'Passwords do not match');
+      }
+    }
+
+    switch (formMode) {
+      case 'Login':
+        setFormLoginErrors(errors);
+        break;
+      case 'Register':
+        setFormRegisterErrors(errors);
+        break;
+      case 'Reset password':
+        setFormResetPassErrors(errors);
+        break;
+    }
+
+  }, [email, password, password2, formMode]);
+
   async function handleSubmit(e){
     e.preventDefault();
     console.log(formMode);
@@ -66,9 +117,19 @@ export default function AuthForm() {
         const baseResponse = await response.json();
 
         if (response.ok) {
-          console.table(baseResponse);
+          if (baseResponse.loginState === true){
+            //TODO: logged in
+            setLoginState(true);
+            console.log(baseResponse.message);
+            setActionMessage(baseResponse.message);
+            setActionResult(true);
+          } else {
+            setLoginState(false);
+            console.log(baseResponse.message);
+            setActionMessage(baseResponse.message);
+            setActionResult(false);
+          }
         } else {
-          console.table(response);
           throw new Error('error in database response');
         }
 
@@ -86,6 +147,7 @@ export default function AuthForm() {
     <form id='authForm' onSubmit={handleSubmit}>
       <div id='authInputFields'>
         <div className='tableTitle'>{ formMode }</div>
+        <div className={ actionResult ? stylesFormWrapper.actionSuccess : stylesFormWrapper.actionFail }>{ actionMessage }</div>
         <input 
           type="email"
           placeholder="Email"
@@ -123,9 +185,19 @@ export default function AuthForm() {
               />
               Remember me
             </label>   
-            <FormErrors formErrors={formLoginErrors} />
           </div>  
         )}
+
+        {(formMode == 'Login') && ( 
+          <FormErrors formErrors={formLoginErrors} />
+        )}
+        {(formMode == 'Register') && ( 
+          <FormErrors formErrors={formRegisterErrors} />
+        )}
+        {(formMode == 'Reset password') && ( 
+          <FormErrors formErrors={formResetPassErrors} />
+        )}                
+
         <button id='authButton' className="mainButton" type="submit">{ formMode }</button>
       </div>
       <div id='authSwitchers'>
@@ -160,111 +232,3 @@ export default function AuthForm() {
     </form>
   );
 }
-/*
-export default function AuthForm2() {
-  const [isRegister, setIsRegister] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [password2, setPassword2] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
-  const [message, setMessage] = useState("");
-
-  async function handleSubmit(e){
-    e.preventDefault();
-
-    if (isRegister) {
-      // Регистрация через Supabase
-      const { data, error: checkError } = await supabase
-      .from('users')  // Используем таблицу 'users' для поиска email
-      .select('email')
-      .eq('email', email)
-      .single();
-      
-      if (checkError && checkError.code === 'PGRST116') {
-        const { error } = await supabase.auth.signUp({ email, password });
-        if (error) {
-          console.log(error);
-          setMessage("Registration failed: " + error.message);
-          return;
-        }
-        setMessage("Registration successful! Please check your email.");
-        return;
-      } else {
-        console.log(checkError);
-        setMessage("Email is already registered.");
-        return;
-      } 
-    }
-
-    // Вход через NextAuth
-    const result = await signIn("credentials", {
-      redirect: false,
-      email,
-      password,
-      remember: rememberMe, // Передаём состояние галочки
-    });
-
-    if (result.error) {
-      setMessage("Login failed: " + result.error);
-    } else {
-      setMessage("Login successful!");
-    }
-  };
-
-  async function handleResetPassword(){
-    const { error } = await supabase.auth.resetPasswordForEmail(email);
-    if (error) {
-      setMessage("Reset failed: " + error.message);
-    } else {
-      setMessage("Password reset email sent!");
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <h2>{isRegister ? "Register" : "Login"}</h2>
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-        className="mainInput"
-      />
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        required
-        className="mainInput"
-      />
-
-      {!isRegister && (
-        <label>
-          <input
-            type="checkbox"
-            checked={rememberMe}
-            onChange={() => setRememberMe(!rememberMe)}
-          />
-          Remember me
-        </label>
-      )}
-      <button className="mainButton" type="submit">{isRegister ? "Register" : "Login"}</button>
-      <button
-        type="button"
-        className="mainButton"
-        onClick={() => setIsRegister((prev) => !prev)}
-      >
-        Switch to {isRegister ? "Login" : "Register"}
-      </button>
-      {!isRegister && (
-        <button type="button" className="mainButton" onClick={handleResetPassword}>
-          Reset Password
-        </button>
-      )}
-      {message && <p>{message}</p>}
-    </form>
-  );
-}
-*/

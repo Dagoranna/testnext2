@@ -8,14 +8,15 @@
   box-shadow: .2em .2em .1em #444;
   margin-left: .2em;
   margin-top: .2em;
+  padding-top: 1.4rem;
 }
 
 .closeButton{
   position: absolute;
   right: 0;
   top: 0;
-  width: 1.3em;
-  height: 1.3em;
+  width: 1.3rem;
+  height: 1.3rem;
   background-color: #caa67e;
   color: black;
   background-color: transparent;
@@ -26,4 +27,18 @@
   border-top: none;
   border-right: none;
   cursor: pointer;
+}
+
+.actionFail{
+  color: #F44336;
+  font-style: normal;
+  font-size: .8rem;
+  font-family: arial;
+}
+
+.actionSuccess{
+  color: #4CAF50;
+  font-style: normal;
+  font-size: .8rem;
+  font-family: arial;
 }
