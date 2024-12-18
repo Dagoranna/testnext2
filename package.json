@@ -11,6 +11,8 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.47.3",
     "next": "15.0.4",
+    "next-cookies": "^2.0.3",
+    "nodemailer": "^6.9.16",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "sass": "^1.82.0"

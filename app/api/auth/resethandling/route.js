@@ -8,38 +8,37 @@ const supabase = createClient(
 );
 
 export async function POST(req) {
-  const body = await req.json(); 
+  const body = await req.json();
   const { email, password } = body;
 
   const baseData = await getUser(email);
   
   if (baseData === null){
-    return NextResponse.json({ message: 'Database error', registerState: false }, { status: 500 });  
+    return NextResponse.json({ message: 'Database error', resetHandlingState: false }, { status: 500 });  
   }
 
-  if (baseData.length !== 0){
-    return NextResponse.json({ message: 'User already exists', registerState: false }, { status: 200 });  
+  if (baseData.length === 0){
+    return NextResponse.json({ message: 'No such user', resetHandlingState: false }, { status: 200 });  
   } else {
     const hashedpass = await makeHash(password);
     const token = await makeHash(email+password);
 
-    const regAttempt = await saveUserToBase(email,hashedpass,token);
+    const resetAttempt = await saveNewPass(email,hashedpass,token);
 
-    if (regAttempt){
-      return NextResponse.json({ message: 'Registration successful', registerState: true }, { status: 200 });
+    if (resetAttempt){
+      return NextResponse.json({ message: 'Password successfully changed', resetHandlingState: true }, { status: 200 });
     } else {
-      return NextResponse.json({ message: 'Registration failed', registerState: false }, { status: 200 });
+      return NextResponse.json({ message: 'Password reset failed', resetHandlingState: false }, { status: 200 });
     }
   }
    
 }
 
-async function saveUserToBase(email,password,token) {
+async function saveNewPass(email,password,token) {
   const { error } = await supabase
     .from('advancedauth')
-    .insert([
-      { email: email, passwordhash: password, authtoken: token }
-    ]);
+    .update({ passwordhash: password, authtoken: token })    
+    .eq('email', email);  
          
   if (error) {
     console.error('Error:', error);

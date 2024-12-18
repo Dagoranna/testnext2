@@ -17,12 +17,13 @@ export default function AuthForm() {
   const [actionResult, setActionResult] = useState(false);
   const [actionMessage, setActionMessage] = useState('');
 
-  const { loginState, setLoginState } = useRootContext();
+  const { loginState, setLoginState, setUserEmail } = useRootContext();
 
   useEffect(() => {
     setFormLoginErrors([]);
     setFormRegisterErrors([]);
     setFormResetPassErrors([]);
+    setActionMessage('');
     setEmail('');
     setPassword('');
     setPassword2('');
@@ -96,13 +97,50 @@ export default function AuthForm() {
     e.preventDefault();
     console.log(formMode);
     switch (formMode) {
-      case 'Login': 
+      case 'Login': {
         if (formLoginErrors.length !== 0) {
           console.log(formLoginErrors);
           break;
         }
 
-        const response = await fetch('/api/auth/login', {
+        let response = await fetch('/api/auth/login', {
+          method: 'POST', 
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            callbackUrl: '/', 
+            email: email, 
+            password: password, 
+          }),
+        });
+
+        let baseResponse = await response.json();
+
+        if (response.ok) {
+          if (baseResponse.loginState === true){
+            setLoginState(true);
+            console.log(baseResponse.message);
+            setActionMessage(baseResponse.message);
+            console.log('email = '+ email);
+            setUserEmail(email);
+            setActionResult(true);
+          } else {
+            setLoginState(false);
+            console.log(baseResponse.message);
+            setActionMessage(baseResponse.message);
+            setActionResult(false);
+          }
+        } else {
+          throw new Error('error in database response');
+        }
+
+        break;
+      }
+      case 'Register': {
+        if (formRegisterErrors.length !== 0) break;
+
+        const response = await fetch('/api/auth/register', {
           method: 'POST', 
           headers: {
             'Content-Type': 'application/json',
@@ -117,14 +155,45 @@ export default function AuthForm() {
         const baseResponse = await response.json();
 
         if (response.ok) {
-          if (baseResponse.loginState === true){
-            //TODO: logged in
-            setLoginState(true);
+          if (baseResponse.registerState === true){
+            //TODO: register successful logic
+            setActionMessage(baseResponse.message);
+            setActionResult(true);
+          } else {
+            setActionMessage(baseResponse.message);
+            setActionResult(false);
+          }
+        } else {
+          throw new Error('error in database response');
+        }        
+        break;
+      }
+      case 'Reset password':{
+        if (formResetPassErrors.length !== 0) {
+          console.log(formResetPassErrors);
+          break;
+        }
+
+        let response = await fetch('/api/auth/resetpass', {
+          method: 'POST', 
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            callbackUrl: '/', 
+            email: email, 
+          }),
+        });
+
+        let baseResponse = await response.json();
+
+        if (response.ok) {
+          if (baseResponse.resetPassState === true){
+            //TODO: reset mail sent
             console.log(baseResponse.message);
             setActionMessage(baseResponse.message);
             setActionResult(true);
           } else {
-            setLoginState(false);
             console.log(baseResponse.message);
             setActionMessage(baseResponse.message);
             setActionResult(false);
@@ -134,10 +203,7 @@ export default function AuthForm() {
         }
 
         break;
-      case 'Register':
-        break;
-      case 'Reset password':
-        break;
+      }
       default: 
         console.log('some trash in formMode: ' + formMode);  
     } 

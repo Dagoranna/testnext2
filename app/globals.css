@@ -61,3 +61,8 @@ body{
 .tableTitle{
   font-size: 1.5rem;
 }
+
+.verticalForm{
+  display: flex;
+  flex-direction: column;
+}

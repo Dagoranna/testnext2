@@ -3,8 +3,8 @@
 import { useState } from "react";
 import styles from './FormWrapper.module.css';
 
-export default function formWrapper({ formName,children }) {
-  const [isOpen, setIsOpen] = useState(false);
+export default function formWrapper({ formName,children,isFormOpen = false }) {
+  const [isOpen, setIsOpen] = useState(isFormOpen);
   let buttonId = formName.replace(/\s+/g, '') + 'Button';
   let closeId = formName.replace(/\s+/g, '') + 'FormClose';
 

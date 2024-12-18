@@ -1,6 +1,7 @@
 import { makeHash } from '../../../../utils/generalUtils.js';
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from 'next/server';
+import { cookies, headers } from 'next/headers';
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -8,7 +9,7 @@ const supabase = createClient(
 );
 
 export async function POST(req) {
-  const body = await req.json(); // Парсинг тела запроса
+  const body = await req.json();
   const { email, password } = body;
 
   const baseData = await getPass(email);
@@ -28,29 +29,45 @@ export async function POST(req) {
     } else {
       const baseTokenData = await getToken(email); 
 
-      if (baseTokenData.length === 0){
+      if (baseTokenData[0].authtoken === ''){
         const token = await makeHash(email+password);
         const setTokenAttempt = await writeTokenToBase(email,token);
 
         if (setTokenAttempt){
-          return NextResponse.json({ message: 'login successful', loginState: true, token: token }, { status: 200 });
+          const expirationDate = new Date();
+          expirationDate.setFullYear(expirationDate.getFullYear() + 5);
+      
+          const response = NextResponse.json({ message: 'login successful, token saved', loginState: true }, { status: 200 });
+
+          response.headers.append(
+            'Set-Cookie',
+            `token=${token}; Path=/; HttpOnly; Secure; Expires=${expirationDate.toUTCString()}`
+          );   
+          response.headers.append(
+            'Set-Cookie',
+            `email=${email}; Path=/; HttpOnly; Secure; Expires=${expirationDate.toUTCString()}`
+          );            
+      
+          return response;
         } else {
           return NextResponse.json({ message: 'problem with token setting', loginState: false }, { status: 200 });
         }
 
       } else {
-        const token = baseTokenData[0].authtoken;
-        return NextResponse.json({ message: 'login successful', loginState: true, token: token }, { status: 200 });
+        //const token = baseTokenData[0].authtoken;
+        return NextResponse.json({ message: 'login successful, token already exists', loginState: true }, { status: 200 });
       }
     }
   }
 }
 
 async function writeTokenToBase(email,token) {
-  const { error } = await supabase
+
+  const { data, error } = await supabase
     .from('advancedauth')
     .update({ authtoken: token })    
-    .eq('email', email);           
+    .eq('email', email);    
+    
   if (error) {
     console.error('Error:', error);
     return false;

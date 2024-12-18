@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import './globals.css';
 import Head from 'next/head';
 import FormWrapper from '../components/forms/FormWrapper';
@@ -11,6 +11,61 @@ export const useRootContext = () => useContext(RootContext);
 
 export default function RootLayout({ children }) {
   const [loginState, setLoginState] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
+
+  useEffect(() => {
+  
+    async function checkAuthToken(){
+      let response = await fetch('/api/auth/checkauthtoken', {
+        method: 'POST', 
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });  
+
+      let baseResponse = await response.json();
+
+      if (response.ok) {
+        if (baseResponse.tokenState === 1){
+          setLoginState(true);
+          setUserEmail(baseResponse.email);
+          console.log(baseResponse.message);
+        } else {
+          console.log(baseResponse.message);
+        }
+      } else {
+        throw new Error('error in database response');
+      }      
+    }
+
+    checkAuthToken();
+
+  },[]);
+
+  async function handleLogout(){
+      let response = await fetch('/api/auth/deleteauthtoken', {
+      method: 'POST', 
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: userEmail, 
+      }),
+    });  
+
+    let baseResponse = await response.json();
+
+    if (response.ok) {
+      if (baseResponse.logoutState === 1){
+        setLoginState(false);
+        setUserEmail('');
+      } else {
+        console.log(baseResponse.message);
+      }
+    } else {
+      throw new Error('error in database response');
+    }  
+  }
 
   return (
     <html lang="en">
@@ -21,12 +76,17 @@ export default function RootLayout({ children }) {
         <RootContext.Provider
           value={{
             loginState,
-            setLoginState
+            setLoginState,
+            userEmail,
+            setUserEmail
           }}
         >          
-          <FormWrapper formName='Login'>
+          {!loginState && (<FormWrapper formName='Login'>
             <AuthForm />
-          </FormWrapper>
+          </FormWrapper>)}
+          {loginState && (
+            <button id='logoutButton' className="mainButton" onClick={handleLogout} >Logout</button>
+          )}
           <div>
             {children}
           </div>
