@@ -112,6 +112,7 @@ export default function AuthForm() {
             callbackUrl: '/', 
             email: email, 
             password: password, 
+            rememberMe: rememberMe,
           }),
         });
 
