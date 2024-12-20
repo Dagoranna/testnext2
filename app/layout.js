@@ -5,6 +5,7 @@ import './globals.css';
 import Head from 'next/head';
 import FormWrapper from '../components/forms/FormWrapper';
 import AuthForm from '../components/forms/AuthForm/AuthForm';
+import TopPanel from '../components/TopPanel';
 
 const RootContext = createContext();
 export const useRootContext = () => useContext(RootContext);
@@ -12,6 +13,7 @@ export const useRootContext = () => useContext(RootContext);
 export default function RootLayout({ children }) {
   const [loginState, setLoginState] = useState(false);
   const [userEmail, setUserEmail] = useState('');
+  const [userRole, setUserRole] = useState('Gamer');
 
   useEffect(() => {
   
@@ -78,15 +80,18 @@ export default function RootLayout({ children }) {
             loginState,
             setLoginState,
             userEmail,
-            setUserEmail
+            setUserEmail,
+            userRole, 
+            setUserRole
           }}
-        >          
+        >     
           {!loginState && (<FormWrapper formName='Login'>
             <AuthForm />
           </FormWrapper>)}
           {loginState && (
             <button id='logoutButton' className="mainButton" onClick={handleLogout} >Logout</button>
           )}
+          <TopPanel />
           <div>
             {children}
           </div>

@@ -52,6 +52,14 @@ body{
   flex-direction: column;
 }
 
+#LoginButton{
+  position: absolute;
+}
+
+#logoutButton{
+  position: absolute;
+}
+
 .switcher{
   margin: .1em;
   text-decoration: underline;
@@ -65,4 +73,8 @@ body{
 .verticalForm{
   display: flex;
   flex-direction: column;
+}
+
+ul{
+  list-style-type: none;
 }

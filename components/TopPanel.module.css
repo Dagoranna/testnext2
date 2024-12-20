@@ -1,0 +1,7 @@
+.topPanel{
+  display: flex;
+  justify-content: flex-end;
+  height: 2rem;
+  border: 2px solid #a9855d;
+  padding: .2rem;
+}
