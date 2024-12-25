@@ -44,31 +44,6 @@ export default function RootLayout({ children }) {
 
   },[]);
 
-  async function handleLogout(){
-      let response = await fetch('/api/auth/deleteauthtoken', {
-      method: 'POST', 
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email: userEmail, 
-      }),
-    });  
-
-    let baseResponse = await response.json();
-
-    if (response.ok) {
-      if (baseResponse.logoutState === 1){
-        setLoginState(false);
-        setUserEmail('');
-      } else {
-        console.log(baseResponse.message);
-      }
-    } else {
-      throw new Error('error in database response');
-    }  
-  }
-
   return (
     <html lang="en">
       <Head>
@@ -88,9 +63,6 @@ export default function RootLayout({ children }) {
           {!loginState && (<FormWrapper formName='Login'>
             <AuthForm />
           </FormWrapper>)}
-          {loginState && (
-            <button id='logoutButton' className="mainButton" onClick={handleLogout} >Logout</button>
-          )}
           <TopPanel />
           <div>
             {children}
@@ -100,3 +72,5 @@ export default function RootLayout({ children }) {
     </html>
   )
 }
+
+
