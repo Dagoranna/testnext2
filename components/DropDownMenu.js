@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import styles from './DropDownMenu.module.css';
+import MenuItemButton from './menu_items/MenuItemButton';
+import MenuItemSwitcher from './menu_items/MenuItemSwitcher';
 
 export default function DropDownMenu({id, title, itemsList = []}) {
   const [hasMouse, setHasMouse] = useState(false);
@@ -19,11 +21,16 @@ export default function DropDownMenu({id, title, itemsList = []}) {
   const handleMouseLeave = () => setIsOpen(false);
   const toggleMenu = () => setIsOpen(!isOpen);
 
-  const preparedList = itemsList.map(({ itemname, itemHandling }, id) => (
-    <li key={ id } onClick={itemHandling} className={styles.dropDownMenuItem}>
-      { itemname }
-    </li>
-  ));
+  const preparedList = itemsList.map(({ 
+    itemName, 
+    itemType,
+    itemHandling, 
+    startState=false 
+    }, itemId) => itemType === 'button' ? (
+      <MenuItemButton key={itemId} name={itemName} clickHandle={itemHandling} />
+    ) : (
+      <MenuItemSwitcher key={itemId} name={itemName} clickHandle={itemHandling} startState={startState} />
+    ));
 
   return (
     <div 
@@ -34,7 +41,7 @@ export default function DropDownMenu({id, title, itemsList = []}) {
       onClick={!hasMouse ? toggleMenu : null}
     >
       <div className={styles.dropDownMenuTitle}>{ title }</div>
-      {isOpen && <ul className={styles.dropDownMenuList}> { preparedList } </ul>}
+      {isOpen && <div className={styles.dropDownMenuList}> { preparedList } </div>}
     </div>
   );
 }

@@ -4,12 +4,23 @@ import styles from './RoleSwitcher.module.css';
 import { useRootContext } from '../app/layout';
 
 export default function RoleSwitcher() {
-  const { userRole,setUserRole } = useRootContext();
+  const { userRole,setUserRole,layout,setLayout } = useRootContext();
 
   function switchRole(role){
     if (userRole !== role){
       setUserRole(role);
     }
+    if (role === 'Master'){
+      setLayout([
+        { i: 'Game Map', x: 0, y: 0, w: 5, h: 15},
+      ]);
+    } else {
+      setLayout([
+        { i: 'Game Map', x: 0, y: 0, w: 5, h: 15},
+        { i: 'Polydice', x: 0, y: 0, w: 5, h: 15},
+      ]);
+    }
+
   }
 
   return (

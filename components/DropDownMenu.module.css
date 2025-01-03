@@ -26,6 +26,13 @@
   cursor: pointer;
 }
 
+.dropDownMenuSwitcher{
+  border: 1px solid #caa67e;
+  padding: .2rem;
+  text-align: center;
+  cursor: pointer;
+}
+
 .dropDownMenuItem:hover{
   box-shadow: 0 0 2px 2px #caa67e inset;
   border: 1px solid #836c51;

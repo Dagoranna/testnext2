@@ -15,6 +15,11 @@ export default function RootLayout({ children }) {
   const [userEmail, setUserEmail] = useState('');
   const [userRole, setUserRole] = useState('Gamer');
 
+  const [layout, setLayout] = useState([
+    { i: 'Game Map', x: 0, y: 0, w: 5, h: 15},
+    { i: 'Polydice', x: 0, y: 0, w: 5, h: 15},
+  ]);
+
   useEffect(() => {
   
     async function checkAuthToken(){
@@ -57,7 +62,9 @@ export default function RootLayout({ children }) {
             userEmail,
             setUserEmail,
             userRole, 
-            setUserRole
+            setUserRole,
+            layout, 
+            setLayout
           }}
         >     
           {!loginState && (<FormWrapper formName='Login'>

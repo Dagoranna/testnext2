@@ -54,6 +54,7 @@ body{
 
 #LoginButton{
   position: absolute;
+  z-index: 1001;
 }
 
 #logoutButton{

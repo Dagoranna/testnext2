@@ -5,25 +5,68 @@ import { useRootContext } from '../app/layout';
 import RoleSwitcher from './RoleSwitcher';
 
 export default function TopPanel() {
+  const { loginState, setLoginState, userEmail,setUserEmail, userRole, layout, setLayout } = useRootContext();
+
   const itemsListGamer = [
-    { itemname: 'Create charsheet', itemHandling: (e) => console.log('Create charsheet') },
-    { itemname: 'Load charsheet', itemHandling: (e) => console.log('Load charsheet') },
-    { itemname: 'Logout', itemHandling: async (e) => await handleLogout() },
+    { itemName: 'Create charsheet', itemType: 'button', itemHandling: (e) => console.log('Create charsheet') },
+    { itemName: 'Load charsheet', itemType: 'button', itemHandling: (e) => console.log('Load charsheet') },
+    { itemName: 'Logout', itemType: 'button', itemHandling: async (e) => await handleLogout() },
   ];
 
   const itemsListMaster = [
-    { itemname: 'Create map', itemHandling: (e) => console.log('Create map') },
-    { itemname: 'Load map', itemHandling: (e) => console.log('Load map') },
-    { itemname: 'Save map', itemHandling: (e) => console.log('Save map') },
-    { itemname: 'Create game table', itemHandling: (e) => console.log('Create game table') },
-    { itemname: 'Load game table', itemHandling: (e) => console.log('Load game table') },
-    { itemname: 'Save game table', itemHandling: (e) => console.log('Save game table') },   
-    { itemname: 'Logout', itemHandling: async (e) => await handleLogout() },
+    { itemName: 'Create map', itemType: 'button', itemHandling: (e) => console.log('Create map') },
+    { itemName: 'Load map', itemType: 'button', itemHandling: (e) => console.log('Load map') },
+    { itemName: 'Save map', itemType: 'button', itemHandling: (e) => console.log('Save map') },
+    { itemName: 'Logout', itemType: 'button', itemHandling: async (e) => await handleLogout() },
   ];  
 
-  
+  /*  const [layout, setLayout] = useState([
+      { i: 'Game Map', x: 0, y: 0, w: 5, h: 15},
+      { i: 'Polydice', x: 0, y: 0, w: 5, h: 15},
+    ]);*/
 
-  const { loginState, setLoginState, userEmail,setUserEmail, userRole } = useRootContext();
+  function toggleWindow(item){
+    const windowsList = layout.filter((window) => window.i !== item);
+    
+    if (layout.length == windowsList.length){
+      windowsList.push({ i: item, x: 0, y: 0, w: 5, h: 15});
+    }
+    setLayout(windowsList);
+  }
+
+  const windowsListGamer = [
+    { itemName: 'Game Map', 
+      itemType: 'switcher', 
+      itemHandling: (e) => {
+        toggleWindow('Game Map');
+      },
+      startState: layout.find((item) => item.i === 'Game Map'), 
+    },
+    { itemName: 'Polydice', 
+      itemType: 'switcher', 
+      itemHandling: (e) => {
+        toggleWindow('Polydice');
+      },
+      startState: layout.find((item) => item.i === 'Polydice'),
+    },
+    { itemName: 'Charsheet', 
+      itemType: 'switcher', 
+      itemHandling: (e) => {
+        toggleWindow('Charsheet');
+      },
+      startState: layout.find((item) => item.i === 'Charsheet'),
+    },    
+  ];
+
+  const windowsListMaster = [
+    { itemName: 'Game Map', 
+      itemType: 'switcher', 
+      itemHandling: (e) => {
+        toggleWindow('Game Map');
+      },
+      startState: layout.find((item) => item.i === 'Game Map'), 
+    }    
+  ];    
 
   async function handleLogout(){
     let response = await fetch('/api/auth/deleteauthtoken', {
@@ -53,11 +96,17 @@ export default function TopPanel() {
   return (
     <div id='topPanel' className={styles.topPanel}>
       {loginState && (userRole == 'Gamer') && ( 
-        <DropDownMenu id='mainMenu' title='Main menu' itemsList={ itemsListGamer } />
+        <>
+          <DropDownMenu id='mainMenu' title='Main menu' itemsList={ itemsListGamer } />
+          <DropDownMenu id='zoneMenu' title='Windows' itemsList={ windowsListGamer } />
+        </>
       )}
       {loginState && (userRole == 'Master') && ( 
-        <DropDownMenu id='mainMenu' title='Main menu' itemsList={ itemsListMaster } />
-      )}      
+        <>
+          <DropDownMenu id='mainMenu' title='Main menu' itemsList={ itemsListMaster } />
+          <DropDownMenu id='zoneMenu' title='Windows' itemsList={ windowsListMaster } />
+        </>
+      )}   
       {loginState && (
         <RoleSwitcher />
       )} 
