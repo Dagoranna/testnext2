@@ -1,0 +1,10 @@
+.winTitle{
+  position: absolute;
+  align-self: flex-end;
+  color: white;
+  padding: .2rem;
+  background: #a9855d; 
+  border-bottom: 2px solid #dac1a5;
+  border-left: 2px solid #dac1a5;
+  font-size: .8rem;
+}

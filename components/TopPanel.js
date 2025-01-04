@@ -20,16 +20,18 @@ export default function TopPanel() {
     { itemName: 'Logout', itemType: 'button', itemHandling: async (e) => await handleLogout() },
   ];  
 
-  /*  const [layout, setLayout] = useState([
-      { i: 'Game Map', x: 0, y: 0, w: 5, h: 15},
-      { i: 'Polydice', x: 0, y: 0, w: 5, h: 15},
-    ]);*/
-
   function toggleWindow(item){
     const windowsList = layout.filter((window) => window.i !== item);
-    
     if (layout.length == windowsList.length){
-      windowsList.push({ i: item, x: 0, y: 0, w: 5, h: 15});
+      const storedLayout = localStorage.getItem('layout');
+      let currentWindowInfo = {};
+      if (storedLayout) {
+        const parsedLayout = JSON.parse(storedLayout);
+        const currentWindowInfo = parsedLayout.find((l) => l.i === item);
+        currentWindowInfo ? windowsList.push(currentWindowInfo) : windowsList.push({ i: item, x: 0, y: 0, w: 5, h: 15});
+      } else {
+        windowsList.push({ i: item, x: 0, y: 0, w: 5, h: 15});
+      }
     }
     setLayout(windowsList);
   }

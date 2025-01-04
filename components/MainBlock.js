@@ -7,6 +7,7 @@ import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import styles from "./MainBlock.module.css";
 import { useRootContext } from '../app/layout';
+import WindowComponent from './windows/WindowComponent';
 
 const GridLayout = WidthProvider(Responsive);
 
@@ -16,8 +17,21 @@ export default function MainBlock() {
   const cols = { lg: 10, md: 6, sm: 2, xs: 1, xxs: 1 };
 
   const winArray = layout.map((item) => {
-    return <div key={item.i} className={`${styles.floatingBlock} react-grid-item`}>{item.i}</div>
+    return ( 
+      <div 
+        key={item.i} 
+        className={`${styles.floatingBlock} react-grid-item`}
+      >
+        <WindowComponent title={item.i} />
+      </div>
+    )
   }); 
+
+  useEffect(() => {
+    const storedLayout = localStorage.getItem('layout');
+    console.log();
+    if (storedLayout) setLayout(JSON.parse(storedLayout));
+  },[]);
 
   return (
     <GridLayout
@@ -29,12 +43,12 @@ export default function MainBlock() {
       onResizeStop={(layout, oldItem, newItem) => {
         const updatedElement = layout.find((item) => item.i === newItem.i);
         console.log("Updated element:", updatedElement);
-        //тут может быть сохранение состояния, например, в localstorage
+        localStorage.setItem('layout', JSON.stringify(layout));
       }}
       onDragStop={(layout, oldItem, newItem) => {
         const updatedElement = layout.find((item) => item.i === newItem.i);
         console.log("Updated element:", updatedElement);
-        //тут может быть сохранение состояния, например, в localstorage
+        localStorage.setItem('layout', JSON.stringify(layout));
       }}      
     >
       {winArray}

@@ -14,6 +14,10 @@ export default function RootLayout({ children }) {
   const [loginState, setLoginState] = useState(false);
   const [userEmail, setUserEmail] = useState('');
   const [userRole, setUserRole] = useState('Gamer');
+  const [winList, setWinList] = useState({
+    'Gamer':['Game Map','Polydice','Charsheet'],
+    'Master':['Game Map']
+  });
 
   const [layout, setLayout] = useState([
     { i: 'Game Map', x: 0, y: 0, w: 5, h: 15},
@@ -64,7 +68,8 @@ export default function RootLayout({ children }) {
             userRole, 
             setUserRole,
             layout, 
-            setLayout
+            setLayout,
+            winList
           }}
         >     
           {!loginState && (<FormWrapper formName='Login'>

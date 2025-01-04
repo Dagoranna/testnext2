@@ -1,0 +1,5 @@
+.winFrame{
+  display: flex;
+  flex-direction: column;
+  
+}
