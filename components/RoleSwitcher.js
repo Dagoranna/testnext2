@@ -18,7 +18,7 @@ export default function RoleSwitcher() {
       const parsedLayout = JSON.parse(storedLayout);
 
       parsedLayout.map((l) => {
-        if (winList[role].includes(l.i)) {
+        if (winList[role][l]) {
           currentWindowsInfo.push(l);
         }
       });

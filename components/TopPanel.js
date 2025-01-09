@@ -5,7 +5,7 @@ import { useRootContext } from '../app/layout';
 import RoleSwitcher from './RoleSwitcher';
 
 export default function TopPanel() {
-  const { loginState, setLoginState, userEmail,setUserEmail, userRole, layout, setLayout } = useRootContext();
+  const { loginState, setLoginState, userEmail,setUserEmail, userRole, layout, setLayout, winList, setWinList } = useRootContext();
 
   const itemsListGamer = [
     { itemName: 'Create charsheet', itemType: 'button', itemHandling: (e) => console.log('Create charsheet') },
@@ -21,19 +21,33 @@ export default function TopPanel() {
   ];  
 
   function toggleWindow(item){
-    const windowsList = layout.filter((window) => window.i !== item);
-    if (layout.length == windowsList.length){
-      const storedLayout = localStorage.getItem('layout');
-      let currentWindowInfo = {};
-      if (storedLayout) {
-        const parsedLayout = JSON.parse(storedLayout);
-        const currentWindowInfo = parsedLayout.find((l) => l.i === item);
-        currentWindowInfo ? windowsList.push(currentWindowInfo) : windowsList.push({ i: item, x: 0, y: 0, w: 5, h: 15});
-      } else {
-        windowsList.push({ i: item, x: 0, y: 0, w: 5, h: 15});
+    let tempWinList = structuredClone(winList);
+    let tempLayout = structuredClone(layout);
+
+    if (!winList[userRole][item]){
+      const currentLayout = tempLayout.find((l) => l.i === item);
+      if (currentLayout) {
+        tempLayout.splice(tempLayout.indexOf(tempLayout.find((l) => l.i === item)),1);
       }
+      //const currentLayout = false;
+      //if (!currentLayout){
+        const storedLayout = JSON.parse(localStorage.getItem('layout')).find((l) => l.i === item);
+        if (storedLayout) {
+          tempLayout.push(storedLayout);
+        } else {
+          tempLayout.push({ i: item, x: 0, y: 0, w: 5, h: 15});
+        }
+        setLayout(tempLayout);
+      //}
+
+      tempWinList[userRole][item] = true;
+    } else {
+      tempWinList[userRole][item] = false;
     }
-    setLayout(windowsList);
+
+    setWinList(tempWinList);
+    localStorage.setItem('winlist', JSON.stringify(tempWinList));
+    setLayout(tempLayout);
   }
 
   const windowsListGamer = [
@@ -42,21 +56,21 @@ export default function TopPanel() {
       itemHandling: (e) => {
         toggleWindow('Game Map');
       },
-      startState: layout.find((item) => item.i === 'Game Map'), 
+      startState: winList['Gamer']['Game Map']// && layout.find((item) => item.i === 'Game Map'), 
     },
     { itemName: 'Polydice', 
       itemType: 'switcher', 
       itemHandling: (e) => {
         toggleWindow('Polydice');
       },
-      startState: layout.find((item) => item.i === 'Polydice'),
+      startState: winList['Gamer']['Polydice']// && layout.find((item) => item.i === 'Polydice'),
     },
     { itemName: 'Charsheet', 
       itemType: 'switcher', 
       itemHandling: (e) => {
         toggleWindow('Charsheet');
       },
-      startState: layout.find((item) => item.i === 'Charsheet'),
+      startState: winList['Gamer']['Charsheet']// && layout.find((item) => item.i === 'Charsheet'),
     },    
   ];
 
@@ -66,7 +80,7 @@ export default function TopPanel() {
       itemHandling: (e) => {
         toggleWindow('Game Map');
       },
-      startState: layout.find((item) => item.i === 'Game Map'), 
+      startState: winList['Master']['Game Map']// && layout.find((item) => item.i === 'Game Map'), 
     }    
   ];    
 

@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useState, useEffect } from 'react';
 import './globals.css';
-import Head from 'next/head';
 import FormWrapper from '../components/forms/FormWrapper';
 import AuthForm from '../components/forms/AuthForm/AuthForm';
 import TopPanel from '../components/TopPanel';
@@ -15,8 +14,8 @@ export default function RootLayout({ children }) {
   const [userEmail, setUserEmail] = useState('');
   const [userRole, setUserRole] = useState('Gamer');
   const [winList, setWinList] = useState({
-    'Gamer':['Game Map','Polydice','Charsheet'],
-    'Master':['Game Map']
+    'Gamer':{'Game Map' : true, 'Polydice' : true,'Charsheet': true},
+    'Master':{'Game Map' : true, 'Polydice' : true,'Charsheet': false},
   });
 
   const [layout, setLayout] = useState([
@@ -52,12 +51,24 @@ export default function RootLayout({ children }) {
     checkAuthToken();
 
   },[]);
+  
+  useEffect(() => {
+    const storedWinList = localStorage.getItem('winlist');
+    console.log(storedWinList);
+    if (storedWinList){
+      setWinList(JSON.parse(storedWinList));
+    } else {
+      localStorage.setItem('winlist', JSON.stringify(winList));
+    }
+  },[]);
+
+  useEffect(() => {
+    const storedLayout = localStorage.getItem('layout');
+    if (storedLayout) setLayout(JSON.parse(storedLayout));
+  },[]);
 
   return (
     <html lang="en">
-      <Head>
-        <title>Farm</title>
-      </Head> 
       <body>
         <RootContext.Provider
           value={{
@@ -69,7 +80,8 @@ export default function RootLayout({ children }) {
             setUserRole,
             layout, 
             setLayout,
-            winList
+            winList,
+            setWinList,
           }}
         >     
           {!loginState && (<FormWrapper formName='Login'>

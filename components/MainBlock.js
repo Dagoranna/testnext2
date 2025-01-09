@@ -12,26 +12,23 @@ import WindowComponent from './windows/WindowComponent';
 const GridLayout = WidthProvider(Responsive);
 
 export default function MainBlock() {
-  const { layout, setLayout } = useRootContext();
+  const { layout, setLayout, winList, userRole } = useRootContext();
   const breakpoints = { lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 };
   const cols = { lg: 10, md: 6, sm: 2, xs: 1, xxs: 1 };
 
   const winArray = layout.map((item) => {
-    return ( 
-      <div 
-        key={item.i} 
-        className={`${styles.floatingBlock} react-grid-item`}
-      >
-        <WindowComponent title={item.i} />
-      </div>
-    )
+    if (winList[userRole][item.i]){
+      return ( 
+        <div 
+          key={item.i} 
+          className={`${styles.floatingBlock} react-grid-item`}
+        >
+          <WindowComponent title={item.i} />
+        </div>
+      )
+    }
   }); 
 
-  useEffect(() => {
-    const storedLayout = localStorage.getItem('layout');
-    console.log();
-    if (storedLayout) setLayout(JSON.parse(storedLayout));
-  },[]);
 
   return (
     <GridLayout
