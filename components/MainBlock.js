@@ -27,12 +27,6 @@ export default function MainBlock() {
     )
   }); 
 
-  useEffect(() => {
-    const storedLayout = localStorage.getItem('layout');
-    console.log();
-    if (storedLayout) setLayout(JSON.parse(storedLayout));
-  },[]);
-
   return (
     <GridLayout
       className="layout"
