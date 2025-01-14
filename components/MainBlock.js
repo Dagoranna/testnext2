@@ -29,7 +29,6 @@ export default function MainBlock() {
     }
   }); 
 
-
   return (
     <GridLayout
       className="layout"

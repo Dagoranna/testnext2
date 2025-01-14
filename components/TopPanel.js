@@ -5,7 +5,7 @@ import { useRootContext } from '../app/layout';
 import RoleSwitcher from './RoleSwitcher';
 
 export default function TopPanel() {
-  const { loginState, setLoginState, userEmail,setUserEmail, userRole, layout, setLayout, winList, setWinList } = useRootContext();
+  const { loginState, setLoginState, userEmail,setUserEmail, userRole, layout, setLayout, winList } = useRootContext();
 
   const itemsListGamer = [
     { itemName: 'Create charsheet', itemType: 'button', itemHandling: (e) => console.log('Create charsheet') },
@@ -21,13 +21,51 @@ export default function TopPanel() {
   ];  
 
   function toggleWindow(item){
-    let tempWinList = structuredClone(winList);
-    let tempLayout = structuredClone(layout);
+    console.log(item);
+    let currentWindowInfo = false;
+    const windowsList = layout.filter((window) => window.i !== item);
 
-    if (!winList[userRole][item]){
-      const currentLayout = tempLayout.find((l) => l.i === item);
-      if (currentLayout) {
-        tempLayout.splice(tempLayout.indexOf(tempLayout.find((l) => l.i === item)),1);
+    if (layout.length == windowsList.length){
+      //no such window, show it
+      console.log('show window');
+      const storedLayout = localStorage.getItem('layout');
+
+      if (storedLayout) {
+        const parsedLayout = JSON.parse(storedLayout);
+        currentWindowInfo = parsedLayout.find((l) => l.i === item);
+        console.log('4');
+        console.log(currentWindowInfo);
+      }
+
+      if (currentWindowInfo) {
+        windowsList.push(currentWindowInfo);
+        console.log('3');
+      } else {
+        const hiddenLayout = localStorage.getItem('hiddenLayout');
+        if (hiddenLayout) {
+          const parsedHiddenLayout = JSON.parse(hiddenLayout);
+          currentWindowInfo = parsedHiddenLayout.find((l) => l.i === item);
+          if (currentWindowInfo){
+            windowsList.push(currentWindowInfo);
+          } else {
+            console.log('1');
+            windowsList.push({ i: item, x: 0, y: 0, w: 5, h: 15});
+          }
+        } else {
+          console.log('2');
+          windowsList.push({ i: item, x: 0, y: 0, w: 5, h: 15});
+        }
+      }
+    } else {
+      console.log('hide window');
+      const winForHide = layout.find((window) => window.i === item);
+      console.log(winForHide);
+      const hiddenLayout = localStorage.getItem('hiddenLayout');
+      const parsedHiddenLayout = JSON.parse(hiddenLayout);
+      if (!parsedHiddenLayout.find((window) => window.i === item)) {
+        console.log('no saved window, saving...');
+        parsedHiddenLayout.push(winForHide);
+        localStorage.setItem('hiddenLayout', JSON.stringify(parsedHiddenLayout));
       }
       //const currentLayout = false;
       //if (!currentLayout){
@@ -40,49 +78,21 @@ export default function TopPanel() {
         setLayout(tempLayout);
       //}
 
-      tempWinList[userRole][item] = true;
-    } else {
-      tempWinList[userRole][item] = false;
     }
-
-    setWinList(tempWinList);
-    localStorage.setItem('winlist', JSON.stringify(tempWinList));
-    setLayout(tempLayout);
+    setLayout(windowsList);
+    localStorage.setItem('layout', JSON.stringify(windowsList));
   }
 
-  const windowsListGamer = [
-    { itemName: 'Game Map', 
+  const windowsList = winList[userRole].map((item)=>{
+    return { 
+      itemName: item, 
       itemType: 'switcher', 
-      itemHandling: (e) => {
-        toggleWindow('Game Map');
+      itemHandling: () => {
+        toggleWindow(item);
       },
-      startState: winList['Gamer']['Game Map']// && layout.find((item) => item.i === 'Game Map'), 
-    },
-    { itemName: 'Polydice', 
-      itemType: 'switcher', 
-      itemHandling: (e) => {
-        toggleWindow('Polydice');
-      },
-      startState: winList['Gamer']['Polydice']// && layout.find((item) => item.i === 'Polydice'),
-    },
-    { itemName: 'Charsheet', 
-      itemType: 'switcher', 
-      itemHandling: (e) => {
-        toggleWindow('Charsheet');
-      },
-      startState: winList['Gamer']['Charsheet']// && layout.find((item) => item.i === 'Charsheet'),
-    },    
-  ];
-
-  const windowsListMaster = [
-    { itemName: 'Game Map', 
-      itemType: 'switcher', 
-      itemHandling: (e) => {
-        toggleWindow('Game Map');
-      },
-      startState: winList['Master']['Game Map']// && layout.find((item) => item.i === 'Game Map'), 
-    }    
-  ];    
+      startState: layout.find((l) => l.i === item), 
+    }
+  });
 
   async function handleLogout(){
     let response = await fetch('/api/auth/deleteauthtoken', {
@@ -114,15 +124,18 @@ export default function TopPanel() {
       {loginState && (userRole == 'Gamer') && ( 
         <>
           <DropDownMenu id='mainMenu' title='Main menu' itemsList={ itemsListGamer } />
-          <DropDownMenu id='zoneMenu' title='Windows' itemsList={ windowsListGamer } />
         </>
       )}
       {loginState && (userRole == 'Master') && ( 
         <>
           <DropDownMenu id='mainMenu' title='Main menu' itemsList={ itemsListMaster } />
-          <DropDownMenu id='zoneMenu' title='Windows' itemsList={ windowsListMaster } />
         </>
       )}   
+      {loginState && ( 
+        <>
+          <DropDownMenu id='zoneMenu' title='Windows' itemsList={ windowsList } />
+        </>
+      )}       
       {loginState && (
         <RoleSwitcher />
       )} 

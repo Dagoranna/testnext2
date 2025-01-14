@@ -14,8 +14,8 @@ export default function RootLayout({ children }) {
   const [userEmail, setUserEmail] = useState('');
   const [userRole, setUserRole] = useState('Gamer');
   const [winList, setWinList] = useState({
-    'Gamer':{'Game Map' : true, 'Polydice' : true,'Charsheet': true},
-    'Master':{'Game Map' : true, 'Polydice' : true,'Charsheet': false},
+    'Gamer':['Game Map','Polydice','Charsheet'],
+    'Master':['Game Map','Polydice','Game Table']
   });
 
   const [layout, setLayout] = useState([
@@ -24,7 +24,6 @@ export default function RootLayout({ children }) {
   ]);
 
   useEffect(() => {
-  
     async function checkAuthToken(){
       let response = await fetch('/api/auth/checkauthtoken', {
         method: 'POST', 
@@ -65,6 +64,16 @@ export default function RootLayout({ children }) {
   useEffect(() => {
     const storedLayout = localStorage.getItem('layout');
     if (storedLayout) setLayout(JSON.parse(storedLayout));
+  },[]);
+
+  useEffect(() => {
+    const storedLayout = localStorage.getItem('layout');
+    if (storedLayout) setLayout(JSON.parse(storedLayout));
+
+    const hiddenLayout = localStorage.getItem('hiddenLayout');
+    if (!hiddenLayout){
+      localStorage.setItem('hiddenLayout', JSON.stringify(layout));
+    }
   },[]);
 
   return (
