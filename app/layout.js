@@ -76,6 +76,29 @@ export default function RootLayout({ children }) {
     }
   },[]);
 
+  useEffect(() => { 
+    console.log('layout was changed');
+    localStorage.setItem('layout', JSON.stringify(layout));
+    const hiddenLayout = JSON.parse(localStorage.getItem('hiddenLayout'));
+    const tempLayout = structuredClone(layout);
+
+    hiddenLayout.map((item) => {
+      let tempItem = tempLayout.find((l) => l.i === item.i);
+      if (tempItem){
+        item.x = tempItem.x;
+        item.y = tempItem.y;
+        item.w = tempItem.w;
+        item.h = tempItem.h;        
+      }
+    });
+
+    localStorage.setItem('hiddenLayout', JSON.stringify(hiddenLayout));
+
+    const activeWinList = layout.map((l) => l.i);
+    console.log(activeWinList);
+    localStorage.setItem(`activeWinList${userRole}`, JSON.stringify(activeWinList));
+  },[layout]);    
+
   return (
     <html lang="en">
       <body>

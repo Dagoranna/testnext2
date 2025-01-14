@@ -9,31 +9,27 @@ export default function RoleSwitcher() {
   function switchRole(role){
     if (userRole !== role){
       setUserRole(role);
-    }
+      console.log('role changed to ' + role);
+      const activeWins = JSON.parse(localStorage.getItem(`activeWinList${userRole}`));
+      console.log('activeWins: ');
+      console.log(activeWins);
+      const hiddenLayout = JSON.parse(localStorage.getItem('hiddenLayout'));
+      console.log('hiddenLayout:');
+      console.log(hiddenLayout);
+      const newLayout = [];
 
-    const storedLayout = localStorage.getItem('layout');
-    let currentWindowsInfo = [];
-
-    if (storedLayout) {
-      const parsedLayout = JSON.parse(storedLayout);
-
-      parsedLayout.map((l) => {
-        if (winList[role][l]) {
-          currentWindowsInfo.push(l);
+      activeWins.map((item) => {
+        //item = Polydice, etc
+        let layItem = hiddenLayout.find((l) => l.i === item);
+        if (layItem){
+          newLayout.push(hiddenLayout.find((l) => l.i === item));
+        } else {
+          newLayout.push({ i: item, x: 0, y: 0, w: 5, h: 15});
         }
       });
-      setLayout(currentWindowsInfo);
-    } else {
-      if (role === 'Master'){
-        setLayout([
-          { i: 'Game Map', x: 0, y: 0, w: 5, h: 15},
-        ]);
-      } else {
-        setLayout([
-          { i: 'Game Map', x: 0, y: 0, w: 5, h: 15},
-          { i: 'Polydice', x: 0, y: 0, w: 5, h: 15},
-        ]);
-      }      
+      console.log('newLayout');
+      console.log(newLayout);
+      setLayout(newLayout);
     }
   }
 

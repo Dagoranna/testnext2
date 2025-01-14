@@ -17,35 +17,30 @@ export default function MainBlock() {
   const cols = { lg: 10, md: 6, sm: 2, xs: 1, xxs: 1 };
 
   const winArray = layout.map((item) => {
-    if (winList[userRole][item.i]){
-      return ( 
-        <div 
-          key={item.i} 
-          className={`${styles.floatingBlock} react-grid-item`}
-        >
-          <WindowComponent title={item.i} />
-        </div>
-      )
-    }
+    return ( 
+      <div 
+        key={item.i} 
+        className={`${styles.floatingBlock} react-grid-item`}
+      >
+        <WindowComponent title={item.i} />
+      </div>
+    )
+
   }); 
 
   return (
     <GridLayout
       className="layout"
-      layouts={{ lg: layout }} 
-      breakpoints={breakpoints} 
-      cols={cols} 
+      layouts={{ lg: layout }}
+      breakpoints={breakpoints}
+      cols={cols}
       rowHeight={10}
-      onResizeStop={(layout, oldItem, newItem) => {
-        const updatedElement = layout.find((item) => item.i === newItem.i);
-        console.log("Updated element:", updatedElement);
-        localStorage.setItem('layout', JSON.stringify(layout));
+      onResizeStop={(newLayout, oldItem, newItem) => {
+        setLayout(newLayout); 
       }}
-      onDragStop={(layout, oldItem, newItem) => {
-        const updatedElement = layout.find((item) => item.i === newItem.i);
-        console.log("Updated element:", updatedElement);
-        localStorage.setItem('layout', JSON.stringify(layout));
-      }}      
+      onDragStop={(newLayout, oldItem, newItem) => {
+        setLayout(newLayout);
+      }}
     >
       {winArray}
     </GridLayout>

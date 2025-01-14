@@ -34,6 +34,7 @@ export default function TopPanel() {
         const parsedLayout = JSON.parse(storedLayout);
         currentWindowInfo = parsedLayout.find((l) => l.i === item);
         console.log('4');
+        console.log(layout);
         console.log(currentWindowInfo);
       }
 
@@ -67,17 +68,6 @@ export default function TopPanel() {
         parsedHiddenLayout.push(winForHide);
         localStorage.setItem('hiddenLayout', JSON.stringify(parsedHiddenLayout));
       }
-      //const currentLayout = false;
-      //if (!currentLayout){
-        const storedLayout = JSON.parse(localStorage.getItem('layout')).find((l) => l.i === item);
-        if (storedLayout) {
-          tempLayout.push(storedLayout);
-        } else {
-          tempLayout.push({ i: item, x: 0, y: 0, w: 5, h: 15});
-        }
-        setLayout(tempLayout);
-      //}
-
     }
     setLayout(windowsList);
     localStorage.setItem('layout', JSON.stringify(windowsList));
