@@ -45,6 +45,3 @@ export default function DropDownMenu({id, title, itemsList = []}) {
     </div>
   );
 }
-
-//    className={styles.dropDownMenu}
-//import styles from './DropDownMenu.module.css';

@@ -27,20 +27,15 @@ export default function TopPanel() {
 
     if (layout.length == windowsList.length){
       //no such window, show it
-      console.log('show window');
       const storedLayout = localStorage.getItem('layout');
 
       if (storedLayout) {
         const parsedLayout = JSON.parse(storedLayout);
         currentWindowInfo = parsedLayout.find((l) => l.i === item);
-        console.log('4');
-        console.log(layout);
-        console.log(currentWindowInfo);
       }
 
       if (currentWindowInfo) {
         windowsList.push(currentWindowInfo);
-        console.log('3');
       } else {
         const hiddenLayout = localStorage.getItem('hiddenLayout');
         if (hiddenLayout) {
@@ -49,25 +44,24 @@ export default function TopPanel() {
           if (currentWindowInfo){
             windowsList.push(currentWindowInfo);
           } else {
-            console.log('1');
             windowsList.push({ i: item, x: 0, y: 0, w: 5, h: 15});
           }
         } else {
-          console.log('2');
           windowsList.push({ i: item, x: 0, y: 0, w: 5, h: 15});
         }
       }
     } else {
-      console.log('hide window');
+      //hide window
       const winForHide = layout.find((window) => window.i === item);
-      console.log(winForHide);
       const hiddenLayout = localStorage.getItem('hiddenLayout');
       const parsedHiddenLayout = JSON.parse(hiddenLayout);
-      if (!parsedHiddenLayout.find((window) => window.i === item)) {
-        console.log('no saved window, saving...');
+      const winInHidden = parsedHiddenLayout.find((window) => window.i === item);
+      if (!winInHidden) {
         parsedHiddenLayout.push(winForHide);
-        localStorage.setItem('hiddenLayout', JSON.stringify(parsedHiddenLayout));
+      } else {
+        parsedHiddenLayout.splice(parsedHiddenLayout.indexOf(winInHidden),1,(winForHide));
       }
+      localStorage.setItem('hiddenLayout', JSON.stringify(parsedHiddenLayout));
     }
     setLayout(windowsList);
     localStorage.setItem('layout', JSON.stringify(windowsList));
