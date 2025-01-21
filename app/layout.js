@@ -55,13 +55,6 @@ export default function RootLayout({ children }) {
   },[]);
 
   useEffect(() => {
-    const oldName = localStorage.getItem('userName');
-    if (oldName){
-      setUserName(oldName);
-    }
-  },[]);
-  
-  useEffect(() => {
     const storedWinList = localStorage.getItem('winlist');
     console.log(storedWinList);
     if (storedWinList){
@@ -128,6 +121,38 @@ export default function RootLayout({ children }) {
     //TODO: сделать коннект/дисконнект с сервером
 
   },[connectionState]);
+
+  useEffect(() => {
+    async function getUserName(){
+      
+      let response = await fetch('/api/gamedata/getname', {
+        method: 'POST', 
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: userEmail, 
+        }),
+      });  
+  
+      let baseResponse = await response.json();
+
+      if (response.ok) {
+        if (baseResponse.userState === true){
+          const oldName = baseResponse.message;
+          setUserName(oldName);
+        } else {
+          setUserName('Stranger');
+          console.log(baseResponse);
+        }
+      } else {
+        throw new Error('error in database response');
+      }
+    }
+
+    getUserName();
+
+  },[userEmail]);  
 
 
 

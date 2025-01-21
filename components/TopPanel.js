@@ -12,14 +12,14 @@ export default function TopPanel() {
     setConnectionState, wSocket, SetWSocket, userName, setUserName } = useRootContext();
 
   const itemsListGamer = [
-    { itemName: 'Change name', itemType: 'button', itemHandling: (e) => handleChangeName() },
+    { itemName: 'Change name', itemType: 'button', itemHandling: async (e) => await handleChangeName() },
     { itemName: 'Create charsheet', itemType: 'button', itemHandling: (e) => console.log('Create charsheet') },
     { itemName: 'Load charsheet', itemType: 'button', itemHandling: (e) => console.log('Load charsheet') },
     { itemName: 'Logout', itemType: 'button', itemHandling: async (e) => await handleLogout() },
   ];
 
   const itemsListMaster = [
-    { itemName: 'Change name', itemType: 'button', itemHandling: (e) => handleChangeName() },
+    { itemName: 'Change name', itemType: 'button', itemHandling: async (e) => await handleChangeName() },
     { itemName: 'Create map', itemType: 'button', itemHandling: (e) => console.log('Create map') },
     { itemName: 'Load map', itemType: 'button', itemHandling: (e) => console.log('Load map') },
     { itemName: 'Save map', itemType: 'button', itemHandling: (e) => console.log('Save map') },
@@ -77,17 +77,11 @@ export default function TopPanel() {
     localStorage.setItem('layout', JSON.stringify(windowsList));
   }
 
-  function handleChangeName() {
+  async function handleChangeName() {
     setAddComps(
       <FormWrapperFree formName='Enter new name' clearForm = { setAddComps }>
         <div className='tableTitle'>Enter new name</div>
-        <form onSubmit={(e) => {
-          e.preventDefault();  
-          let newName = e.target.elements.newName.value;
-          setUserName(newName);  
-          localStorage.setItem('userName', newName);
-          setAddComps();
-        }}>
+        <form onSubmit={async (e) => await setNewUserName(e.target.elements.newName.value,e)}>
           <input 
             id="newName" 
             type="text"
@@ -99,6 +93,26 @@ export default function TopPanel() {
         </form>
       </FormWrapperFree>
     );
+  }
+
+  async function setNewUserName(newName,e){
+    e.preventDefault();
+    setUserName(newName);  
+    //localStorage.setItem('userName', newName);
+    let response = await fetch('/api/gamedata/setname', {
+      method: 'POST', 
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: userEmail, 
+        name: newName,
+      }),
+    });  
+
+    //TODO: add error handling      
+    setAddComps();
+    
   }
 
   const windowsList = winList[userRole].map((item)=>{
