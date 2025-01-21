@@ -12,11 +12,14 @@ export const useRootContext = () => useContext(RootContext);
 export default function RootLayout({ children }) {
   const [loginState, setLoginState] = useState(false);
   const [userEmail, setUserEmail] = useState('');
+  const [userName, setUserName] = useState('Stranger');
   const [userRole, setUserRole] = useState('Gamer');
   const [winList, setWinList] = useState({
     'Gamer':['Game Map','Polydice','Charsheet'],
     'Master':['Game Map','Polydice','Game Table']
   });
+  const [connectionState, setConnectionState] = useState(false);
+  const [wSocket, SetWSocket] = useState(false);
 
   const [layout, setLayout] = useState([
     { i: 'Game Map', x: 0, y: 0, w: 5, h: 15},
@@ -49,6 +52,13 @@ export default function RootLayout({ children }) {
 
     checkAuthToken();
 
+  },[]);
+
+  useEffect(() => {
+    const oldName = localStorage.getItem('userName');
+    if (oldName){
+      setUserName(oldName);
+    }
   },[]);
   
   useEffect(() => {
@@ -97,7 +107,29 @@ export default function RootLayout({ children }) {
     const activeWinList = layout.map((l) => l.i);
     console.log(activeWinList);
     localStorage.setItem(`activeWinList${userRole}`, JSON.stringify(activeWinList));
-  },[layout]);    
+  },[layout]);   
+  
+
+ // const [messages, setMessages] = useState([]);
+  const [socket, setSocket] = useState(null);
+
+ /* useEffect(() => {
+      const ws = new WebSocket("wss://quartz-spot-garden.glitch.me");
+      setSocket(ws);
+      ws.addEventListener("open", () => {
+        console.log("WebSocket connection established!");
+        ws.send("Hello from client!");
+      });
+
+
+  }, []);*/
+
+  useEffect(() => {
+    //TODO: сделать коннект/дисконнект с сервером
+
+  },[connectionState]);
+
+
 
   return (
     <html lang="en">
@@ -114,6 +146,12 @@ export default function RootLayout({ children }) {
             setLayout,
             winList,
             setWinList,
+            connectionState,
+            setConnectionState,
+            wSocket, 
+            SetWSocket,
+            userName, 
+            setUserName
           }}
         >     
           {!loginState && (<FormWrapper formName='Login'>

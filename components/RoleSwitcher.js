@@ -4,7 +4,7 @@ import styles from './RoleSwitcher.module.css';
 import { useRootContext } from '../app/layout';
 
 export default function RoleSwitcher() {
-  const { userRole,setUserRole,layout,setLayout,winList } = useRootContext();
+  const { userRole,setUserRole,layout,setLayout,winList,connectionState,setConnectionState } = useRootContext();
 
   function switchRole(role){
     if (userRole !== role){
@@ -25,6 +25,8 @@ export default function RoleSwitcher() {
         }
       });
       setLayout(newLayout);
+
+      setConnectionState(false);
     }
   }
 

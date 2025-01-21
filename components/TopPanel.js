@@ -3,22 +3,32 @@ import styles from './TopPanel.module.css';
 import DropDownMenu from './DropDownMenu';
 import { useRootContext } from '../app/layout';
 import RoleSwitcher from './RoleSwitcher';
+import { useState, useEffect } from 'react';
+import FormWrapperFree from './forms/FormWrapperFree';
 
 export default function TopPanel() {
-  const { loginState, setLoginState, userEmail,setUserEmail, userRole, layout, setLayout, winList } = useRootContext();
+  const { loginState, setLoginState, userEmail,setUserEmail, 
+    userRole, layout, setLayout, winList, connectionState,
+    setConnectionState, wSocket, SetWSocket, userName, setUserName } = useRootContext();
 
   const itemsListGamer = [
+    { itemName: 'Change name', itemType: 'button', itemHandling: (e) => handleChangeName() },
     { itemName: 'Create charsheet', itemType: 'button', itemHandling: (e) => console.log('Create charsheet') },
     { itemName: 'Load charsheet', itemType: 'button', itemHandling: (e) => console.log('Load charsheet') },
     { itemName: 'Logout', itemType: 'button', itemHandling: async (e) => await handleLogout() },
   ];
 
   const itemsListMaster = [
+    { itemName: 'Change name', itemType: 'button', itemHandling: (e) => handleChangeName() },
     { itemName: 'Create map', itemType: 'button', itemHandling: (e) => console.log('Create map') },
     { itemName: 'Load map', itemType: 'button', itemHandling: (e) => console.log('Load map') },
     { itemName: 'Save map', itemType: 'button', itemHandling: (e) => console.log('Save map') },
     { itemName: 'Logout', itemType: 'button', itemHandling: async (e) => await handleLogout() },
   ];  
+
+  const [addComps, setAddComps] = useState(null);
+
+  const [serverList, setServerList] = useState([]);
 
   function toggleWindow(item){
     console.log(item);
@@ -67,6 +77,30 @@ export default function TopPanel() {
     localStorage.setItem('layout', JSON.stringify(windowsList));
   }
 
+  function handleChangeName() {
+    setAddComps(
+      <FormWrapperFree formName='Enter new name' clearForm = { setAddComps }>
+        <div className='tableTitle'>Enter new name</div>
+        <form onSubmit={(e) => {
+          e.preventDefault();  
+          let newName = e.target.elements.newName.value;
+          setUserName(newName);  
+          localStorage.setItem('userName', newName);
+          setAddComps();
+        }}>
+          <input 
+            id="newName" 
+            type="text"
+            placeholder="Stranger"
+            defaultValue={userName} 
+            className="mainInput"
+          />
+          <button id='changeName' className="mainButton" type="submit">Save name</button>
+        </form>
+      </FormWrapperFree>
+    );
+  }
+
   const windowsList = winList[userRole].map((item)=>{
     return { 
       itemName: item, 
@@ -77,6 +111,71 @@ export default function TopPanel() {
       startState: layout.find((l) => l.i === item), 
     }
   });
+
+  useEffect(() => {
+    let connectTitle = '';
+    let tempServerList = [];
+
+    if (!connectionState) {
+
+      if (userRole === 'Gamer') {
+        connectTitle = 'Connect to game';
+      } else {
+        if (userRole === 'Master') connectTitle = 'Create game';
+      }
+
+      tempServerList.push( 
+        { 
+          itemName: connectTitle, 
+          itemType: 'button', 
+          itemHandling: async (e) => await handleServerConnectin(),
+        }
+      );
+
+    } else {
+      connectTitle = 'Disconnect';
+      tempServerList.push( 
+        { 
+          itemName: connectTitle, 
+          itemType: 'button', 
+          itemHandling: async (e) => await handleServerConnectin(),
+        }
+      );      
+    }
+
+    setServerList(tempServerList);
+  },[userRole,connectionState]);
+
+  async function handleServerConnectin(){
+    //TODO: server connection
+    console.log('connectionState = ' + connectionState);
+    if (!connectionState){
+      //checking and opening connection
+      //TODO: add check connection .readyState
+      const ws = new WebSocket("wss://quartz-spot-garden.glitch.me");
+      ws.addEventListener("open", () => {
+        console.log("WebSocket connection established!");
+        ws.send("Hello from client!");
+      });
+
+      ws.addEventListener("message", (event) => {
+        console.log("Message received:", event.data);
+      });
+
+      ws.addEventListener("close", () => {
+        console.log("WebSocket connection closed from server.");
+      });
+
+      SetWSocket(ws);
+    } else {
+      //closing connection
+      wSocket.close();
+      SetWSocket(false);
+    }
+
+    console.log(wSocket);
+    setConnectionState(!connectionState);
+  }
 
   async function handleLogout(){
     let response = await fetch('/api/auth/deleteauthtoken', {
@@ -117,12 +216,21 @@ export default function TopPanel() {
       )}   
       {loginState && ( 
         <>
-          <DropDownMenu id='zoneMenu' title='Windows' itemsList={ windowsList } />
+          <DropDownMenu id='zoneMenu' title='Interface' itemsList={ windowsList } />
         </>
-      )}       
+      )}     
+      {loginState && ( 
+        <>
+          <DropDownMenu id='serverMenu' title='Connection' itemsList={ serverList } />
+        </>
+      )}           
       {loginState && (
         <RoleSwitcher />
       )} 
+      {loginState && (
+        <div className = {styles.plainMessage }>Hello, <b>{ userName }</b>!</div>
+      )}       
+      { addComps }
     </div>
   );
 }
