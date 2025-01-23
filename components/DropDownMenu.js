@@ -5,7 +5,7 @@ import styles from './DropDownMenu.module.css';
 import MenuItemButton from './menu_items/MenuItemButton';
 import MenuItemSwitcher from './menu_items/MenuItemSwitcher';
 
-export default function DropDownMenu({id, title, itemsList = []}) {
+export default function DropDownMenu({id, title, itemsList = [], addStyle = ''}) {
   const [hasMouse, setHasMouse] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -20,6 +20,8 @@ export default function DropDownMenu({id, title, itemsList = []}) {
   const handleMouseEnter = () => setIsOpen(true);
   const handleMouseLeave = () => setIsOpen(false);
   const toggleMenu = () => setIsOpen(!isOpen);
+
+  
 
   const preparedList = itemsList.map(({ 
     itemName, 
@@ -40,8 +42,8 @@ export default function DropDownMenu({id, title, itemsList = []}) {
       onMouseLeave={hasMouse ? handleMouseLeave : null}
       onClick={!hasMouse ? toggleMenu : null}
     >
-      <div className={styles.dropDownMenuTitle}>{ title }</div>
-      {isOpen && <div className={styles.dropDownMenuList}> { preparedList } </div>}
+      <div className={ `${styles.dropDownMenuTitle} ${styles[addStyle]}` }>{ title }</div>
+      {isOpen && <div className={ styles.dropDownMenuList }> { preparedList } </div>}
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { useRootContext } from '../app/layout';
 import RoleSwitcher from './RoleSwitcher';
 import { useState, useEffect } from 'react';
 import FormWrapperFree from './forms/FormWrapperFree';
+import { serverMessageHandling } from "../utils/generalUtils";
 
 export default function TopPanel() {
   const { loginState, setLoginState, userEmail,setUserEmail, 
@@ -27,6 +28,7 @@ export default function TopPanel() {
   ];  
 
   const [addComps, setAddComps] = useState(null);
+  const [menuStyle, SetMenuStyle] = useState('');
 
   const [serverList, setServerList] = useState([]);
 
@@ -130,65 +132,98 @@ export default function TopPanel() {
     let connectTitle = '';
     let tempServerList = [];
 
-    if (!connectionState) {
-
-      if (userRole === 'Gamer') {
-        connectTitle = 'Connect to game';
-      } else {
-        if (userRole === 'Master') connectTitle = 'Create game';
-      }
-
-      tempServerList.push( 
-        { 
-          itemName: connectTitle, 
-          itemType: 'button', 
-          itemHandling: async (e) => await handleServerConnectin(),
+    switch (connectionState) {
+      case 3:
+        if (userRole === 'Gamer') {
+          connectTitle = 'Connect to game';
+        } else {
+          if (userRole === 'Master') connectTitle = 'Create game';
         }
-      );
 
-    } else {
-      connectTitle = 'Disconnect';
-      tempServerList.push( 
-        { 
-          itemName: connectTitle, 
-          itemType: 'button', 
-          itemHandling: async (e) => await handleServerConnectin(),
-        }
-      );      
+        tempServerList.push( 
+          { 
+            itemName: connectTitle, 
+            itemType: 'button', 
+            itemHandling: async (e) => await handleServerConnection(),
+          }
+        );
+        break;
+      case 2:  
+        connectTitle = 'Disconnecting...';
+        tempServerList.push( 
+          { 
+            itemName: connectTitle, 
+            itemType: 'button', 
+            itemHandling: () => {},
+          }
+        ); 
+        break;  
+      case 1:  
+        connectTitle = 'Disconnect';
+        tempServerList.push( 
+          { 
+            itemName: connectTitle, 
+            itemType: 'button', 
+            itemHandling: async (e) => await handleServerConnection(),
+          }
+        ); 
+        break;  
+      case 0:  
+        connectTitle = 'Connecting...';
+        tempServerList.push( 
+          { 
+            itemName: connectTitle, 
+            itemType: 'button', 
+            itemHandling: () => {},
+          }
+        ); 
+        break;                   
     }
 
     setServerList(tempServerList);
   },[userRole,connectionState]);
 
-  async function handleServerConnectin(){
-    //TODO: server connection
+  async function handleServerConnection(){
     console.log('connectionState = ' + connectionState);
-    if (!connectionState){
-      //checking and opening connection
-      //TODO: add check connection .readyState
-      const ws = new WebSocket("wss://quartz-spot-garden.glitch.me");
-      ws.addEventListener("open", () => {
-        console.log("WebSocket connection established!");
-        ws.send("Hello from client!");
-      });
+    let ws = wSocket;
 
-      ws.addEventListener("message", (event) => {
-        console.log("Message received:", event.data);
-      });
+    switch (connectionState) {
+      case 3: 
+        //checking and opening connection
+        //TODO: add check connection .readyState
+        //const ws = new WebSocket("wss://quartz-spot-garden.glitch.me");
+        ws = new WebSocket(process.env.NEXT_PUBLIC_SERVER_URL);
+        setConnectionState(0);
 
-      ws.addEventListener("close", () => {
-        console.log("WebSocket connection closed from server.");
-      });
+        ws.addEventListener("open", () => {
+          console.log("WebSocket connection established!");
+          const dataForServer = {role: userRole, name: userName};
+          ws.send(JSON.stringify(dataForServer));
+          setConnectionState(1);
+        });
 
-      SetWSocket(ws);
-    } else {
-      //closing connection
-      wSocket.close();
-      SetWSocket(false);
+        ws.addEventListener("message", (event) => {
+          serverMessageHandling(event.data);
+          console.log("Message received:", event.data);
+        });
+
+        ws.addEventListener("close", () => {
+          console.log("WebSocket connection closed from server.");
+          setConnectionState(3);
+        });
+
+        SetWSocket(ws);
+        break;
+      case 1:
+        //closing working connection
+        wSocket.close();
+        setConnectionState(3);
+        break;
     }
 
-    console.log(wSocket);
-    setConnectionState(!connectionState);
+    //console.log('-------------------');
+    //console.log(ws);
+   // console.log(userName);
   }
 
   async function handleLogout(){
@@ -216,6 +251,20 @@ export default function TopPanel() {
     }  
   }
 
+  useEffect( () => {
+    switch (connectionState) {
+      case 1: 
+        SetMenuStyle('activeStyle');
+        break;
+      case 3:   
+        SetMenuStyle('passiveStyle');
+        break;
+      default:
+        SetMenuStyle('changingStyle');
+        break;          
+    }
+  },[connectionState]);
+
   return (
     <div id='topPanel' className={styles.topPanel}>
       {loginState && (userRole == 'Gamer') && ( 
@@ -235,7 +284,7 @@ export default function TopPanel() {
       )}     
       {loginState && ( 
         <>
-          <DropDownMenu id='serverMenu' title='Connection' itemsList={ serverList } />
+          <DropDownMenu id='serverMenu' title='Connection' itemsList={ serverList } addStyle={ menuStyle } />
         </>
       )}           
       {loginState && (

@@ -18,7 +18,7 @@ export default function RootLayout({ children }) {
     'Gamer':['Game Map','Polydice','Charsheet'],
     'Master':['Game Map','Polydice','Game Table']
   });
-  const [connectionState, setConnectionState] = useState(false);
+  const [connectionState, setConnectionState] = useState(3);
   const [wSocket, SetWSocket] = useState(false);
 
   const [layout, setLayout] = useState([
@@ -26,6 +26,7 @@ export default function RootLayout({ children }) {
     { i: 'Polydice', x: 0, y: 0, w: 5, h: 15},
   ]);
 
+  //auth
   useEffect(() => {
     async function checkAuthToken(){
       let response = await fetch('/api/auth/checkauthtoken', {
@@ -54,6 +55,7 @@ export default function RootLayout({ children }) {
 
   },[]);
 
+  //WinList
   useEffect(() => {
     const storedWinList = localStorage.getItem('winlist');
     console.log(storedWinList);
@@ -64,11 +66,13 @@ export default function RootLayout({ children }) {
     }
   },[]);
 
+  //storedLayout
   useEffect(() => {
     const storedLayout = localStorage.getItem('layout');
     if (storedLayout) setLayout(JSON.parse(storedLayout));
   },[]);
 
+  //hiddenLayout
   useEffect(() => {
     const storedLayout = localStorage.getItem('layout');
     if (storedLayout) setLayout(JSON.parse(storedLayout));
@@ -102,26 +106,7 @@ export default function RootLayout({ children }) {
     localStorage.setItem(`activeWinList${userRole}`, JSON.stringify(activeWinList));
   },[layout]);   
   
-
- // const [messages, setMessages] = useState([]);
-  const [socket, setSocket] = useState(null);
-
- /* useEffect(() => {
-      const ws = new WebSocket("wss://quartz-spot-garden.glitch.me");
-      setSocket(ws);
-      ws.addEventListener("open", () => {
-        console.log("WebSocket connection established!");
-        ws.send("Hello from client!");
-      });
-
-
-  }, []);*/
-
-  useEffect(() => {
-    //TODO: сделать коннект/дисконнект с сервером
-
-  },[connectionState]);
-
+  //getUserName
   useEffect(() => {
     async function getUserName(){
       

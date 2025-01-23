@@ -20,4 +20,6 @@ export function removeItemFromArray(arr, item) {
   return arr.filter(el => el !== item);
 }
 
-
+export function serverMessageHandling(data) {
+  console.log('external handling => ' + data);
+}
