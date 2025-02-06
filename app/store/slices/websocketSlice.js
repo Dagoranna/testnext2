@@ -23,10 +23,20 @@ const websocketSlice = createSlice({
 let socket = null;
 
 export const manageWebsocket = (actionType, url, message = '') => (dispatch, getState) => {
+  console.log('actionType = ' + actionType);
+  console.log('requiredState = ' + getState().websocket.requiredState);
+  console.log('socket');
+  console.log(socket);
   switch (actionType) {
     case 'connect':
       dispatch(setRequiredState(true));
-      if (socket) return;
+      if (socket) {
+        if (socket.readyState !== 3){
+          console.log('socket exists');
+          console.log(socket);
+          return;
+        }
+      }
       socket = new WebSocket(url);
       dispatch(setConnectionState(0));
 
@@ -36,6 +46,8 @@ export const manageWebsocket = (actionType, url, message = '') => (dispatch, get
         dispatch(setConnectionState(3));
         if (getState().websocket.requiredState){
           setTimeout(() => dispatch(manageWebsocket('connect', url)), 2000);
+        } else {
+          console.log('requiredState = false');
         }
       }
       socket.onerror = () => {
