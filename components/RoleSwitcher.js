@@ -1,14 +1,18 @@
 'use client';
 
 import styles from './RoleSwitcher.module.css';
-import { useRootContext } from '../app/layout';
+import { useSelector, useDispatch } from 'react-redux';
+import * as actions from '../app/store/slices/mainSlice';
+import { manageWebsocket } from "../app/store/slices/websocketSlice";
 
 export default function RoleSwitcher() {
-  const { userRole,setUserRole,layout,setLayout,winList,connectionState,setConnectionState } = useRootContext();
+  const dispatch = useDispatch();
+  const userRole = useSelector((state) => state.main.userRole);
+  const winList = useSelector((state) => state.main.winList);
 
   function switchRole(role){
     if (userRole !== role){
-      setUserRole(role);
+      dispatch(actions.setUserRole(role));
       const activeWins = JSON.parse(localStorage.getItem(`activeWinList${userRole}`));
       const hiddenLayout = JSON.parse(localStorage.getItem('hiddenLayout'));
       const newLayout = [];
@@ -24,9 +28,8 @@ export default function RoleSwitcher() {
           }
         }
       });
-      setLayout(newLayout);
-
-      setConnectionState(false);
+      dispatch(actions.setLayout(newLayout));
+      dispatch(manageWebsocket('disconnect',process.env.NEXT_PUBLIC_SERVER_URL));
     }
   }
 

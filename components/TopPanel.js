@@ -1,16 +1,27 @@
 'use client';
 import styles from './TopPanel.module.css';
 import DropDownMenu from './DropDownMenu';
-import { useRootContext } from '../app/layout';
 import RoleSwitcher from './RoleSwitcher';
 import { useState, useEffect } from 'react';
 import FormWrapperFree from './forms/FormWrapperFree';
 import { serverMessageHandling } from "../utils/generalUtils";
+import { useSelector, useDispatch } from 'react-redux';
+import * as actions from '../app/store/slices/mainSlice';
+import { manageWebsocket } from "../app/store/slices/websocketSlice";
 
 export default function TopPanel() {
-  const { loginState, setLoginState, userEmail,setUserEmail, 
-    userRole, layout, setLayout, winList, connectionState,
-    setConnectionState, wSocket, SetWSocket, userName, setUserName } = useRootContext();
+  const dispatch = useDispatch();
+
+  const loginState = useSelector((state) => state.main.loginState); 
+  const userEmail = useSelector((state) => state.main.userEmail);
+  const userName = useSelector((state) => state.main.userName);
+  const userRole = useSelector((state) => state.main.userRole);  
+  const layout = useSelector((state) => state.main.layout); 
+  const winList = useSelector((state) => state.main.winList);
+
+  const serverMessage = useSelector((state) => state.websocket.serverMessage);
+  const connectionState = useSelector((state) => state.websocket.connectionState);
+  //const websocket = dispatch(connectWebSocket("process.env.NEXT_PUBLIC_SERVER_URL"));
 
   const itemsListGamer = [
     { itemName: 'Change name', itemType: 'button', itemHandling: async (e) => await handleChangeName() },
@@ -33,7 +44,6 @@ export default function TopPanel() {
   const [serverList, setServerList] = useState([]);
 
   function toggleWindow(item){
-    console.log(item);
     let currentWindowInfo = false;
     const windowsList = layout.filter((window) => window.i !== item);
 
@@ -75,7 +85,7 @@ export default function TopPanel() {
       }
       localStorage.setItem('hiddenLayout', JSON.stringify(parsedHiddenLayout));
     }
-    setLayout(windowsList);
+    dispatch(actions.setLayout(windowsList));
     localStorage.setItem('layout', JSON.stringify(windowsList));
   }
 
@@ -99,7 +109,7 @@ export default function TopPanel() {
 
   async function setNewUserName(newName,e){
     e.preventDefault();
-    setUserName(newName);  
+    dispatch(actions.setUserName(newName));  
     //localStorage.setItem('userName', newName);
     let response = await fetch('/api/gamedata/setname', {
       method: 'POST', 
@@ -144,7 +154,7 @@ export default function TopPanel() {
           { 
             itemName: connectTitle, 
             itemType: 'button', 
-            itemHandling: async (e) => await handleServerConnection(),
+            itemHandling: async (e) => handleServerConnection(),
           }
         );
         break;
@@ -164,7 +174,7 @@ export default function TopPanel() {
           { 
             itemName: connectTitle, 
             itemType: 'button', 
-            itemHandling: async (e) => await handleServerConnection(),
+            itemHandling: async (e) => handleServerConnection(),
           }
         ); 
         break;  
@@ -183,47 +193,20 @@ export default function TopPanel() {
     setServerList(tempServerList);
   },[userRole,connectionState]);
 
-  async function handleServerConnection(){
+  function handleServerConnection(){
     console.log('connectionState = ' + connectionState);
-    let ws = wSocket;
 
     switch (connectionState) {
       case 3: 
         //checking and opening connection
-        //TODO: add check connection .readyState
         //const ws = new WebSocket("wss://quartz-spot-garden.glitch.me");
-        ws = new WebSocket(process.env.NEXT_PUBLIC_SERVER_URL);
-        setConnectionState(0);
-
-        ws.addEventListener("open", () => {
-          console.log("WebSocket connection established!");
-          const dataForServer = {role: userRole, name: userName};
-          ws.send(JSON.stringify(dataForServer));
-          setConnectionState(1);
-        });
-
-        ws.addEventListener("message", (event) => {
-          serverMessageHandling(event.data);
-          console.log("Message received:", event.data);
-        });
-
-        ws.addEventListener("close", () => {
-          console.log("WebSocket connection closed from server.");
-          setConnectionState(3);
-        });
-
-        SetWSocket(ws);
+        dispatch(manageWebsocket('connect',process.env.NEXT_PUBLIC_SERVER_URL));
         break;
       case 1:
         //closing working connection
-        wSocket.close();
-        setConnectionState(3);
+        dispatch(manageWebsocket('disconnect',process.env.NEXT_PUBLIC_SERVER_URL));
         break;
     }
-
-    //console.log('-------------------');
-    //console.log(ws);
-   // console.log(userName);
   }
 
   async function handleLogout(){
@@ -241,8 +224,8 @@ export default function TopPanel() {
 
     if (response.ok) {
       if (baseResponse.logoutState === 1){
-        setLoginState(false);
-        setUserEmail('');
+        dispatch(actions.setLoginState(false));
+        dispatch(actions.setUserEmail(''));
       } else {
         console.log(baseResponse.message);
       }

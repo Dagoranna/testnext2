@@ -6,13 +6,16 @@ import { WidthProvider, Responsive } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import styles from "./MainBlock.module.css";
-import { useRootContext } from '../app/layout';
 import WindowComponent from './windows/WindowComponent';
+import { useSelector, useDispatch } from 'react-redux';
+import * as actions from '../app/store/slices/mainSlice';
 
 const GridLayout = WidthProvider(Responsive);
 
 export default function MainBlock() {
-  const { layout, setLayout, winList, userRole } = useRootContext();
+  const dispatch = useDispatch();
+  const layout = useSelector((state) => state.main.layout);
+
   const breakpoints = { lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 };
   const cols = { lg: 10, md: 6, sm: 2, xs: 1, xxs: 1 };
 
@@ -36,10 +39,10 @@ export default function MainBlock() {
       cols={cols}
       rowHeight={10}
       onResizeStop={(newLayout, oldItem, newItem) => {
-        setLayout(newLayout); 
+        dispatch(actions.setLayout(newLayout)); 
       }}
       onDragStop={(newLayout, oldItem, newItem) => {
-        setLayout(newLayout);
+        dispatch(actions.setLayout(newLayout));
       }}
     >
       {winArray}

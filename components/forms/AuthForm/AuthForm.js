@@ -1,11 +1,14 @@
 'use client';
 import { useState, useEffect } from "react";
 import { removeItemFromArray } from "../../../utils/generalUtils";
-import { useRootContext } from '../../../app/layout';
+import { useSelector, useDispatch } from 'react-redux';
+import * as actions from '../../../app/store/slices/mainSlice';
 import FormErrors from "../FormErrors";
 import stylesFormWrapper from "../FormWrapper.module.css";
 
 export default function AuthForm() {
+  const dispatch = useDispatch();
+  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [password2, setPassword2] = useState('');
@@ -16,8 +19,6 @@ export default function AuthForm() {
   const [formResetPassErrors, setFormResetPassErrors] = useState([]);
   const [actionResult, setActionResult] = useState(false);
   const [actionMessage, setActionMessage] = useState('');
-
-  const { loginState, setLoginState, setUserEmail } = useRootContext();
 
   useEffect(() => {
     setFormLoginErrors([]);
@@ -120,14 +121,14 @@ export default function AuthForm() {
 
         if (response.ok) {
           if (baseResponse.loginState === true){
-            setLoginState(true);
+            dispatch(actions.setLoginState(true));
             console.log(baseResponse.message);
             setActionMessage(baseResponse.message);
             console.log('email = '+ email);
-            setUserEmail(email);
+            dispatch(actions.setUserEmail(email));
             setActionResult(true);
           } else {
-            setLoginState(false);
+            dispatch(actions.setLoginState(false));
             console.log(baseResponse.message);
             setActionMessage(baseResponse.message);
             setActionResult(false);
