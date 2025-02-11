@@ -34,7 +34,14 @@ export const manageWebsocket = (actionType, url, message = '') => (dispatch, get
       socket = new WebSocket(url);
       dispatch(setConnectionState(0));
 
-      socket.onopen = () => dispatch(setConnectionState(1));
+      socket.onopen = () => {
+        dispatch(setConnectionState(1));
+        if(message) {
+          socket.send(message);
+        } else {
+          console.log('empty message error!');
+        }
+      }
       socket.onmessage = (event) => {
         console.log('data: ' + event.data);
         dispatch(setServerMessage(event.data));
@@ -42,7 +49,7 @@ export const manageWebsocket = (actionType, url, message = '') => (dispatch, get
       socket.onclose = () => {
         dispatch(setConnectionState(3));
         if (getState().websocket.requiredState){
-          setTimeout(() => dispatch(manageWebsocket('connect', url)), 2000);
+          setTimeout(() => dispatch(manageWebsocket('connect', url, message)), 2000);
         } else {
           console.log('requiredState = false');
         }

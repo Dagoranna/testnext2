@@ -6,6 +6,7 @@ const mainSlice = createSlice({
     loginState: false,
     userEmail: '',
     userName: 'Stranger',
+    userColor: '#8e5a1f',
     userRole: 'Gamer', 
     winList: {
       'Gamer':['Game Map','Polydice','Charsheet'],
@@ -20,13 +21,14 @@ const mainSlice = createSlice({
     setLoginState: (state, action) => { state.loginState = action.payload; },
     setUserEmail: (state, action) => { state.userEmail = action.payload; }, 
     setUserName: (state, action) => { state.userName = action.payload; },
+    setUserColor: (state, action) => { state.userColor = action.payload; },
     setUserRole: (state, action) => { state.userRole = action.payload; }, 
     setWinList: (state, action) => { state.winList = action.payload; }, 
     setLayout: (state, action) => { state.layout = action.payload; }, 
   }
 });
 
-export const {  setLoginState, setUserEmail, setUserName, 
+export const {  setLoginState, setUserEmail, setUserName, setUserColor,
   setUserRole, setWinList, setLayout, } = mainSlice.actions;
   
 export default mainSlice.reducer;

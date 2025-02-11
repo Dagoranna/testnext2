@@ -5,6 +5,7 @@ import RoleSwitcher from './RoleSwitcher';
 import { useState, useEffect } from 'react';
 import FormWrapperFree from './forms/FormWrapperFree';
 import { serverMessageHandling } from "../utils/generalUtils";
+import * as clientUtils from '../utils/clientUtils';
 import { useSelector, useDispatch } from 'react-redux';
 import * as actions from '../app/store/slices/mainSlice';
 import { manageWebsocket } from "../app/store/slices/websocketSlice";
@@ -15,6 +16,7 @@ export default function TopPanel() {
   const loginState = useSelector((state) => state.main.loginState); 
   const userEmail = useSelector((state) => state.main.userEmail);
   const userName = useSelector((state) => state.main.userName);
+  const userColor = useSelector((state) => state.main.userColor);
   const userRole = useSelector((state) => state.main.userRole);  
   const layout = useSelector((state) => state.main.layout); 
   const winList = useSelector((state) => state.main.winList);
@@ -37,10 +39,15 @@ export default function TopPanel() {
     { itemName: 'Logout', itemType: 'button', itemHandling: async (e) => await handleLogout() },
   ];  
 
+  const [colorsSet, setColorsSet] = useState(null);
   const [addComps, setAddComps] = useState(null);
-  const [menuStyle, SetMenuStyle] = useState('');
-
+  const [menuStyle, setMenuStyle] = useState('');
   const [serverList, setServerList] = useState([]);
+
+  useEffect(() => {
+    const gamerColor = localStorage.getItem('userColor');
+    if (gamerColor) dispatch(actions.setUserColor(gamerColor));
+  },[]);
 
   function toggleWindow(item){
     let currentWindowInfo = false;
@@ -126,6 +133,19 @@ export default function TopPanel() {
     
   }
 
+  function chooseGamerColor(){
+    const colorsList = ["Black", "DarkBlue", "Blue", "DarkViolet", "Crimson", "Red", "Purple", "FireBrick", "Maroon",  "SaddleBrown", "Chocolate", "Tomato","Gold","Silver","Plum","LightCoral","Yellow","Orange","DarkOrange","DarkGreen", "Lime","LightGreen","LawnGreen","Aqua","Aquamarine","LightSteelBlue","BlueViolet","DarkTurquoise","White"];
+    const tempColorsSet = colorsList.map((item,num) => <li key={ num } style={{color: item, fontWeight: "bold"}} >{ item }</li>);
+    setColorsSet(<ul className={styles.colorsBlock} onClick={(e) => setColor(e)}>{tempColorsSet}</ul>);
+
+    function setColor (e){
+      const myColor = e.target.innerText;
+      dispatch(actions.setUserColor(myColor));
+      localStorage.setItem('userColor', myColor);
+      setColorsSet(null);
+    }
+  }
+
   const windowsList = winList[userRole].map((item)=>{
     return { 
       itemName: item, 
@@ -198,7 +218,9 @@ export default function TopPanel() {
     switch (connectionState) {
       case 3: 
         //checking and opening connection
-        dispatch(manageWebsocket('connect',process.env.NEXT_PUBLIC_SERVER_URL));
+        let messageForServer = clientUtils.messageMainWrapper(userRole, userName, userColor, 0);
+        messageForServer["sectionName"] = "connection";
+        dispatch(manageWebsocket('connect',process.env.NEXT_PUBLIC_SERVER_URL,JSON.stringify(messageForServer)));
         break;
       case 1:
         //closing working connection
@@ -235,13 +257,13 @@ export default function TopPanel() {
   useEffect( () => {
     switch (connectionState) {
       case 1: 
-        SetMenuStyle('activeStyle');
+        setMenuStyle('activeStyle');
         break;
       case 3:   
-        SetMenuStyle('passiveStyle');
+        setMenuStyle('passiveStyle');
         break;
       default:
-        SetMenuStyle('changingStyle');
+        setMenuStyle('changingStyle');
         break;          
     }
   },[connectionState]);
@@ -272,7 +294,11 @@ export default function TopPanel() {
         <RoleSwitcher />
       )} 
       {loginState && (
-        <div className = {styles.plainMessage }>Hello, <b>{ userName }</b>!</div>
+        <div className = {styles.plainMessage } style={{display: "flex",backgroundColor: "#9b9b9b"}}>
+          <div>Hello, <span style={{fontWeight: "bold", color: userColor}}>{ userName }</span>!</div>
+          <div className={ styles.colorCircle } onClick={ chooseGamerColor }></div>
+          { colorsSet }
+        </div>
       )}       
       { addComps }
     </div>
