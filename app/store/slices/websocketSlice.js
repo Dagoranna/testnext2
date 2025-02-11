@@ -23,17 +23,11 @@ const websocketSlice = createSlice({
 let socket = null;
 
 export const manageWebsocket = (actionType, url, message = '') => (dispatch, getState) => {
-  console.log('actionType = ' + actionType);
-  console.log('requiredState = ' + getState().websocket.requiredState);
-  console.log('socket');
-  console.log(socket);
   switch (actionType) {
     case 'connect':
       dispatch(setRequiredState(true));
       if (socket) {
         if (socket.readyState !== 3){
-          console.log('socket exists');
-          console.log(socket);
           return;
         }
       }
@@ -41,7 +35,10 @@ export const manageWebsocket = (actionType, url, message = '') => (dispatch, get
       dispatch(setConnectionState(0));
 
       socket.onopen = () => dispatch(setConnectionState(1));
-      socket.onmessage = (event) => dispatch(setServerMessage(event.data));
+      socket.onmessage = (event) => {
+        console.log('data: ' + event.data);
+        dispatch(setServerMessage(event.data));
+      }
       socket.onclose = () => {
         dispatch(setConnectionState(3));
         if (getState().websocket.requiredState){

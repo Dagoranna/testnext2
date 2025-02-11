@@ -46,10 +46,15 @@
 }
 
 .activeStyle{
-  color: rgb(0, 255, 21);
+/*  color: rgb(0, 255, 21);
   box-shadow: 0 0 .5em rgb(0, 255, 21) inset,.1em .1em .2em #4d3a25;
   background: linear-gradient(#c0daa5, #0d240a);
-  border: 3px ridge #16bb28;  
+  border: 3px ridge #16bb28;  */
+  color: yellow;
+  box-shadow: 0 0 .5em yellow inset,.1em .1em .2em #4d3a25;
+  background: linear-gradient(rgb(247, 247, 101) 0%, #8e5a1f 50%, rgb(247, 247, 101) 100%);
+  border: 3px ridge orange;
+  text-shadow: 1px 1px 1px #0d240a, 1px 0 1px #0d240a;
 }
 
 .passiveStyle{

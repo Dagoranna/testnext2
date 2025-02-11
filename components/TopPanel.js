@@ -21,7 +21,6 @@ export default function TopPanel() {
 
   const serverMessage = useSelector((state) => state.websocket.serverMessage);
   const connectionState = useSelector((state) => state.websocket.connectionState);
-  //const websocket = dispatch(connectWebSocket("process.env.NEXT_PUBLIC_SERVER_URL"));
 
   const itemsListGamer = [
     { itemName: 'Change name', itemType: 'button', itemHandling: async (e) => await handleChangeName() },
@@ -199,7 +198,6 @@ export default function TopPanel() {
     switch (connectionState) {
       case 3: 
         //checking and opening connection
-        //const ws = new WebSocket("wss://quartz-spot-garden.glitch.me");
         dispatch(manageWebsocket('connect',process.env.NEXT_PUBLIC_SERVER_URL));
         break;
       case 1:
