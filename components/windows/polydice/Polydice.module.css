@@ -46,6 +46,7 @@
   background-color: #9b9b9b; 
   overflow-y: auto;
   padding: 5px;
+  color: black;
 }
 
 .diceFooter{
@@ -95,4 +96,23 @@
 
 .numberOfRollsInput{
   width: 3rem;
+}
+
+.chat{
+  display: flex;
+  border-bottom: 3px ridge #caa67e;
+}
+
+.chatString{
+  background-color: white;
+  flex: 1 1 auto;
+}
+
+.chatButton{
+  background: linear-gradient(#dac1a5, #a9855d);
+  cursor: pointer;
+  border: 3px ridge #caa67e;
+  padding-left: 3px;
+  padding-right: 2px;
+  font-weight: bold;
 }

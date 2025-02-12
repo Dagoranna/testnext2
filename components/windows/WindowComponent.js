@@ -13,7 +13,7 @@ export default function WindowComponent({ title }) {
     'Polydice': <Polydice />,
   }
   return (
-    <div className={ styles.winFrame }>
+    <div className={ styles.winFrame } >
       <WindowTitle title={ title } />
       { winComponents[title] }
     </div>

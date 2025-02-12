@@ -15,6 +15,7 @@ export default function Polydice() {
   const dispatch = useDispatch();
   const numberOfRolls = useRef(1);
   const polydiceLogs = useRef('');
+  const chatString = useRef('');
   const activeDice = useSelector((state) => state.polydice.activeDice); 
 
   const userRole = useSelector((state) => state.main.userRole);
@@ -69,9 +70,8 @@ export default function Polydice() {
     let userName = messageJSON.user.userName;
     let userColor = messageJSON.user.userColor;
    
-    currentLog = `<b style="color: ${userColor}"}>${userName}:</b> `;
-    
     if (messageJSON?.rollResults){
+      currentLog = `<b style="color: ${userColor}"}>${userName}:</b> `;
       let dice = messageJSON.sectionInfo.dice;
       let rollResults = messageJSON.rollResults;
       currentLog += `<b>${rollResults.join()}</b> on <b style="color: ${userColor}"}>d${dice}</b>`;  
@@ -79,10 +79,25 @@ export default function Polydice() {
       if (Number(messageJSON.sectionInfo.rollNumbers) > 1){
         currentLog += ` (a total of <b>${messageJSON.rollResults.reduce((item,sum) => sum+item)}</b>)`;
       }
+    } else if (messageJSON.sectionName === "chat") {
+      currentLog = `<b style="color: ${userColor}"}>${userName} says:</b> `;
+      currentLog += messageJSON.sectionInfo.chatMessage;
     }
 
     polydiceLogs.current.innerHTML = currentLog + '<br>' + polydiceLogs.current.innerHTML;
   },[serverMessage]);
+
+  function sendChatMessage(dispatch){
+    const messageForServer = clientUtils.messageMainWrapper(userRole, userName, userColor, 0);
+    
+    messageForServer['sectionName'] = 'chat';
+    messageForServer['sectionInfo'] = {
+      'chatMessage': chatString.current.innerHTML,
+    };
+
+    dispatch(manageWebsocket('send',process.env.NEXT_PUBLIC_SERVER_URL,JSON.stringify(messageForServer)));
+    chatString.current.innerHTML = '';
+  }  
 
   return (
     <div className={ styles.diceWrapper }>
@@ -98,6 +113,22 @@ export default function Polydice() {
       </div>
       <div className={ styles.rollVariations }></div>
       <div className={ styles.logs } ref={polydiceLogs} onMouseDown={(e) => e.stopPropagation()} ></div>
+      <div className={ styles.chat } onMouseDown={(e) => e.stopPropagation()} >
+        <div 
+          className={ styles.chatString } 
+          ref={chatString} 
+          contentEditable="true" 
+          onMouseDown={(e) => e.stopPropagation()}
+          onKeyDown={(e) => {
+            if (e.key === "Enter"){
+              e.preventDefault();
+              sendChatMessage(dispatch);
+              e.target.blur();
+            } 
+          }}
+        ></div>
+        <button className={ styles.chatButton } onClick={ () => { sendChatMessage(dispatch); } }>⤶</button>
+      </div>
       <div className={ styles.diceFooter }>
         <button className={ styles.rollButton } onMouseDown={(e) => e.stopPropagation()} onClick={ () => { makeRoll(dispatch,activeDice); } } >Roll!</button>
         <div className={ styles.numberOfRolls } >
