@@ -37,21 +37,14 @@ export default function Polydice() {
     dispatch(manageWebsocket('send',process.env.NEXT_PUBLIC_SERVER_URL,JSON.stringify(messageForServer)));
   }
 
-  function isValidJSON(str) {
-    try {
-        JSON.parse(str);
-        return true;
-    } catch (e) {
-        return false;
-    }
-  }
-
   useEffect(() => {
     console.log(serverMessage);
-    if (!isValidJSON(serverMessage)) return;
+    if (!clientUtils.isValidJSON(serverMessage)) return;
  
     let messageJSON = JSON.parse(serverMessage);
     let currentLog = '';
+
+    if ((!messageJSON?.sectionName) || (messageJSON.sectionName !== 'polydice')) return;
     /*{
     "gameId":0,
     "user":{

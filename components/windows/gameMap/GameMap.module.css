@@ -1,0 +1,29 @@
+.gameMapWrapper{
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  --cell: 20px;
+}
+
+.mapField{
+  background: linear-gradient( gray, transparent 1px), linear-gradient( 90deg, gray, transparent 1px);
+  background-size: var(--cell) var(--cell);
+  width: 10000px;
+  height: 10000px;
+  position: relative;
+}
+
+.mapFieldWrapper{
+  flex: 1 1 auto;
+  overflow: auto;
+}
+
+.object {
+  position: absolute;
+  display: block;
+  width: 20px;
+  height: 20px;
+  background-color: red;
+}
