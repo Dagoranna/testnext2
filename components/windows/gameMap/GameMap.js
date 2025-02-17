@@ -1,55 +1,60 @@
 'use client';
 
 import styles from './GameMap.module.css';
-import { useRef, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import React from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import * as actions from '../../../app/store/slices/mapSlice';
+import * as mapSlice from '../../../app/store/slices/mapSlice';
 import { manageWebsocket } from "../../../app/store/slices/websocketSlice";
 import * as clientUtils from '../../../utils/clientUtils';
+import { DndProvider, useDrag, useDrop } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
+import MapElem from "./MapElem";
+import PaletteElem from "./PaletteElem";
 
 export default function GameMap() {
   const dispatch = useDispatch();
   const mapRef = useRef('');
+
+  const activeColor = useSelector((state) => state.map.activePaletteStyle.color); 
   const mapState = useSelector((state) => state.map.mapState);
+  const mapElemCounter = useSelector((state) => state.map.mapElemsCounter);   
+
   const userRole = useSelector((state) => state.main.userRole);
   const userName = useSelector((state) => state.main.userName);
   const userColor = useSelector((state) => state.main.userColor);
-  const serverMessage = useSelector((state) => state.websocket.serverMessage);   
 
-  function placeFigureOnMap(e,dispatch){
-    const pageX = e.pageX;
-    const pageY = e.pageY;
+  const serverMessage = useSelector((state) => state.websocket.serverMessage);
+  
 
-    const container = e.target;
-    const containerRect = container.getBoundingClientRect();
-    const clickX = pageX - containerRect.left + container.scrollLeft;
-    const clickY = pageY - containerRect.top + container.scrollTop;
+  function placeFigureOnMap(e){
+    dispatch(mapSlice.incMapElemsCounter());
 
-    const object = document.createElement('div');
-    object.style.left = `${clickX - object.offsetWidth / 2}px`;
-    object.style.top = `${clickY - object.offsetHeight / 2}px`;
+    const gameMap = mapRef.current;
+    const gameMapRect = gameMap.getBoundingClientRect();
     
-    object.className = styles.object;
-    e.target.appendChild(object);
 
-    const messageForServer = clientUtils.messageMainWrapper(userRole, userName, userColor, 0);
-    
-    messageForServer['sectionName'] = 'gameMap';
-    messageForServer['sectionInfo'] = {
-      'mapField': JSON.stringify(mapRef.current.innerHTML),
-    };
+    //e.pageX - mouse pos on page including page scrolling
+    //10 = 1/2 cell size
+    const elemX = e.pageX - gameMapRect.left + gameMap.scrollLeft - 10 + "px";
+    const elemY = e.pageY - gameMapRect.top + gameMap.scrollTop - 10 + "px";
+    const elemId = `mapElem_${mapElemCounter}`;
+    //MapElem({ id, elemModuleStyle, elemStyle, children })
+    const newElem = <MapElem 
+      id={elemId} 
+      elemModuleStyle = {["mapElem", "circle"]}
+      elemStyle={{left: elemX, top:elemY}}
+    />;
+    mapRef.current.appendChild(ReactDOM.renderToString(newElem));
 
-    dispatch(manageWebsocket('send',process.env.NEXT_PUBLIC_SERVER_URL,JSON.stringify(messageForServer)));    
   }
 
   useEffect(() => {
-    console.log(serverMessage);
     if (!clientUtils.isValidJSON(serverMessage)) return;
- 
     let messageJSON = JSON.parse(serverMessage);
-    let currentLog = '';
-
     if ((!messageJSON?.sectionName) || (messageJSON.sectionName !== 'gameMap')) return;
+
     /*{
       "gameId":0,
       "user":{
@@ -66,17 +71,113 @@ export default function GameMap() {
     mapRef.current.innerHTML = JSON.parse(messageJSON.sectionInfo.mapField);
   },[serverMessage]);  
 
+  useEffect(() => {
+    const messageForServer = clientUtils.messageMainWrapper(userRole, userName, userColor, 0);
+    messageForServer['sectionName'] = 'gameMap';
+    messageForServer['sectionInfo'] = {
+      'mapField': JSON.stringify(mapRef.current.innerHTML),
+    };
+    dispatch(manageWebsocket('send',process.env.NEXT_PUBLIC_SERVER_URL,JSON.stringify(messageForServer)));       
+  },[mapState]); 
+
+  function chooseColor(e,dispatch){
+
+    dispatch(mapSlice.setActivePaletteColor(e.target.style.backgroundColor));
+    dispatch(mapSlice.setActivePaletteTextColor(e.target.style.color));
+  }
+
+  function PaletteColorElem({ 
+    elemClass = styles.paletteColorItem,
+    elemText = "*",
+    backgroundColor,
+    textColor,
+  }){
+
+    let currentClass = '';
+    activeColor === backgroundColor ? currentClass = `${elemClass} ${styles.activeElem}` : currentClass = `${elemClass}`;
+
+    return (
+      <div 
+        className={ currentClass }
+        style={{backgroundColor: backgroundColor, color: textColor}}
+        onClick={(e)=> chooseColor(e,dispatch)}
+      >
+        { elemText }
+      </div>
+    );
+  }
+
+  const paletteColors = <div className={ styles.paletteColors }>
+    <PaletteColorElem elemClass={ styles.paletteColorTransparent } elemText="transparent" backgroundColor="transparent" textColor="black" />
+    <PaletteColorElem backgroundColor="black" textColor="white" />
+    <PaletteColorElem backgroundColor="gray" textColor="black" />
+    <PaletteColorElem backgroundColor="silver" textColor="black" />
+    <PaletteColorElem backgroundColor="white" textColor="black" />
+    <PaletteColorElem backgroundColor="maroon" textColor="white" />
+    <PaletteColorElem backgroundColor="red" textColor="white" />
+    <PaletteColorElem backgroundColor="purple" textColor="white" />
+    <PaletteColorElem backgroundColor="fuchsia" textColor="white" />
+    <PaletteColorElem backgroundColor="olive" textColor="white" />
+    <PaletteColorElem backgroundColor="green" textColor="white" />
+    <PaletteColorElem backgroundColor="lime" textColor="black" />
+    <PaletteColorElem backgroundColor="yellow" textColor="black" />
+    <PaletteColorElem backgroundColor="navy" textColor="white" />
+    <PaletteColorElem backgroundColor="blue" textColor="white" />
+    <PaletteColorElem backgroundColor="teal" textColor="white" />
+    <PaletteColorElem backgroundColor="aqua" textColor="black" />
+  </div>;
+
+  const paletteForms = <div className={ styles.paletteForms }>
+    Forms: 
+    <PaletteElem id="paletteCircle" elemModuleStyle={["circle"]} />
+    <PaletteElem id="paletteSoftSquare" elemModuleStyle={["softSquare"]} />
+    <PaletteElem id="testPaletteElem" />
+  </div>;
+
+  
+
   return (
-    <div className={ styles.gameMapWrapper }>
-      <div className={ styles.mapFieldWrapper } onMouseDown={(e) => e.stopPropagation()}>
-        <div className={ styles.mapField } ref={mapRef} onClick={ (e) => {placeFigureOnMap(e,dispatch);}}>
-          map!
+    <DndProvider backend={HTML5Backend}>
+      <div className={ styles.gameMapWrapper }>
+        <div className={ styles.mapFieldWrapper } onMouseDown={(e) => e.stopPropagation()}>
+          <div className={ styles.mapField } ref={mapRef} droppable="true" onClick={ (e) => {placeFigureOnMap(e);}}>
+            map!
+          </div>
+        </div>
+        <div className={ styles.gameMapTools } onMouseDown={(e) => e.stopPropagation()}>
+          { paletteColors }
+          { paletteForms }
         </div>
       </div>
-      <div className={ styles.gameMapTools }>
-        tools!
-      </div>
-    </div>
+    </DndProvider>
   );
 }
+
+/*  function moveFigureOnMap(e,dispatch){
+    const container = e.target;
+    const containerRect = container.getBoundingClientRect();
+
+    //mouse pos on page (including scrolling)
+    const pageX = e.pageX;
+    const pageY = e.pageY;
+
+    const clickX = pageX - containerRect.left + container.scrollLeft;
+    const clickY = pageY - containerRect.top + container.scrollTop;
+
+    const newElem = document.createElement('div');
+    newElem.className = styles.newElemStyle;
+
+    newElem.style.left = `${clickX - newElem.offsetWidth / 2}px`;
+    newElem.style.top = `${clickY - newElem.offsetHeight / 2}px`;
+
+    e.target.appendChild(newElem);
+
+    const messageForServer = clientUtils.messageMainWrapper(userRole, userName, userColor, 0);
+    messageForServer['sectionName'] = 'gameMap';
+    messageForServer['sectionInfo'] = {
+      'mapField': JSON.stringify(mapRef.current.innerHTML),
+    };
+    dispatch(manageWebsocket('send',process.env.NEXT_PUBLIC_SERVER_URL,JSON.stringify(messageForServer)));    
+  }  
+*/
 

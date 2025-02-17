@@ -20,10 +20,84 @@
   overflow: auto;
 }
 
-.object {
+.newElemStyle {
   position: absolute;
   display: block;
   width: 20px;
   height: 20px;
   background-color: red;
+}
+
+.gameMapTools{
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  padding: 3px;
+}
+
+.paletteForms{
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.paletteColors{
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  width: 80px;
+  height: 100px;
+  text-align: center;
+  border: 1px solid #caa67e;
+  margin-right: 5px;
+}
+
+.paletteColorItem{
+  position: relative;
+  border: 1px solid #7d7a7a;
+  user-select: none;
+}
+
+.paletteColorTransparent{
+  grid-column: 1 / 5;
+  position: relative;
+  border: 1px solid #7d7a7a;
+  cursor: pointer;
+  user-select: none;
+}
+
+.activeElem{
+  box-shadow: 0 0 3px 3px yellow, 0 0 3px white inset;
+  z-index: 2;
+  
+}
+
+
+.paletteElem{
+  width: 20px;
+  height: 20px;
+  border: 1px solid #caa67e;
+  cursor: pointer;
+}
+
+.mapElem{
+  display: block;
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 1px solid black;
+}
+
+.square{
+  border-radius: 0;
+}
+
+.circle{
+  border-radius: 50%;
+}
+
+.softSquare{
+  border-radius: 5px;
+}
+
+.halfTransparent{
+  opacity: .5;
 }

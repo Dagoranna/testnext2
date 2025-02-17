@@ -44,7 +44,8 @@ export default function Polydice() {
     let messageJSON = JSON.parse(serverMessage);
     let currentLog = '';
 
-    if ((!messageJSON?.sectionName) || (messageJSON.sectionName !== 'polydice')) return;
+    if (!messageJSON?.sectionName) return;
+    if ( (messageJSON.sectionName !== 'polydice') && (messageJSON.sectionName !== 'chat') ) return;
     /*{
     "gameId":0,
     "user":{
