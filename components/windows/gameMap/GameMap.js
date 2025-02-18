@@ -11,14 +11,18 @@ import * as clientUtils from '../../../utils/clientUtils';
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import MapElem from "./MapElem";
-import PaletteElem from "./PaletteElem";
 
 export default function GameMap() {
   const dispatch = useDispatch();
   const mapRef = useRef('');
 
   const activeColor = useSelector((state) => state.map.activePaletteStyle.color); 
-  const mapState = useSelector((state) => state.map.mapState);
+  const activeTextColor = useSelector((state) => state.map.activePaletteStyle.textColor); 
+  const activeForm = useSelector((state) => state.map.activePaletteStyle.form); 
+  const activeAction = useSelector((state) => state.map.activePaletteAction);
+  const activeLayer = useSelector((state) => state.map.activePaletteStyle.layer);
+  const gridBinding = useSelector((state) => state.map.activePaletteStyle.bindToGrid);
+  const mapContent = useSelector((state) => state.map.mapContent);
   const mapElemCounter = useSelector((state) => state.map.mapElemsCounter);   
 
   const userRole = useSelector((state) => state.main.userRole);
@@ -28,7 +32,8 @@ export default function GameMap() {
   const serverMessage = useSelector((state) => state.websocket.serverMessage);
   
 
-  function placeFigureOnMap(e){
+  function changeMap(e){
+    console.log(document.getElementById(activeForm));
     dispatch(mapSlice.incMapElemsCounter());
 
     const gameMap = mapRef.current;
@@ -40,14 +45,15 @@ export default function GameMap() {
     const elemX = e.pageX - gameMapRect.left + gameMap.scrollLeft - 10 + "px";
     const elemY = e.pageY - gameMapRect.top + gameMap.scrollTop - 10 + "px";
     const elemId = `mapElem_${mapElemCounter}`;
-    //MapElem({ id, elemModuleStyle, elemStyle, children })
-    const newElem = <MapElem 
-      id={elemId} 
-      elemModuleStyle = {["mapElem", "circle"]}
-      elemStyle={{left: elemX, top:elemY}}
-    />;
-    mapRef.current.appendChild(ReactDOM.renderToString(newElem));
 
+    let formClone = document.getElementById(activeForm).cloneNode(true);
+    formClone.id = elemId;
+    formClone.style.left = elemX;
+    formClone.style.top = elemY;
+    formClone.style.position = "absolute";
+    formClone.style.outline = "none";
+    
+    dispatch(mapSlice.addElemToMap(formClone.outerHTML));
   }
 
   useEffect(() => {
@@ -71,20 +77,18 @@ export default function GameMap() {
     mapRef.current.innerHTML = JSON.parse(messageJSON.sectionInfo.mapField);
   },[serverMessage]);  
 
+  
   useEffect(() => {
-    const messageForServer = clientUtils.messageMainWrapper(userRole, userName, userColor, 0);
+    console.log(mapContent);
+
+   /* const messageForServer = clientUtils.messageMainWrapper(userRole, userName, userColor, 0);
     messageForServer['sectionName'] = 'gameMap';
     messageForServer['sectionInfo'] = {
       'mapField': JSON.stringify(mapRef.current.innerHTML),
     };
     dispatch(manageWebsocket('send',process.env.NEXT_PUBLIC_SERVER_URL,JSON.stringify(messageForServer)));       
-  },[mapState]); 
-
-  function chooseColor(e,dispatch){
-
-    dispatch(mapSlice.setActivePaletteColor(e.target.style.backgroundColor));
-    dispatch(mapSlice.setActivePaletteTextColor(e.target.style.color));
-  }
+    */
+  },[mapContent]); 
 
   function PaletteColorElem({ 
     elemClass = styles.paletteColorItem,
@@ -92,7 +96,6 @@ export default function GameMap() {
     backgroundColor,
     textColor,
   }){
-
     let currentClass = '';
     activeColor === backgroundColor ? currentClass = `${elemClass} ${styles.activeElem}` : currentClass = `${elemClass}`;
 
@@ -105,6 +108,10 @@ export default function GameMap() {
         { elemText }
       </div>
     );
+  }
+  function chooseColor(e,dispatch){
+    dispatch(mapSlice.setActivePaletteColor(e.target.style.backgroundColor));
+    dispatch(mapSlice.setActivePaletteTextColor(e.target.style.color));
   }
 
   const paletteColors = <div className={ styles.paletteColors }>
@@ -127,26 +134,79 @@ export default function GameMap() {
     <PaletteColorElem backgroundColor="aqua" textColor="black" />
   </div>;
 
+  function PaletteElem({ id }){
+    let elemClass = id === activeForm ? `${styles.paletteElem} ${styles.activeElem}` : styles.paletteElem;
+    let elemStyle = {...mapSlice.FORMS_LIST[id], "backgroundColor" : activeColor, "color" : activeTextColor };
+
+    return (
+      <div 
+        id={ id }
+        className={ elemClass }
+        style={ elemStyle }
+        onClick={(e)=> chooseForm(e,dispatch)}
+      ></div>
+    );
+  }
+  function chooseForm(e,dispatch){
+    console.log(activeForm);
+    dispatch(mapSlice.setActivePaletteForm(e.target.id));
+  }  
+
   const paletteForms = <div className={ styles.paletteForms }>
-    Forms: 
-    <PaletteElem id="paletteCircle" elemModuleStyle={["circle"]} />
-    <PaletteElem id="paletteSoftSquare" elemModuleStyle={["softSquare"]} />
-    <PaletteElem id="testPaletteElem" />
+    <PaletteElem id="elemForm_0" />
+    <PaletteElem id="elemForm_1" />
+    <PaletteElem id="elemForm_2" />
+    <PaletteElem id="elemForm_3" />
+    <PaletteElem id="elemForm_4" />
+    <PaletteElem id="elemForm_5" />
+    <PaletteElem id="elemForm_6" />
+    <PaletteElem id="elemForm_7" />
+    <PaletteElem id="elemForm_8" />  
+    <PaletteElem id="elemForm_9" />
+    <PaletteElem id="elemForm_10" />
+    <PaletteElem id="elemForm_11" />        
   </div>;
 
-  
+  const paletteActions = <div className={ styles.paletteActions }>
+    <div className={ styles.paletteActionElem } style={(activeAction === "arrow") ? {background: "yellow"} : {}} onClick={ () => dispatch(mapSlice.setActivePaletteAction("arrow")) }>&#x1F446;</div>
+    <div className={ styles.paletteActionElem } style={(activeAction === "brush") ? {background: "yellow"} : {}}  onClick={ () => dispatch(mapSlice.setActivePaletteAction("brush")) }>&#128396;</div>
+  </div>; 
+
+  const paletteLayers = <div className={ styles.paletteLayers }>
+    <div style={{"alignSelf": "flex-start"}}>Layers:</div>
+    <div>
+      <span>top:</span>
+      <input name="layersSection" checked={ (activeLayer === "top") } type="radio" onChange={ () => dispatch(mapSlice.setActivePaletteLayer("top")) } />
+    </div>
+    <div>
+      <span>middle:</span>
+      <input name="layersSection" checked={ (activeLayer === "middle") } type="radio" onChange={ () => dispatch(mapSlice.setActivePaletteLayer("middle")) } />
+    </div>
+    <div>
+      <span>bottom:</span>
+      <input name="layersSection" checked={ (activeLayer === "bottom") } type="radio" onChange={ () => dispatch(mapSlice.setActivePaletteLayer("bottom")) } />
+    </div>
+    <div>
+      <span>bind to grid:</span>
+      <input type="checkbox" selected={gridBinding} onChange={ () => dispatch(mapSlice.switchGridBinding()) }/>
+    </div>
+  </div>
 
   return (
     <DndProvider backend={HTML5Backend}>
       <div className={ styles.gameMapWrapper }>
         <div className={ styles.mapFieldWrapper } onMouseDown={(e) => e.stopPropagation()}>
-          <div className={ styles.mapField } ref={mapRef} droppable="true" onClick={ (e) => {placeFigureOnMap(e);}}>
-            map!
+          <div className={ styles.mapField } ref={mapRef} droppable="true" onClick={ (e) => {changeMap(e);}}>
+            {mapContent.map((item, index) => (
+              <div key={index} dangerouslySetInnerHTML={{ __html: item }} />
+            ))}
           </div>
         </div>
         <div className={ styles.gameMapTools } onMouseDown={(e) => e.stopPropagation()}>
+          { paletteActions }
           { paletteColors }
           { paletteForms }
+          { paletteLayers }
         </div>
       </div>
     </DndProvider>

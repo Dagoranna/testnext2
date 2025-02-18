@@ -36,18 +36,42 @@
 }
 
 .paletteForms{
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  width: 70px;
+  height: 104px;
+  text-align: center;
+  border: 1px solid #caa67e;
+  margin-right: 5px;
+  padding: 2px;
 }
 
 .paletteColors{
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr;
-  width: 80px;
-  height: 100px;
+  width: 84px;
+  height: 104px;
   text-align: center;
   border: 1px solid #caa67e;
   margin-right: 5px;
+  padding: 2px;
+}
+
+.paletteActions{
+  display: block;
+  text-align: center;
+  border: 1px solid #caa67e;
+  margin-right: 5px;
+  padding: 2px;
+}
+
+.paletteLayers{
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  border: 1px solid #caa67e;
+  margin-right: 5px;
+  padding: 2px;  
 }
 
 .paletteColorItem{
@@ -65,17 +89,28 @@
 }
 
 .activeElem{
-  box-shadow: 0 0 3px 3px yellow, 0 0 3px white inset;
-  z-index: 2;
-  
+  outline: 3px solid yellow;
+  z-index: 2;  
 }
 
 
 .paletteElem{
   width: 20px;
   height: 20px;
-  border: 1px solid #caa67e;
+  border: 1px solid #7d7a7a;
   cursor: pointer;
+  margin: 1px;
+}
+
+.paletteActionElem{
+  width: 20px;
+  height: 30px;
+  border: 1px solid #7d7a7a;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 1px;
+  line-height: 1.5rem;
+  box-shadow: aliceblue 2px 2px 3px inset, black -2px -2px 3px inset;
 }
 
 .mapElem{
