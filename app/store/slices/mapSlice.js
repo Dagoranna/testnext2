@@ -78,11 +78,19 @@ const mapSlice = createSlice({
   reducers: {
     setMapContent: (state, action) => { state.mapContent = JSON.parse(JSON.stringify(action.payload)) },
     addElemToMap: (state, action) => { 
-      console.log(action.payload);
       state.mapContent.push(action.payload);
     },
+    changeElemOnMap: (state, action) => {
+      let currentElemStart = action.payload.slice(0,action.payload.indexOf(' class'));
+      let currentElemIndex = state.mapContent.findIndex((item) => item.startsWith(currentElemStart));
+      state.mapContent[currentElemIndex] = action.payload;
+    },
     removeElemFromMap: (state, action) => {
-      delete state.mapContent[action.payload];
+      let currentElemStart = action.payload.slice(0,action.payload.indexOf(' class'));
+      let currentElemIndex = state.mapContent.findIndex((item) => item.startsWith(currentElemStart));
+      if (currentElemIndex !== -1) {
+        state.mapContent.splice(currentElemIndex, 1);
+      }
     },
 
     setMapElemsCounter: (state, action) => { state.mapElemsCounter = action.payload; },
@@ -99,7 +107,7 @@ const mapSlice = createSlice({
   }
 });
 
-export const { setMapContent, addElemToMap, removeElemFromMap, 
+export const { setMapContent, addElemToMap, changeElemOnMap, removeElemFromMap, 
   setMapElemsCounter, incMapElemsCounter, 
   setActivePaletteAction, setActiveElemId, setActivePaletteStyle, setActivePaletteColor, 
   setActivePaletteTextColor, setActivePaletteLayer, setActivePaletteForm, switchGridBinding } = mapSlice.actions;

@@ -102,6 +102,15 @@
   margin: 1px;
 }
 
+.paletteTraceElem{
+  position: absolute;
+  display: block;
+  border: 5px dashed yellow;
+/*  opacity: 0.5;*/
+  pointer-events: none;
+  z-index: 100;
+}
+
 .paletteActionElem{
   width: 20px;
   height: 30px;
@@ -119,6 +128,17 @@
   width: 20px;
   height: 20px;
   border: 1px solid black;
+}
+
+.mapElemResizer{
+  position: absolute;
+  right: 1px;
+  bottom: 1px;
+  width: 5px;
+  height: 5px;
+  border-right: 2px solid black;
+  border-bottom: 2px solid black;
+  cursor: se-resize;
 }
 
 .square{

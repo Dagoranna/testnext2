@@ -12,6 +12,8 @@ import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import MapElem from "./MapElem";
 
+const CELL_SIZE = 20;
+
 export default function GameMap() {
   const dispatch = useDispatch();
   const mapRef = useRef('');
@@ -30,30 +32,199 @@ export default function GameMap() {
   const userColor = useSelector((state) => state.main.userColor);
 
   const serverMessage = useSelector((state) => state.websocket.serverMessage);
-  
 
-  function changeMap(e){
-    console.log(document.getElementById(activeForm));
-    dispatch(mapSlice.incMapElemsCounter());
+  const [isDragging, setIsDragging] = useState(false);
+  const [draggingObject, setDraggingObject] = useState({});
+  const [startPoint, setStartPoint] = useState({});
+  const [isResizing, setIsResizing] = useState(false);
+  const [resizingObject, setResizingObject] = useState({});
+ 
+  let tempObj = {};
 
+  function mapOnMouseUp(e){
     const gameMap = mapRef.current;
     const gameMapRect = gameMap.getBoundingClientRect();
-    
 
-    //e.pageX - mouse pos on page including page scrolling
-    //10 = 1/2 cell size
-    const elemX = e.pageX - gameMapRect.left + gameMap.scrollLeft - 10 + "px";
-    const elemY = e.pageY - gameMapRect.top + gameMap.scrollTop - 10 + "px";
-    const elemId = `mapElem_${mapElemCounter}`;
+    console.log('mapOnMouseUp');
+    if (activeAction === "brush"){
+      dispatch(mapSlice.incMapElemsCounter());
+      let elemX, elemY;
 
-    let formClone = document.getElementById(activeForm).cloneNode(true);
-    formClone.id = elemId;
-    formClone.style.left = elemX;
-    formClone.style.top = elemY;
-    formClone.style.position = "absolute";
-    formClone.style.outline = "none";
-    
-    dispatch(mapSlice.addElemToMap(formClone.outerHTML));
+      if (!gridBinding){
+        elemX = e.pageX - gameMapRect.left + gameMap.scrollLeft - CELL_SIZE / 2 + "px";
+        elemY = e.pageY - gameMapRect.top + gameMap.scrollTop - CELL_SIZE / 2 + "px";
+      } else {
+        elemX = e.pageX - gameMapRect.left + gameMap.scrollLeft - CELL_SIZE / 2;
+        elemY = e.pageY - gameMapRect.top + gameMap.scrollTop - CELL_SIZE / 2;
+        elemX = Math.round(elemX / 20) * 20 + "px";
+        elemY = Math.round(elemY / 20) * 20 + "px";
+      }
+      const elemId = `mapElem_${mapElemCounter}`;
+
+      let formClone = document.getElementById(activeForm).cloneNode(true);
+      formClone.id = elemId;
+      formClone.style.left = elemX;
+      formClone.style.top = elemY;
+      formClone.style.position = "absolute";
+      formClone.style.outline = "none";
+      formClone.draggable = "true";
+      formClone.setAttribute("name", "mapElem");
+      switch (activeLayer) {
+        case "top": formClone.style.zIndex = "20";
+          break;
+        case "middle": formClone.style.zIndex = "15";
+          break;
+        case "bottom": formClone.style.zIndex = "10";
+          break;                
+      }
+
+      let formCloneResizer = document.createElement('div');
+      switch (activeLayer) {
+        case "top": formCloneResizer.style.zIndex = "21";
+          break;
+        case "middle": formCloneResizer.style.zIndex = "16";
+          break;
+        case "bottom": formCloneResizer.style.zIndex = "11";
+          break;                
+      }
+
+      formCloneResizer.className = styles.mapElemResizer;
+      formCloneResizer.setAttribute("name", "elemResizer");
+      formClone.appendChild(formCloneResizer);
+
+      dispatch(mapSlice.addElemToMap(formClone.outerHTML));
+    } else {
+      //TODO: activeAction = "arrow"
+      if (isResizing){
+       /// dispatch(mapSlice.removeElemFromMap(resizingObject.outerHTML));
+        tempObj = resizingObject.cloneNode(true);
+        let mouseX, mouseY;
+
+        if (!gridBinding){
+          mouseX = e.pageX - gameMapRect.left + gameMap.scrollLeft;
+          mouseY = e.pageY - gameMapRect.top + gameMap.scrollTop;
+        } else {
+          mouseX = e.pageX - gameMapRect.left + gameMap.scrollLeft;
+          mouseY = e.pageY - gameMapRect.top + gameMap.scrollTop;
+          mouseX = Math.round(mouseX / 20) * 20;
+          mouseY = Math.round(mouseY / 20) * 20;
+        }       
+
+        const newWidth = mouseX - parseInt(tempObj.style.left);
+        const newHeight = mouseY - parseInt(tempObj.style.top);
+        tempObj.style.width = newWidth > 0 ? newWidth + "px" : "2px"; 
+        tempObj.style.height = newHeight > 0 ? newHeight + "px" : "2px"; 
+        
+        dispatch(mapSlice.changeElemOnMap(tempObj.outerHTML));
+
+        setIsResizing(false);
+        setResizingObject({});
+        document.getElementById("traceItem").remove();
+        tempObj = {};
+
+      } else if (isDragging){
+        tempObj = draggingObject.cloneNode(true);
+        let traceItem = document.getElementById("traceItem");
+
+    //    if (!gridBinding){
+          tempObj.style.left = parseInt(traceItem.style.left) - gameMapRect.left + gameMap.scrollLeft + "px";
+          tempObj.style.top = parseInt(traceItem.style.top) - gameMapRect.top + gameMap.scrollTop + "px";
+    //    } else {
+      /*    tempObj.style.left = parseInt(traceItem.style.left) - gameMapRect.left + gameMap.scrollLeft;
+          tempObj.style.top = parseInt(traceItem.style.top) - gameMapRect.top + gameMap.scrollTop;
+          tempObj.style.left = Math.round(tempObj.style.left / 20) * 20;
+          tempObj.style.top = Math.round(tempObj.style.top / 20) * 20;
+        }*/    
+
+        dispatch(mapSlice.changeElemOnMap(tempObj.outerHTML));
+        setDraggingObject({});
+        setIsDragging(false);
+        traceItem.remove();
+        tempObj = {};        
+      }
+    }
+  }
+
+  function mapOnMouseDown(e){
+    e.preventDefault();
+    const gameMap = mapRef.current;
+    const gameMapRect = gameMap.getBoundingClientRect();    
+
+    if (activeAction === "brush"){
+
+    } else {
+      //activeAction = "arrow"
+      const eventTargetName = e.target.getAttribute('name');
+      console.log(eventTargetName);
+      if (eventTargetName === "elemResizer"){
+        //start resizing 
+        setIsResizing(true);
+        setResizingObject(e.target.parentElement);
+        
+        let rect = e.target.parentElement.getBoundingClientRect();
+
+        let traceItem = document.createElement('div');
+        traceItem.className = styles.paletteTraceElem;
+        traceItem.style.left = rect.left + "px";
+        traceItem.style.top = rect.top + "px";
+        traceItem.style.width = rect.width + "px";
+        traceItem.style.height = rect.height + "px";
+        traceItem.id = "traceItem";
+        document.body.append(traceItem);
+      } else if (eventTargetName === "mapElem") {
+        //start elem dragging
+        setIsDragging(true);
+        //setDraggingObject(e.target.closest('[name="mapElem"]'));
+        setDraggingObject(e.target);
+
+        let rect = e.target.getBoundingClientRect();
+
+        let traceItem = document.createElement('div');
+        traceItem.className = styles.paletteTraceElem;
+        traceItem.style.left = rect.left + "px";
+        traceItem.style.top = rect.top + "px";
+        traceItem.style.width = rect.width + "px";
+        traceItem.style.height = rect.height + "px";
+        traceItem.id = "traceItem";
+
+        setStartPoint({
+          left: e.pageX,
+          top: e.pageY,
+          elemLeft: parseInt(traceItem.style.left) || 0,
+          elemTop: parseInt(traceItem.style.top) || 0
+        });
+
+        document.body.append(traceItem);        
+      }
+    }
+  }  
+
+  function mapOnMouseMove(e){
+    e.stopPropagation();
+    if (isResizing){
+      const gameMap = mapRef.current;
+      const gameMapRect = gameMap.getBoundingClientRect();
+      tempObj = document.getElementById("traceItem");
+
+      let mouseX, mouseY;
+
+      mouseX = e.pageX;
+      mouseY = e.pageY;
+
+      const newWidth = mouseX - parseInt(tempObj.style.left);
+      const newHeight = mouseY - parseInt(tempObj.style.top);
+      tempObj.style.width = newWidth > 0 ? newWidth + "px" : "2px"; 
+      tempObj.style.height = newHeight > 0 ? newHeight + "px" : "2px"; 
+    } else if (isDragging){
+      tempObj = document.getElementById("traceItem");
+ 
+      const newLeft = startPoint.elemLeft + (e.pageX - startPoint.left);
+      const newTop = startPoint.elemTop + (e.pageY - startPoint.top);
+
+      tempObj.style.left = newLeft + "px";
+      tempObj.style.top = newTop + "px";
+
+    }
   }
 
   useEffect(() => {
@@ -79,15 +250,15 @@ export default function GameMap() {
 
   
   useEffect(() => {
+    console.log('mapContent = ');
     console.log(mapContent);
-
-   /* const messageForServer = clientUtils.messageMainWrapper(userRole, userName, userColor, 0);
+    const messageForServer = clientUtils.messageMainWrapper(userRole, userName, userColor, 0);
     messageForServer['sectionName'] = 'gameMap';
     messageForServer['sectionInfo'] = {
       'mapField': JSON.stringify(mapRef.current.innerHTML),
     };
     dispatch(manageWebsocket('send',process.env.NEXT_PUBLIC_SERVER_URL,JSON.stringify(messageForServer)));       
-    */
+    
   },[mapContent]); 
 
   function PaletteColorElem({ 
@@ -196,7 +367,14 @@ export default function GameMap() {
     <DndProvider backend={HTML5Backend}>
       <div className={ styles.gameMapWrapper }>
         <div className={ styles.mapFieldWrapper } onMouseDown={(e) => e.stopPropagation()}>
-          <div className={ styles.mapField } ref={mapRef} droppable="true" onClick={ (e) => {changeMap(e);}}>
+          <div 
+            className={ styles.mapField } 
+            ref={mapRef} 
+            droppable="true" 
+            onMouseUp={ (e) => { mapOnMouseUp(e); } } 
+            onMouseDown={ (e) => { mapOnMouseDown(e); } }
+            onMouseMove={ (e) => { mapOnMouseMove(e); } }
+          >
             {mapContent.map((item, index) => (
               <div key={index} dangerouslySetInnerHTML={{ __html: item }} />
             ))}
