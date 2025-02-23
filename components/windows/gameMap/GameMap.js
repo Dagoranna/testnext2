@@ -11,6 +11,8 @@ import * as clientUtils from '../../../utils/clientUtils';
 import MapElem from "./MapElem";
 
 const CELL_SIZE = 20;
+const MARKER_RADIUS = 5;
+const radToDeg = (rad) => rad * (180 / Math.PI);
 
 export default function GameMap() {
   const dispatch = useDispatch();
@@ -36,46 +38,49 @@ export default function GameMap() {
   const [startPoint, setStartPoint] = useState({});
   const [isResizing, setIsResizing] = useState(false);
   const [resizingObject, setResizingObject] = useState({});
- 
+  const [isRotating, setIsRotating] = useState(false);
+  const [rotatingObject, setRotatingObject] = useState(null);  
+
   let tempObj = {};
+  let traceDiameter = 0;
+  let handlingStarted = false;
 
   function mapOnMouseDown(e){
+    if (e.button !== 0) return;
     e.preventDefault();
     const gameMap = mapRef.current;
     const gameMapRect = gameMap.getBoundingClientRect();    
 
     if (activeAction === "brush"){
-
-    } else {
-      //activeAction = "arrow"
+      //all actions on mouseUp(?)
+    } else if (activeAction === "arrow") {
       const eventTargetName = e.target.getAttribute('name');
       console.log(eventTargetName);
       if (eventTargetName === "elemResizer"){
-        //start resizing 
+        //resizing 
         setIsResizing(true);
         setResizingObject(e.target.parentElement);
         let rect = e.target.parentElement.getBoundingClientRect();
 
         let traceItem = document.createElement('div');
         traceItem.className = styles.paletteTraceElem;
-        traceItem.style.left = rect.left + "px";
-        traceItem.style.top = rect.top + "px";
+        traceItem.style.left = rect.left + window.scrollX + "px";
+        traceItem.style.top = rect.top + window.scrollY + "px";
         traceItem.style.width = rect.width + "px";
         traceItem.style.height = rect.height + "px";
         traceItem.id = "traceItem";
         document.body.append(traceItem);
       } else if (eventTargetName === "mapElem") {
-        //start elem dragging
+        //dragging
         setIsDragging(true);
-        //setDraggingObject(e.target.closest('[name="mapElem"]'));
         setDraggingObject(e.target);
 
         let rect = e.target.getBoundingClientRect();
 
         let traceItem = document.createElement('div');
         traceItem.className = styles.paletteTraceElem;
-        traceItem.style.left = rect.left + "px";
-        traceItem.style.top = rect.top + "px";
+        traceItem.style.left = rect.left + window.scrollX + "px";
+        traceItem.style.top = rect.top + window.scrollY + "px";
         traceItem.style.width = rect.width + "px";
         traceItem.style.height = rect.height + "px";
         traceItem.id = "traceItem";
@@ -89,10 +94,79 @@ export default function GameMap() {
 
         document.body.append(traceItem);        
       }
+    } else if (activeAction === "rotate") {
+      if(isRotating) return;
+      if (handlingStarted) return;
+      let rectObject = e.target.closest('[name="mapElem"]');
+      if (!rectObject) return;
+      setIsRotating(true);
+      setRotatingObject(rectObject);
+      rectObject.style.transform = "none";
+      let rect = rectObject.getBoundingClientRect();
+      traceDiameter = Math.round(Math.sqrt(rect.width ** 2 + rect.height ** 2 ));
+
+      let traceItem = document.createElement('div');
+      traceItem.className = styles.paletteTraceElem;
+      traceItem.style.left = rect.left + window.scrollX + "px";
+      traceItem.style.top = rect.top + window.scrollY + "px";
+      traceItem.style.width = rect.width + "px";
+      traceItem.style.height = rect.height + "px";
+      traceItem.id = "traceItem";
+
+      let traceItemCircle = document.createElement('div');
+      traceItemCircle.className = styles.paletteTraceElemCircle;
+      traceItemCircle.style.left = rect.left - (traceDiameter - rect.width) / 2 + window.scrollX + "px";
+      traceItemCircle.style.top = rect.top - (traceDiameter - rect.height) / 2 + window.scrollY + "px";
+      traceItemCircle.style.width = traceDiameter + "px";
+      traceItemCircle.style.height = traceDiameter + "px";
+      traceItemCircle.id = "traceItemCircle";   
+      
+      let traceItemMarker = document.createElement('div');
+      traceItemMarker.className = styles.paletteTraceMarker;
+      //traceItemMarker.style.left = rect.left + rect.width / 2 - MARKER_RADIUS + window.scrollX + "px";
+      //3 = border width
+      traceItemMarker.style.left = traceDiameter / 2 - 3 - MARKER_RADIUS + "px";
+      traceItemMarker.style.top =  - MARKER_RADIUS - 3 + "px";
+      
+      //traceItemMarker.style.top = rect.top - MARKER_RADIUS - (traceDiameter - rect.height) / 2 + window.scrollY + "px";
+      traceItemMarker.id = "traceItemMarker";
+
+      let tempStart = {
+        left: rect.left - (traceDiameter - rect.width) / 2 + window.scrollX,
+        top: rect.top - (traceDiameter - rect.height) / 2 + window.scrollY,
+      };
+
+      console.log(tempStart);
+      //console.log(gameMapRect);
+      setStartPoint(tempStart);
+
+      let traceItemMarker2 = document.createElement('div');
+      traceItemMarker2.className = styles.paletteTraceMarker;
+      traceItemMarker2.style.left = traceItemMarker.style.left;
+      traceItemMarker2.style.top = parseInt(traceItemMarker.style.top) + traceDiameter / 2 + "px";
+      traceItemMarker2.style.backgroundColor = "red";
+      traceItemMarker2.id = "traceItemMarker2";      
+
+      let traceItemMarker3 = document.createElement('div');
+      traceItemMarker3.className = styles.paletteTraceMarker;
+      traceItemMarker3.style.left = e.pageX - MARKER_RADIUS + "px";
+      traceItemMarker3.style.top = e.pageY - MARKER_RADIUS + "px";
+      traceItemMarker3.style.backgroundColor = "green";
+      traceItemMarker3.id = "traceItemMarker3";   
+
+      document.body.append(traceItemCircle); 
+      //document.body.append(traceItemMarker); 
+      traceItemCircle.append(traceItemMarker);
+      traceItemCircle.append(traceItemMarker2);
+      document.body.append(traceItemMarker3);
+      document.body.append(traceItem);  
+  
+
     }
   }  
 
   function mapOnMouseMove(e){
+    if (e.button !== 0) return;
     e.stopPropagation();
     if (isResizing){
       const gameMap = mapRef.current;
@@ -116,27 +190,44 @@ export default function GameMap() {
 
       tempObj.style.left = newLeft + "px";
       tempObj.style.top = newTop + "px";
+    } else if (isRotating) {
+      let m3 = document.getElementById("traceItemMarker3");
+      let m2 = document.getElementById("traceItemMarker2");
+      let circle = document.getElementById("traceItemCircle");
+      m3.style.left = e.pageX - MARKER_RADIUS + "px";
+      m3.style.top = e.pageY - MARKER_RADIUS + "px";
 
+      let rotated = document.getElementById("traceItem");
+
+      let dx = m3.getBoundingClientRect().x - m2.getBoundingClientRect().x;
+      let dy = m2.getBoundingClientRect().y - m3.getBoundingClientRect().y;
+
+      let alpha = Math.atan(dx/dy);
+      if (dy < 0) alpha += Math.PI;
+
+      rotated.style.transform = `rotate(${radToDeg(alpha)}deg)`;
+      circle.style.transform = `rotate(${radToDeg(alpha)}deg)`;
     }
   }
 
   function mapOnMouseUp(e){
+    if (e.button !== 0) return;
     const gameMap = mapRef.current;
     const gameMapRect = gameMap.getBoundingClientRect();
-
+    e.stopPropagation();
     console.log('mapOnMouseUp');
     if (activeAction === "brush"){
       dispatch(mapSlice.incMapElemsCounter());
       let elemX, elemY;
 
       if (!gridBinding){
-        elemX = e.pageX - gameMapRect.left + gameMap.scrollLeft - CELL_SIZE / 2 + "px";
-        elemY = e.pageY - gameMapRect.top + gameMap.scrollTop - CELL_SIZE / 2 + "px";
+        elemX = e.pageX - gameMapRect.left + gameMap.scrollLeft - window.scrollX - CELL_SIZE / 2 + "px";
+        elemY = e.pageY - gameMapRect.top + gameMap.scrollTop - window.scrollY - CELL_SIZE / 2 + "px";
       } else {
-        elemX = e.pageX - gameMapRect.left + gameMap.scrollLeft - CELL_SIZE / 2;
-        elemY = e.pageY - gameMapRect.top + gameMap.scrollTop - CELL_SIZE / 2;
-        elemX = Math.round(elemX / 20) * 20 + "px";
-        elemY = Math.round(elemY / 20) * 20 + "px";
+        elemX = e.pageX - gameMapRect.left + gameMap.scrollLeft - window.scrollX - CELL_SIZE / 2;
+        elemY = e.pageY - gameMapRect.top + gameMap.scrollTop - window.scrollY - CELL_SIZE / 2;
+        elemX = Math.round(elemX / CELL_SIZE) * CELL_SIZE + "px";
+        elemY = Math.round(elemY / CELL_SIZE) * CELL_SIZE + "px";
       }
       const elemId = `mapElem_${mapElemCounter}`;
 
@@ -172,19 +263,19 @@ export default function GameMap() {
       formClone.appendChild(formCloneResizer);
 
       dispatch(mapSlice.addElemToMap(formClone.outerHTML));
-    } else {
+    } else if (activeAction === "arrow") {
       if (isResizing){
         tempObj = resizingObject.cloneNode(true);
         let mouseX, mouseY;
 
         if (!gridBinding){
-          mouseX = e.pageX - gameMapRect.left + gameMap.scrollLeft;
-          mouseY = e.pageY - gameMapRect.top + gameMap.scrollTop;
+          mouseX = e.pageX - gameMapRect.left + gameMap.scrollLeft - window.scrollX;
+          mouseY = e.pageY - gameMapRect.top + gameMap.scrollTop - window.scrollY;
         } else {
-          mouseX = e.pageX - gameMapRect.left + gameMap.scrollLeft;
-          mouseY = e.pageY - gameMapRect.top + gameMap.scrollTop;
-          mouseX = Math.round(mouseX / 20) * 20;
-          mouseY = Math.round(mouseY / 20) * 20;
+          mouseX = e.pageX - gameMapRect.left + gameMap.scrollLeft - window.scrollX;
+          mouseY = e.pageY - gameMapRect.top + gameMap.scrollTop - window.scrollY;
+          mouseX = Math.round(mouseX / CELL_SIZE) * CELL_SIZE;
+          mouseY = Math.round(mouseY / CELL_SIZE) * CELL_SIZE;
         }       
 
         const newWidth = mouseX - parseInt(tempObj.style.left);
@@ -203,24 +294,51 @@ export default function GameMap() {
         let traceItem = document.getElementById("traceItem");
 
         if (!gridBinding){
-          tempObj.style.left = parseInt(traceItem.style.left) - gameMapRect.left + gameMap.scrollLeft + "px";
-          tempObj.style.top = parseInt(traceItem.style.top) - gameMapRect.top + gameMap.scrollTop + "px";
+          tempObj.style.left = parseInt(traceItem.style.left) - gameMapRect.left + gameMap.scrollLeft - window.scrollX + "px";
+          tempObj.style.top = parseInt(traceItem.style.top) - gameMapRect.top + gameMap.scrollTop - window.scrollY + "px";
         } else {
           let mouseX, mouseY;
-          mouseX = parseInt(traceItem.style.left) - gameMapRect.left + gameMap.scrollLeft;
-          mouseY = parseInt(traceItem.style.top) - gameMapRect.top + gameMap.scrollTop;
-          tempObj.style.left = Math.round(mouseX / 20) * 20 + "px";
-          tempObj.style.top = Math.round(mouseY / 20) * 20 + "px";
+          mouseX = parseInt(traceItem.style.left) - gameMapRect.left + gameMap.scrollLeft - window.scrollX;
+          mouseY = parseInt(traceItem.style.top) - gameMapRect.top + gameMap.scrollTop - window.scrollY;
+          tempObj.style.left = Math.round(mouseX / CELL_SIZE) * CELL_SIZE + "px";
+          tempObj.style.top = Math.round(mouseY / CELL_SIZE) * CELL_SIZE + "px";
         }            
        
         dispatch(mapSlice.changeElemOnMap(tempObj.outerHTML));
         setDraggingObject({});
+        setStartPoint({});
         setIsDragging(false);
         traceItem.remove();
         tempObj = {};        
       }
-    }
-  }  
+    } else if (activeAction === "rotate") {
+      //TODO
+      if (!isRotating) return;
+      handlingStarted = true;
+      setIsRotating(false);
+      
+      tempObj = rotatingObject.cloneNode(true);
+      setStartPoint({});
+       
+      let circle = document.getElementById("traceItemCircle");
+      //"rotate(88deg)"
+      const regex = /rotate\(([^.]*)\./;
+      let angle = circle.style.transform.match(regex)? circle.style.transform.match(regex)[1] : "0";
+
+      angle = Math.round(Number(angle) / 5) * 5;
+      tempObj.style.transform = 'rotate(' + angle + 'deg)';
+      
+      setRotatingObject(null); 
+      document.getElementById("traceItem").remove();
+      document.getElementById("traceItemCircle").remove();
+      document.getElementById("traceItemMarker3").remove();  
+
+      dispatch(mapSlice.changeElemOnMap(tempObj.outerHTML));   
+      tempObj = {}; 
+      handlingStarted = false;
+
+    }  
+  }
 
   useEffect(() => {
     if (!clientUtils.isValidJSON(serverMessage)) return;
@@ -245,8 +363,6 @@ export default function GameMap() {
 
   
   useEffect(() => {
-    console.log('mapContent = ');
-    console.log(mapContent);
     const messageForServer = clientUtils.messageMainWrapper(userRole, userName, userColor, 0);
     messageForServer['sectionName'] = 'gameMap';
     messageForServer['sectionInfo'] = {
@@ -336,6 +452,7 @@ export default function GameMap() {
   const paletteActions = <div className={ styles.paletteActions }>
     <div className={ styles.paletteActionElem } style={(activeAction === "arrow") ? {background: "yellow"} : {}} onClick={ () => dispatch(mapSlice.setActivePaletteAction("arrow")) }>&#x1F446;</div>
     <div className={ styles.paletteActionElem } style={(activeAction === "brush") ? {background: "yellow"} : {}}  onClick={ () => dispatch(mapSlice.setActivePaletteAction("brush")) }>&#128396;</div>
+    <div className={ styles.paletteActionElem } style={(activeAction === "rotate") ? {background: "yellow"} : {}} onClick={ () => dispatch(mapSlice.setActivePaletteAction("rotate")) }>&#8635;</div>
   </div>; 
 
   const paletteLayers = <div className={ styles.paletteLayers }>
@@ -354,7 +471,7 @@ export default function GameMap() {
     </div>
     <div>
       <span>bind to grid:</span>
-      <input type="checkbox" selected={gridBinding} onChange={ () => dispatch(mapSlice.switchGridBinding()) }/>
+      <input type="checkbox" checked={gridBinding} onChange={ () => dispatch(mapSlice.switchGridBinding()) }/>
     </div>
   </div>
 

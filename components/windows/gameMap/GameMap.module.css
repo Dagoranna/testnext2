@@ -111,6 +111,28 @@
   z-index: 100;
 }
 
+.paletteTraceElemCircle{
+  position: absolute;
+  box-sizing: content-box;
+  display: block;
+  border: 3px dotted blue;
+  pointer-events: none;
+  border-radius: 50%;
+  z-index: 110;
+}
+
+.paletteTraceMarker{
+  position: absolute;
+  display: block;
+  pointer-events: none;
+  background-color: aqua;
+  border: 1px solid blue;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  z-index: 111;  
+}
+
 .paletteActionElem{
   width: 20px;
   height: 30px;
@@ -120,6 +142,7 @@
   margin: 1px;
   line-height: 1.5rem;
   box-shadow: aliceblue 2px 2px 3px inset, black -2px -2px 3px inset;
+  font-weight: bold;
 }
 
 .mapElem{

@@ -72,7 +72,7 @@ const mapSlice = createSlice({
       "textColor": "black",
       "form": "elemForm_0",
       "layer": "top",
-      "bindToGrid": false,
+      "bindToGrid": true,
     },
   },
   reducers: {
