@@ -2,13 +2,16 @@
 
 import styles from './GameMap.module.css';
 import ReactDOM from 'react-dom';
+import ReactDOMServer from "react-dom/server";
 import React from 'react';
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, cloneElement } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import * as mapSlice from '../../../app/store/slices/mapSlice';
 import { manageWebsocket } from "../../../app/store/slices/websocketSlice";
 import * as clientUtils from '../../../utils/clientUtils';
 import MapElem from "./MapElem";
+import { GoTrueClient } from '@supabase/supabase-js';
+import parse from 'html-react-parser';
 
 const CELL_SIZE = 20;
 const MARKER_RADIUS = 5;
@@ -40,6 +43,8 @@ export default function GameMap() {
   const [resizingObject, setResizingObject] = useState({});
   const [isRotating, setIsRotating] = useState(false);
   const [rotatingObject, setRotatingObject] = useState(null);  
+  const [isSelecting, setIsSelecting] = useState(false);
+  const [selectedObjects, setSelectedObjects] = useState([]);
 
   let tempObj = {};
   let traceDiameter = 0;
@@ -86,13 +91,29 @@ export default function GameMap() {
         traceItem.id = "traceItem";
 
         setStartPoint({
-          left: e.pageX,
-          top: e.pageY,
+          x: e.pageX,
+          y: e.pageY,
           elemLeft: parseInt(traceItem.style.left) || 0,
           elemTop: parseInt(traceItem.style.top) || 0
         });
 
         document.body.append(traceItem);        
+      } else if (eventTargetName === "mapField") {
+        //selecting
+        setIsSelecting(true);
+        setStartPoint({
+          x : e.pageX,
+          y : e.pageY
+        });
+
+        let traceItem = document.createElement('div');
+        traceItem.className = styles.paletteTraceElem;
+        traceItem.style.left = e.pageX + "px";
+        traceItem.style.top = e.pageY + "px";
+        traceItem.style.width = "0";
+        traceItem.style.height = "0";        
+        traceItem.id = "traceItem"; 
+        document.body.append(traceItem);
       }
     } else if (activeAction === "rotate") {
       if(isRotating) return;
@@ -132,8 +153,8 @@ export default function GameMap() {
       traceItemMarker.id = "traceItemMarker";
 
       let tempStart = {
-        left: rect.left - (traceDiameter - rect.width) / 2 + window.scrollX,
-        top: rect.top - (traceDiameter - rect.height) / 2 + window.scrollY,
+        x: rect.left - (traceDiameter - rect.width) / 2 + window.scrollX,
+        y: rect.top - (traceDiameter - rect.height) / 2 + window.scrollY,
       };
 
       console.log(tempStart);
@@ -168,7 +189,7 @@ export default function GameMap() {
   function mapOnMouseMove(e){
     if (e.button !== 0) return;
     e.stopPropagation();
-    if (isResizing){
+    if (isResizing) {
       const gameMap = mapRef.current;
       const gameMapRect = gameMap.getBoundingClientRect();
       tempObj = document.getElementById("traceItem");
@@ -182,11 +203,11 @@ export default function GameMap() {
       const newHeight = mouseY - parseInt(tempObj.style.top);
       tempObj.style.width = newWidth > 0 ? newWidth + "px" : "2px"; 
       tempObj.style.height = newHeight > 0 ? newHeight + "px" : "2px"; 
-    } else if (isDragging){
+    } else if (isDragging) {
       tempObj = document.getElementById("traceItem");
  
-      const newLeft = startPoint.elemLeft + (e.pageX - startPoint.left);
-      const newTop = startPoint.elemTop + (e.pageY - startPoint.top);
+      const newLeft = startPoint.elemLeft + (e.pageX - startPoint.x);
+      const newTop = startPoint.elemTop + (e.pageY - startPoint.y);
 
       tempObj.style.left = newLeft + "px";
       tempObj.style.top = newTop + "px";
@@ -207,6 +228,10 @@ export default function GameMap() {
 
       rotated.style.transform = `rotate(${radToDeg(alpha)}deg)`;
       circle.style.transform = `rotate(${radToDeg(alpha)}deg)`;
+    } else if (isSelecting) {
+      let traceItem = document.getElementById("traceItem");
+      traceItem.style.width = e.pageX - parseInt(traceItem.style.left) + "px";
+      traceItem.style.height = e.pageY - parseInt(traceItem.style.top) + "px";         
     }
   }
 
@@ -278,10 +303,28 @@ export default function GameMap() {
           mouseY = Math.round(mouseY / CELL_SIZE) * CELL_SIZE;
         }       
 
+        const oldWidth = tempObj.style.width;
+        const oldHeight = tempObj.style.height;
         const newWidth = mouseX - parseInt(tempObj.style.left);
         const newHeight = mouseY - parseInt(tempObj.style.top);
         tempObj.style.width = newWidth > 0 ? newWidth + "px" : "2px"; 
         tempObj.style.height = newHeight > 0 ? newHeight + "px" : "2px"; 
+
+        const coefX = parseInt(newWidth) / parseInt(oldWidth);
+        const coefY = parseInt(newHeight) / parseInt(oldHeight);
+
+        for (let elem of tempObj.children){
+          if (elem.getAttribute("name") === "elemResizer") continue;
+
+          let elemWidth = parseInt(elem.style?.width) ? parseInt(elem.style?.width) : 20;
+          elem.style.width = elemWidth * coefX + "px";
+          elem.style.left = (parseInt(elem.style.left) + 1) * coefX - 1 + "px";
+          let elemHeight = parseInt(elem.style?.height) ? parseInt(elem.style?.height) : 20;
+          elem.style.height = elemHeight * coefY + "px";
+          elem.style.top = (parseInt(elem.style.top) + 1) * coefY - 1 + "px";
+        }
+
+
         
         dispatch(mapSlice.changeElemOnMap(tempObj.outerHTML));
 
@@ -310,6 +353,26 @@ export default function GameMap() {
         setIsDragging(false);
         traceItem.remove();
         tempObj = {};        
+      } else if (isSelecting){
+        setIsSelecting(false);
+        let endPoint = {x: e.pageX, y: e.pageY };
+
+        let mapHeap = mapContent.map((item) => {
+          item = document.getElementById(parse(item).props.id);
+          let itemRect = item.getBoundingClientRect();
+          if ((startPoint.y < (itemRect.top + window.scrollY)) && ( (itemRect.bottom + window.scrollY ) < endPoint.y ) &&
+            ((itemRect.left + window.scrollX) > startPoint.x) && ( (itemRect.right + window.scrollX ) < endPoint.x )) {
+              let tempI = item.cloneNode(true);
+              tempI.style.outline= "3px dashed yellow";
+              dispatch(mapSlice.changeElemOnMap(tempI.outerHTML));
+          } else {
+            let tempI = item.cloneNode(true);
+            tempI.style.outline= "none";
+            dispatch(mapSlice.changeElemOnMap(tempI.outerHTML));
+          }
+        });
+        traceItem.remove();
+        setStartPoint({});
       }
     } else if (activeAction === "rotate") {
       //TODO
@@ -337,7 +400,154 @@ export default function GameMap() {
       tempObj = {}; 
       handlingStarted = false;
 
-    }  
+    } 
+  }
+
+  function mergeItems(e){
+    console.log('merge');
+    if (activeAction !== "arrow") return;
+
+    let selectedArray = mapContent.filter((item) => item.includes("outline: yellow dashed 3px"));
+    if (selectedArray.length === 0) return;
+
+    selectedArray.map((item) => dispatch(mapSlice.removeElemFromMap(item) ));
+
+    let sortedArray = selectedArray.map((item) => item.replaceAll('name="mapElem"','name="mapInnerElem"') );
+    sortedArray = sortedArray.map((item) => item.replaceAll('outline: yellow dashed 3px','outline: none; pointer-events: none;') );
+
+    dispatch(mapSlice.incMapElemsCounter());
+
+    sortedArray = sortedArray.map((item) => parse(item)).sort((a,b) => parseInt(a.props.style.left) - parseInt(b.props.style.left));
+    let startX = sortedArray[0].props.style.left;
+    sortedArray = sortedArray.sort((a,b) => parseInt(a.props.style.top) - parseInt(b.props.style.top));
+    let startY = sortedArray[0].props.style.top;
+
+    sortedArray = sortedArray.sort((b,a) => (parseInt(a.props.style.left) + parseInt(a.props.style?.width ?? "20")) 
+    - (parseInt(b.props.style.left) + parseInt(b.props.style?.width ?? "20")));
+    let endX = parseInt(sortedArray[0].props.style.left) + parseInt(sortedArray[0].props.style?.width ?? "20") + 'px';
+    sortedArray = sortedArray.sort((b,a) => (parseInt(a.props.style.top) + parseInt(a.props.style?.height ?? "20")) 
+     - (parseInt(b.props.style.top) + parseInt(b.props.style?.height ?? "20")));
+    let endY = parseInt(sortedArray[0].props.style.top) + parseInt(sortedArray[0].props.style?.height ?? "20") + 'px';
+
+    sortedArray = sortedArray.map((item) => {
+      // -1 a.f.
+      item.props.style.left = parseInt(item.props.style.left) - parseInt(startX) - 1 + 'px';
+      item.props.style.top = parseInt(item.props.style.top) - parseInt(startY)  - 1 + 'px';
+      item.props.style.pointerEvents = "none";
+      return item;
+    });
+    const elemId = `mapElem_${mapElemCounter}`;
+
+    let formClone = document.createElement('div');
+    formClone.id = elemId;
+    formClone.className = styles.paletteElem;
+    formClone.style.left = startX;
+    formClone.style.top = startY;
+    formClone.style.width = parseInt(endX) - parseInt(startX) + 'px';
+    formClone.style.height = parseInt(endY) - parseInt(startY) + 'px';   
+    formClone.style.position = "absolute";
+    formClone.style.outline = "none";
+    formClone.style.border = "none";
+    formClone.draggable = "true";
+    formClone.setAttribute("name", "mapElem");
+    switch (activeLayer) {
+      case "top": formClone.style.zIndex = "20";
+        break;
+      case "middle": formClone.style.zIndex = "15";
+        break;
+      case "bottom": formClone.style.zIndex = "10";
+        break;                
+    }
+
+    formClone.innerHTML = sortedArray.map((item) => ReactDOMServer.renderToStaticMarkup(item)).join("");
+
+    let formCloneResizer = document.createElement('div');
+    switch (activeLayer) {
+      case "top": formCloneResizer.style.zIndex = "21";
+        break;
+      case "middle": formCloneResizer.style.zIndex = "16";
+        break;
+      case "bottom": formCloneResizer.style.zIndex = "11";
+        break;                
+    }
+
+    formCloneResizer.className = styles.mapElemResizer;
+    formCloneResizer.setAttribute("name", "elemResizer");
+    formClone.appendChild(formCloneResizer);
+
+    dispatch(mapSlice.addElemToMap(formClone.outerHTML));
+  }
+
+  function splitItems(e){
+    console.log('split');
+    if (activeAction !== "arrow") return;
+
+    let selectedArray = mapContent.filter((item) => item.includes("outline: yellow dashed 3px"));
+    if (selectedArray.length === 0) return;
+    selectedArray.map((item) => dispatch(mapSlice.removeElemFromMap(item) ));
+    let parsedArray = selectedArray.map((item) => parse(item));
+    
+    parsedArray.map((pItem,index) => {
+      let startX = parsedArray[index]?.props.style?.left ?? "0";
+      let startY = parsedArray[index]?.props.style?.top ?? "0";
+  
+      let innerArray = parsedArray.map((item) => item.props.children)[index];
+
+      if (innerArray.length > 0){
+        innerArray = innerArray.filter((item) => item.props.name !== "elemResizer");
+
+        innerArray = innerArray.map((item) => {
+          let itemXStart = item.props.style.left;
+          let itemYStart = item.props.style.top;
+          let itemX = parseInt(item.props.style.left) + 1 + parseInt(startX) + "px";
+          let itemY = parseInt(item.props.style.top) + 1 + parseInt(startY) + "px";
+          let tempItem = ReactDOMServer.renderToStaticMarkup(item);
+          tempItem = tempItem.replace('name="mapInnerElem"','name="mapElem"');
+          tempItem = tempItem.replace('pointer-events:none','pointer-events:auto');
+          tempItem = tempItem.replace(`left:${itemXStart}`,`left:${itemX}`);
+          tempItem = tempItem.replace(`top:${itemYStart}`,`top:${itemY}`);
+          dispatch(mapSlice.addElemToMap(tempItem));
+        });
+      } else {
+        let tempItem = ReactDOMServer.renderToStaticMarkup(pItem);
+        tempItem = tempItem.replace("outline:yellow dashed 3px","outline:none");
+        dispatch(mapSlice.addElemToMap(tempItem));
+      }
+    });
+  }
+
+  function deleteItems(e){
+    console.log('delete');
+    if (activeAction !== "arrow") return;
+
+    let selectedArray = mapContent.filter((item) => item.includes("outline: yellow dashed 3px"));
+    if (selectedArray.length === 0) return;
+    selectedArray.map((item) => dispatch(mapSlice.removeElemFromMap(item) ));    
+  }
+
+  function copyItems(e){
+    console.log('copy');
+    let selectedArray = mapContent.filter((item) => item.includes("outline: yellow dashed 3px"));
+    if (selectedArray.length === 0) return;  
+    console.log(selectedArray); 
+    
+  /*  let tempMap = selectedArray.map((item) => {
+      item = document.getElementById(parse(item).props.id);
+      let tempI = item.cloneNode(true);
+      tempI.style.outline= "none";
+      //dispatch(mapSlice.changeElemOnMap(tempI.outerHTML));
+    });    */
+
+ //   selectedArray.map((item) => item.replaceAll('id="mapElem_','id="mapElem_c_'));
+  /*  selectedArray.map((item) => {
+      console.log(item);
+      let parsedItem = parse(item);
+      parsedItem.props.style.top = parseInt(parsedItem.props.style.top) + 10 + "px";
+      parsedItem.props.style.left = parseInt(parsedItem.props.style.left) + 10 + "px";
+      console.log(parsedItem);
+      return ReactDOMServer.renderToStaticMarkup(parsedItem);
+    });*/
+  // selectedArray.map((item) => dispatch(mapSlice.addElemToMap(item)) );
   }
 
   useEffect(() => {
@@ -453,6 +663,17 @@ export default function GameMap() {
     <div className={ styles.paletteActionElem } style={(activeAction === "arrow") ? {background: "yellow"} : {}} onClick={ () => dispatch(mapSlice.setActivePaletteAction("arrow")) }>&#x1F446;</div>
     <div className={ styles.paletteActionElem } style={(activeAction === "brush") ? {background: "yellow"} : {}}  onClick={ () => dispatch(mapSlice.setActivePaletteAction("brush")) }>&#128396;</div>
     <div className={ styles.paletteActionElem } style={(activeAction === "rotate") ? {background: "yellow"} : {}} onClick={ () => dispatch(mapSlice.setActivePaletteAction("rotate")) }>&#8635;</div>
+    <div className={ styles.paletteActionElem } onClick={ () => mergeItems() }>
+      <img src="/images/link.bmp" style={{width: "100%", height: "100%"}}></img>
+    </div>
+    <div className={ styles.paletteActionElem } onClick={ () => splitItems() }>
+      <img src="/images/link_d.bmp" style={{width: "100%", height: "100%"}}></img>
+    </div>
+    <div className={ styles.paletteActionElem } onClick={ () => deleteItems() }>&#10006;</div> 
+    <div className={ styles.paletteActionElem } onClick={ () => copyItems() }>
+      <img src="/images/copy.bmp" style={{width: "100%", height: "100%"}}></img>
+    </div>
+
   </div>; 
 
   const paletteLayers = <div className={ styles.paletteLayers }>
@@ -480,6 +701,7 @@ export default function GameMap() {
       <div className={ styles.mapFieldWrapper } onMouseDown={(e) => e.stopPropagation()}>
         <div 
           className={ styles.mapField } 
+          name = "mapField"
           ref={mapRef} 
           droppable="true" 
           onMouseUp={ (e) => { mapOnMouseUp(e); } } 
@@ -487,7 +709,7 @@ export default function GameMap() {
           onMouseMove={ (e) => { mapOnMouseMove(e); } }
         >
           {mapContent.map((item, index) => (
-            <div key={index} dangerouslySetInnerHTML={{ __html: item }} />
+            <React.Fragment key={index}>{parse(item)}</React.Fragment>
           ))}
         </div>
       </div>

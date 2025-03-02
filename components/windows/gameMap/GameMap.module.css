@@ -58,11 +58,14 @@
 }
 
 .paletteActions{
-  display: block;
+  display: flex;
   text-align: center;
   border: 1px solid #caa67e;
   margin-right: 5px;
   padding: 2px;
+  flex-wrap: wrap;
+  max-width: 80px;
+  /*justify-content: space-between;*/
 }
 
 .paletteLayers{
@@ -93,6 +96,9 @@
   z-index: 2;  
 }
 
+.activeMapElem{
+  outline: 3px dashed yellow;
+}
 
 .paletteElem{
   width: 20px;
@@ -143,6 +149,7 @@
   line-height: 1.5rem;
   box-shadow: aliceblue 2px 2px 3px inset, black -2px -2px 3px inset;
   font-weight: bold;
+  color: black;
 }
 
 .mapElem{
