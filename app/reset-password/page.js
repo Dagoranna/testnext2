@@ -8,7 +8,7 @@ import { removeItemFromArray } from "../../utils/generalUtils";
 import FormErrors from "../../components/forms/FormErrors";
 import stylesFormWrapper from "../../components/forms/FormWrapper.module.css";
 
-export default function Home() {
+export function Home() {
   const token = useSearchParams().get('token');
   const email = useSearchParams().get('email');
 
@@ -125,10 +125,65 @@ export default function Home() {
     }
   }  
 
+  return (
 
+      <main>
+        {(isTokenValid === 0) && (
+          <FormWrapper formName='Checking resetting link...' isFormOpen={ true } >
+            <form id='resetForm' className='verticalForm'>
+              <div className='tableTitle'>Checking reset link...</div>
+            </form>
+          </FormWrapper>
+        )}
+        {(isTokenValid === -1) && (
+          <FormWrapper formName='Password Reset Link Expired' isFormOpen={ true } >
+            <form id='resetForm' className='verticalForm'>
+              <div className='tableTitle'>Password reset link is invalid</div>            
+            </form>
+          </FormWrapper>
+        )}      
+        {(isTokenValid === 1) && (
+          <FormWrapper formName='Enter new password' isFormOpen={ true } >
+            <form id='resetForm' className='verticalForm' onSubmit={handleSubmit}>
+              <div className='tableTitle'>Password reset</div>
+              <div className={ actionResult ? stylesFormWrapper.actionSuccess : stylesFormWrapper.actionFail }>{ actionMessage }</div>
+  
+              <input 
+                type="password"
+                placeholder="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="mainInput"
+              /> 
+              <input 
+                type="password"
+                placeholder="confirm password"
+                value={password2}
+                onChange={(e) => setPassword2(e.target.value)}
+                className="mainInput"
+              />      
+              <FormErrors formErrors={formPassErrors} />
+              <button id='resetButton' className="mainButton" type="submit">Set new password</button>   
+            
+            </form>
+          </FormWrapper>
+        )}
+      </main>
+
+  );
+}
+
+export default function SuspWrap (){
+  return (
+  <Suspense fallback={<div>Loading...</div>}>
+    <Home></Home>
+  </Suspense>  
+  );
+}
+
+/*
   return (
     <main>
-      <Suspense fallback={<div>Loading...</div>}>
       {(isTokenValid === 0) && (
         <FormWrapper formName='Checking resetting link...' isFormOpen={ true } >
           <form id='resetForm' className='verticalForm'>
@@ -169,7 +224,6 @@ export default function Home() {
           </form>
         </FormWrapper>
       )}
-      </Suspense>
     </main>
   );
-}
+*/
