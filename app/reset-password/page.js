@@ -1,4 +1,5 @@
 'use client';
+import { Suspense } from "react";
 import { useSearchParams} from 'next/navigation';
 import { useRouter } from 'next/router';
 import FormWrapper from '../../components/forms/FormWrapper';
@@ -127,6 +128,7 @@ export default function Home() {
 
   return (
     <main>
+      <Suspense fallback={<div>Loading...</div>}>
       {(isTokenValid === 0) && (
         <FormWrapper formName='Checking resetting link...' isFormOpen={ true } >
           <form id='resetForm' className='verticalForm'>
@@ -167,6 +169,7 @@ export default function Home() {
           </form>
         </FormWrapper>
       )}
+      </Suspense>
     </main>
   );
 }
