@@ -166,8 +166,8 @@
   bottom: 1px;
   width: 5px;
   height: 5px;
-  border-right: 2px solid black;
-  border-bottom: 2px solid black;
+  /*border-right: 2px solid black;
+  border-bottom: 2px solid black;*/
   cursor: se-resize;
 }
 

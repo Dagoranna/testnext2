@@ -28,7 +28,7 @@ export default function GameMap() {
   const activeLayer = useSelector((state) => state.map.activePaletteStyle.layer);
   const gridBinding = useSelector((state) => state.map.activePaletteStyle.bindToGrid);
   const mapContent = useSelector((state) => state.map.mapContent);
-  const mapElemCounter = useSelector((state) => state.map.mapElemsCounter);   
+  const mapElemsCounter = useSelector((state) => state.map.mapElemsCounter);   
 
   const userRole = useSelector((state) => state.main.userRole);
   const userName = useSelector((state) => state.main.userName);
@@ -240,7 +240,11 @@ export default function GameMap() {
     const gameMap = mapRef.current;
     const gameMapRect = gameMap.getBoundingClientRect();
     e.stopPropagation();
-    console.log('mapOnMouseUp');
+
+    if (e.type === "mouseleave" ){
+      if (activeAction !== "arrow") return;
+    }
+
     if (activeAction === "brush"){
       dispatch(mapSlice.incMapElemsCounter());
       let elemX, elemY;
@@ -254,7 +258,7 @@ export default function GameMap() {
         elemX = Math.round(elemX / CELL_SIZE) * CELL_SIZE + "px";
         elemY = Math.round(elemY / CELL_SIZE) * CELL_SIZE + "px";
       }
-      const elemId = `mapElem_${mapElemCounter}`;
+      const elemId = `mapElem_${mapElemsCounter}`;
 
       let formClone = document.getElementById(activeForm).cloneNode(true);
       formClone.id = elemId;
@@ -323,8 +327,6 @@ export default function GameMap() {
           elem.style.height = elemHeight * coefY + "px";
           elem.style.top = (parseInt(elem.style.top) + 1) * coefY - 1 + "px";
         }
-
-
         
         dispatch(mapSlice.changeElemOnMap(tempObj.outerHTML));
 
@@ -357,7 +359,7 @@ export default function GameMap() {
         setIsSelecting(false);
         let endPoint = {x: e.pageX, y: e.pageY };
 
-        let mapHeap = mapContent.map((item) => {
+        mapContent.map((item) => {
           item = document.getElementById(parse(item).props.id);
           let itemRect = item.getBoundingClientRect();
           if ((startPoint.y < (itemRect.top + window.scrollY)) && ( (itemRect.bottom + window.scrollY ) < endPoint.y ) &&
@@ -375,7 +377,6 @@ export default function GameMap() {
         setStartPoint({});
       }
     } else if (activeAction === "rotate") {
-      //TODO
       if (!isRotating) return;
       handlingStarted = true;
       setIsRotating(false);
@@ -387,6 +388,8 @@ export default function GameMap() {
       //"rotate(88deg)"
       const regex = /rotate\(([^.]*)\./;
       let angle = circle.style.transform.match(regex)? circle.style.transform.match(regex)[1] : "0";
+
+  
 
       angle = Math.round(Number(angle) / 5) * 5;
       tempObj.style.transform = 'rotate(' + angle + 'deg)';
@@ -436,7 +439,7 @@ export default function GameMap() {
       item.props.style.pointerEvents = "none";
       return item;
     });
-    const elemId = `mapElem_${mapElemCounter}`;
+    const elemId = `mapElem_${mapElemsCounter}`;
 
     let formClone = document.createElement('div');
     formClone.id = elemId;
@@ -486,7 +489,7 @@ export default function GameMap() {
     if (selectedArray.length === 0) return;
     selectedArray.map((item) => dispatch(mapSlice.removeElemFromMap(item) ));
     let parsedArray = selectedArray.map((item) => parse(item));
-    
+
     parsedArray.map((pItem,index) => {
       let startX = parsedArray[index]?.props.style?.left ?? "0";
       let startY = parsedArray[index]?.props.style?.top ?? "0";
@@ -529,25 +532,25 @@ export default function GameMap() {
     console.log('copy');
     let selectedArray = mapContent.filter((item) => item.includes("outline: yellow dashed 3px"));
     if (selectedArray.length === 0) return;  
-    console.log(selectedArray); 
-    
-  /*  let tempMap = selectedArray.map((item) => {
-      item = document.getElementById(parse(item).props.id);
-      let tempI = item.cloneNode(true);
-      tempI.style.outline= "none";
-      //dispatch(mapSlice.changeElemOnMap(tempI.outerHTML));
-    });    */
+    console.log(selectedArray);
+    let copyID = mapElemsCounter + 1; 
 
- //   selectedArray.map((item) => item.replaceAll('id="mapElem_','id="mapElem_c_'));
-  /*  selectedArray.map((item) => {
+    selectedArray.map((item) => {
       console.log(item);
       let parsedItem = parse(item);
-      parsedItem.props.style.top = parseInt(parsedItem.props.style.top) + 10 + "px";
-      parsedItem.props.style.left = parseInt(parsedItem.props.style.left) + 10 + "px";
-      console.log(parsedItem);
-      return ReactDOMServer.renderToStaticMarkup(parsedItem);
-    });*/
-  // selectedArray.map((item) => dispatch(mapSlice.addElemToMap(item)) );
+      let oldX = parsedItem.props.style.left;
+      let oldY = parsedItem.props.style.top;
+      let newX = parseInt(oldX) + 10 + "px";
+      let newY = parseInt(oldY) + 10 + "px";
+      parsedItem.props.style.left= newX;
+      parsedItem.props.style.top= newY;
+      let textElemCopy = ReactDOMServer.renderToStaticMarkup(parsedItem);
+      textElemCopy = textElemCopy.replaceAll('id="mapElem_',`id="mapElem_c_${copyID++}_`);
+      textElemCopy = textElemCopy.replaceAll('id="mapInnerElem_',`id="mapElem_c_${copyID++}_`);
+      dispatch(mapSlice.addElemToMap(textElemCopy));
+    });
+    dispatch(mapSlice.setMapElemsCounter(copyID));
+
   }
 
   useEffect(() => {
@@ -707,6 +710,7 @@ export default function GameMap() {
           onMouseUp={ (e) => { mapOnMouseUp(e); } } 
           onMouseDown={ (e) => { mapOnMouseDown(e); } }
           onMouseMove={ (e) => { mapOnMouseMove(e); } }
+          onMouseLeave={ (e) => { mapOnMouseUp(e); } }
         >
           {mapContent.map((item, index) => (
             <React.Fragment key={index}>{parse(item)}</React.Fragment>
