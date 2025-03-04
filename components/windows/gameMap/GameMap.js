@@ -270,6 +270,21 @@ export default function GameMap() {
       formClone.style.outline = "none";
       formClone.draggable = "true";
       formClone.setAttribute("name", "mapElem");
+
+      if ( activeColor == mainBGColor ) {
+        console.log('main color');
+        let cellSize = 20;
+        formClone.style.backgroundColor = mainBGColor;
+        formClone.style.backgroundImage = `
+            linear-gradient( transparent ${cellSize - 1}px, gray ${cellSize - 1}px),
+            linear-gradient(90deg, transparent ${cellSize - 1}px, gray ${cellSize - 1}px)
+          `;
+        formClone.style.backgroundSize = `${cellSize}px ${cellSize}px`;
+        formClone.style.backgroundPosition = `0 0, 0 0`;
+        formClone.style.backgroundRepeat = `repeat, repeat`;
+        formClone.style.border = "none";
+      } 
+
       switch (activeLayer) {
         case "top": formClone.style.zIndex = "20";
           break;
@@ -315,6 +330,12 @@ export default function GameMap() {
         const newHeight = mouseY - parseInt(tempObj.style.top);
         tempObj.style.width = newWidth > 0 ? newWidth + "px" : "2px"; 
         tempObj.style.height = newHeight > 0 ? newHeight + "px" : "2px"; 
+
+        if ((tempObj.style.width == "2px") || (tempObj.style.height == "2px")){
+          tempObj.style.borderWidth = "1px";
+        } else {
+          tempObj.style.borderWidth = "2px";
+        }       
 
         const coefX = parseInt(newWidth) / parseInt(oldWidth);
         const coefY = parseInt(newHeight) / parseInt(oldHeight);
@@ -597,9 +618,8 @@ export default function GameMap() {
     let gridColumn = '';
 
     activeColor === backgroundColor ? currentClass = `${elemClass} ${styles.activeElem}` : currentClass = `${elemClass}`;
-
-    console.log(backgroundColor);
     backgroundColor === mainBGColor || backgroundColor === "transparent" ? gridColumn = '1 / 5' : gridColumn = 'auto';
+
     return (
       <div 
         className={ currentClass }
