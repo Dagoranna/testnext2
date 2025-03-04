@@ -50,7 +50,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr;
   width: 84px;
-  height: 104px;
+  height: 125px;
   text-align: center;
   border: 1px solid #caa67e;
   margin-right: 5px;
@@ -89,6 +89,17 @@
   border: 1px solid #7d7a7a;
   cursor: pointer;
   user-select: none;
+}
+
+.paletteColorGrid{
+  grid-column: 1 / 5;
+  position: relative;
+  border: 1px solid #7d7a7a;
+  cursor: pointer;
+  user-select: none;
+  background: linear-gradient( gray, transparent 1px), linear-gradient( 90deg, gray, transparent 1px);
+  background-size: auto, auto;
+  background-size: var(--cell) var(--cell);   
 }
 
 .activeElem{

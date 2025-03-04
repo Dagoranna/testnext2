@@ -46,6 +46,8 @@ export default function GameMap() {
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectedObjects, setSelectedObjects] = useState([]);
 
+  const mainBGColor = "rgb(227, 214, 199)";
+
   let tempObj = {};
   let traceDiameter = 0;
   let handlingStarted = false;
@@ -592,12 +594,16 @@ export default function GameMap() {
     textColor,
   }){
     let currentClass = '';
+    let gridColumn = '';
+
     activeColor === backgroundColor ? currentClass = `${elemClass} ${styles.activeElem}` : currentClass = `${elemClass}`;
 
+    console.log(backgroundColor);
+    backgroundColor === mainBGColor || backgroundColor === "transparent" ? gridColumn = '1 / 5' : gridColumn = 'auto';
     return (
       <div 
         className={ currentClass }
-        style={{backgroundColor: backgroundColor, color: textColor}}
+        style={{backgroundColor: backgroundColor, color: textColor, gridColumn: gridColumn}}
         onClick={(e)=> chooseColor(e,dispatch)}
       >
         { elemText }
@@ -627,6 +633,7 @@ export default function GameMap() {
     <PaletteColorElem backgroundColor="blue" textColor="white" />
     <PaletteColorElem backgroundColor="teal" textColor="white" />
     <PaletteColorElem backgroundColor="aqua" textColor="black" />
+    <PaletteColorElem elemText="grid" backgroundColor={ mainBGColor } textColor="black" />    
   </div>;
 
   function PaletteElem({ id }){
@@ -647,20 +654,15 @@ export default function GameMap() {
     dispatch(mapSlice.setActivePaletteForm(e.target.id));
   }  
 
-  const paletteForms = <div className={ styles.paletteForms }>
-    <PaletteElem id="elemForm_0" />
-    <PaletteElem id="elemForm_1" />
-    <PaletteElem id="elemForm_2" />
-    <PaletteElem id="elemForm_3" />
-    <PaletteElem id="elemForm_4" />
-    <PaletteElem id="elemForm_5" />
-    <PaletteElem id="elemForm_6" />
-    <PaletteElem id="elemForm_7" />
-    <PaletteElem id="elemForm_8" />  
-    <PaletteElem id="elemForm_9" />
-    <PaletteElem id="elemForm_10" />
-    <PaletteElem id="elemForm_11" />        
-  </div>;
+  const paletteForms = (
+    <div className={ styles.paletteForms }>
+      {
+        Array.from({length: 12}, (_, i) => 
+          <PaletteElem key={i} id={`elemForm_${i}`} />
+        )
+      }      
+    </div>
+  );
 
   const paletteActions = <div className={ styles.paletteActions }>
     <div className={ styles.paletteActionElem } style={(activeAction === "arrow") ? {background: "yellow"} : {}} onClick={ () => dispatch(mapSlice.setActivePaletteAction("arrow")) }>&#x1F446;</div>
