@@ -331,12 +331,13 @@ export default function GameMap() {
         tempObj.style.width = newWidth > 0 ? newWidth + "px" : "2px"; 
         tempObj.style.height = newHeight > 0 ? newHeight + "px" : "2px"; 
 
-        if ((tempObj.style.width == "2px") || (tempObj.style.height == "2px")){
+     /*   if ((tempObj.style.width == "2px") || (tempObj.style.height == "2px")){
+          tempObj.dataset.oldBorderWidth = tempObj.style.borderWidth;
           tempObj.style.borderWidth = "1px";
         } else {
-          tempObj.style.borderWidth = "2px";
+          tempObj.style.borderWidth = tempObj.dataset?.oldBorderWidth || "2px";
         }       
-
+*/
         const coefX = parseInt(newWidth) / parseInt(oldWidth);
         const coefY = parseInt(newHeight) / parseInt(oldHeight);
 
@@ -677,7 +678,7 @@ export default function GameMap() {
   const paletteForms = (
     <div className={ styles.paletteForms }>
       {
-        Array.from({length: 12}, (_, i) => 
+        Array.from({length: 18}, (_, i) => 
           <PaletteElem key={i} id={`elemForm_${i}`} />
         )
       }      

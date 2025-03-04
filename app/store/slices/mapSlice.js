@@ -55,7 +55,44 @@ const FORMS_LIST = {
   "elemForm_11": {
     borderRadius: "50%",
     opacity: "0.5",    
-  },       
+  },    
+  "elemForm_12": {
+    borderWidth: "2px",
+    borderColor: "#404040",
+    borderLeft: "none",
+    borderRight: "none",
+  },      
+  "elemForm_13": {
+    borderWidth: "2px",
+    borderColor: "#404040",
+    borderTop: "none",
+    borderBottom: "none",
+  }, 
+
+  "elemForm_14": {
+    borderWidth: "2px",
+    borderColor: "#404040",
+    borderTop: "none",
+    borderLeft: "none",
+  }, 
+  "elemForm_15": {
+    borderWidth: "2px",
+    borderColor: "#404040",
+    borderTop: "none",
+    borderRight: "none",
+  },
+  "elemForm_16": {
+    borderWidth: "2px",
+    borderColor: "#404040",
+    borderLeft: "none",
+    borderBottom: "none",
+  },
+  "elemForm_17": {
+    borderWidth: "2px",
+    borderColor: "#404040",
+    borderRight: "none",
+    borderBottom: "none",
+  },         
 };
 
 

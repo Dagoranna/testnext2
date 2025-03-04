@@ -37,9 +37,9 @@
 
 .paletteForms{
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  width: 70px;
-  height: 104px;
+  grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+  width: 140px;
+  height: 125px;
   text-align: center;
   border: 1px solid #caa67e;
   margin-right: 5px;
