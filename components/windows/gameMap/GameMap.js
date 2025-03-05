@@ -54,7 +54,6 @@ export default function GameMap() {
   function mapOnPointerDown(e){
     //if (e.button !== 0) return;
     e.preventDefault();
-    alert('touch');
     const gameMap = mapRef.current;
     const gameMapRect = gameMap.getBoundingClientRect();    
 
@@ -723,7 +722,11 @@ export default function GameMap() {
 
   return (
     <div className={ styles.gameMapWrapper }>
-      <div className={ styles.mapFieldWrapper } onMouseDown={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
+      <div className={ styles.mapFieldWrapper } 
+        onMouseDown={(e) => e.stopPropagation()} 
+        onPointerDown={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
+      >
         <div 
           className={ styles.mapField } 
           name = "mapField"
@@ -739,7 +742,11 @@ export default function GameMap() {
           ))}
         </div>
       </div>
-      <div className={ styles.gameMapTools } onMouseDown={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
+      <div className={ styles.gameMapTools } 
+        onMouseDown={(e) => e.stopPropagation()} 
+        onPointerDown={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
+      >
         { paletteActions }
         { paletteColors }
         { paletteForms }
