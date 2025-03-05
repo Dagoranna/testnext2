@@ -4,7 +4,7 @@ import styles from './GameMap.module.css';
 import ReactDOM from 'react-dom';
 import ReactDOMServer from "react-dom/server";
 import React from 'react';
-import { useRef, useEffect, useState, cloneElement } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import * as mapSlice from '../../../app/store/slices/mapSlice';
 import { manageWebsocket } from "../../../app/store/slices/websocketSlice";
@@ -265,6 +265,8 @@ export default function GameMap() {
       formClone.id = elemId;
       formClone.style.left = elemX;
       formClone.style.top = elemY;
+      formClone.style.width = CELL_SIZE + "px";
+      formClone.style.height = CELL_SIZE + "px";
       formClone.style.position = "absolute";
       formClone.style.outline = "none";
       formClone.draggable = "true";
@@ -272,13 +274,13 @@ export default function GameMap() {
 
       if ( activeColor == mainBGColor ) {
         console.log('main color');
-        let cellSize = 20;
+
         formClone.style.backgroundColor = mainBGColor;
         formClone.style.backgroundImage = `
-            linear-gradient( transparent ${cellSize - 1}px, gray ${cellSize - 1}px),
-            linear-gradient(90deg, transparent ${cellSize - 1}px, gray ${cellSize - 1}px)
+            linear-gradient( transparent ${CELL_SIZE - 1}px, gray ${CELL_SIZE - 1}px),
+            linear-gradient(90deg, transparent ${CELL_SIZE - 1}px, gray ${CELL_SIZE - 1}px)
           `;
-        formClone.style.backgroundSize = `${cellSize}px ${cellSize}px`;
+        formClone.style.backgroundSize = `${CELL_SIZE}px ${CELL_SIZE}px`;
         formClone.style.backgroundPosition = `0 0, 0 0`;
         formClone.style.backgroundRepeat = `repeat, repeat`;
         formClone.style.border = "none";
@@ -330,23 +332,16 @@ export default function GameMap() {
         tempObj.style.width = newWidth > 0 ? newWidth + "px" : "2px"; 
         tempObj.style.height = newHeight > 0 ? newHeight + "px" : "2px"; 
 
-     /*   if ((tempObj.style.width == "2px") || (tempObj.style.height == "2px")){
-          tempObj.dataset.oldBorderWidth = tempObj.style.borderWidth;
-          tempObj.style.borderWidth = "1px";
-        } else {
-          tempObj.style.borderWidth = tempObj.dataset?.oldBorderWidth || "2px";
-        }       
-*/
         const coefX = parseInt(newWidth) / parseInt(oldWidth);
         const coefY = parseInt(newHeight) / parseInt(oldHeight);
 
         for (let elem of tempObj.children){
           if (elem.getAttribute("name") === "elemResizer") continue;
 
-          let elemWidth = parseInt(elem.style?.width) ? parseInt(elem.style?.width) : 20;
+          let elemWidth = parseInt(elem.style?.width) ? parseInt(elem.style?.width) : CELL_SIZE;
           elem.style.width = elemWidth * coefX + "px";
           elem.style.left = (parseInt(elem.style.left) + 1) * coefX - 1 + "px";
-          let elemHeight = parseInt(elem.style?.height) ? parseInt(elem.style?.height) : 20;
+          let elemHeight = parseInt(elem.style?.height) ? parseInt(elem.style?.height) : CELL_SIZE;
           elem.style.height = elemHeight * coefY + "px";
           elem.style.top = (parseInt(elem.style.top) + 1) * coefY - 1 + "px";
         }
