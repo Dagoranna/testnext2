@@ -732,6 +732,7 @@ export default function GameMap() {
           onPointerDown={ (e) => { mapOnPointerDown(e); } }
           onPointerMove={ (e) => { mapOnPointerMove(e); } }
           onPointerLeave={ (e) => { mapOnPointerUp(e); } }
+          onTouchStart = { (e) => alert('touch')}
         >
           {mapContent.map((item, index) => (
             <React.Fragment key={index}>{parse(item)}</React.Fragment>
