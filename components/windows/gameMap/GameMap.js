@@ -54,6 +54,7 @@ export default function GameMap() {
   function mapOnPointerDown(e){
     //if (e.button !== 0) return;
     e.preventDefault();
+    alert('touch');
     const gameMap = mapRef.current;
     const gameMapRect = gameMap.getBoundingClientRect();    
 
@@ -732,7 +733,6 @@ export default function GameMap() {
           onPointerDown={ (e) => { mapOnPointerDown(e); } }
           onPointerMove={ (e) => { mapOnPointerMove(e); } }
           onPointerLeave={ (e) => { mapOnPointerUp(e); } }
-          onTouchStart = { (e) => alert('touch')}
         >
           {mapContent.map((item, index) => (
             <React.Fragment key={index}>{parse(item)}</React.Fragment>
