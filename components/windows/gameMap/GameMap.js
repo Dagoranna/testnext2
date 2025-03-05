@@ -16,6 +16,7 @@ import parse from 'html-react-parser';
 const CELL_SIZE = 20;
 const MARKER_RADIUS = 5;
 const radToDeg = (rad) => rad * (180 / Math.PI);
+const mainBGColor = "rgb(227, 214, 199)";
 
 export default function GameMap() {
   const dispatch = useDispatch();
@@ -45,8 +46,6 @@ export default function GameMap() {
   const [rotatingObject, setRotatingObject] = useState(null);  
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectedObjects, setSelectedObjects] = useState([]);
-
-  const mainBGColor = "rgb(227, 214, 199)";
 
   let tempObj = {};
   let traceDiameter = 0;
