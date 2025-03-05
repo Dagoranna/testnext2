@@ -52,7 +52,7 @@ export default function GameMap() {
   let handlingStarted = false;
 
   function mapOnPointerDown(e){
-    if (e.button !== 0) return;
+    //if (e.button !== 0) return;
     e.preventDefault();
     const gameMap = mapRef.current;
     const gameMapRect = gameMap.getBoundingClientRect();    
@@ -241,7 +241,7 @@ export default function GameMap() {
   }
 
   function mapOnPointerUp(e){
-    if (e.button !== 0) return;
+   // if (e.button !== 0) return;
     const gameMap = mapRef.current;
     const gameMapRect = gameMap.getBoundingClientRect();
     e.stopPropagation();
