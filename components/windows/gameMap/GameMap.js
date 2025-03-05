@@ -51,7 +51,7 @@ export default function GameMap() {
   let traceDiameter = 0;
   let handlingStarted = false;
 
-  function mapOnMouseDown(e){
+  function mapOnPointerDown(e){
     if (e.button !== 0) return;
     e.preventDefault();
     const gameMap = mapRef.current;
@@ -187,18 +187,22 @@ export default function GameMap() {
     }
   }  
 
-  function mapOnMouseMove(e){
-    if (e.button !== 0) return;
+  function mapOnPointerMove(e){
+    console.log('e.button = ' + e.button);
+    //if (e.button !== 0) return;
+
     e.stopPropagation();
     if (isResizing) {
       const gameMap = mapRef.current;
       const gameMapRect = gameMap.getBoundingClientRect();
       tempObj = document.getElementById("traceItem");
 
-      let mouseX, mouseY;
+      /*let mouseX, mouseY;
 
       mouseX = e.pageX;
-      mouseY = e.pageY;
+      mouseY = e.pageY;*/
+      let mouseX = e.clientX;
+      let mouseY = e.clientY;
 
       const newWidth = mouseX - parseInt(tempObj.style.left);
       const newHeight = mouseY - parseInt(tempObj.style.top);
@@ -236,7 +240,7 @@ export default function GameMap() {
     }
   }
 
-  function mapOnMouseUp(e){
+  function mapOnPointerUp(e){
     if (e.button !== 0) return;
     const gameMap = mapRef.current;
     const gameMapRect = gameMap.getBoundingClientRect();
@@ -718,23 +722,23 @@ export default function GameMap() {
 
   return (
     <div className={ styles.gameMapWrapper }>
-      <div className={ styles.mapFieldWrapper } onMouseDown={(e) => e.stopPropagation()}>
+      <div className={ styles.mapFieldWrapper } onMouseDown={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
         <div 
           className={ styles.mapField } 
           name = "mapField"
           ref={mapRef} 
           droppable="true" 
-          onMouseUp={ (e) => { mapOnMouseUp(e); } } 
-          onMouseDown={ (e) => { mapOnMouseDown(e); } }
-          onMouseMove={ (e) => { mapOnMouseMove(e); } }
-          onMouseLeave={ (e) => { mapOnMouseUp(e); } }
+          onPointerUp={ (e) => { mapOnPointerUp(e); } } 
+          onPointerDown={ (e) => { mapOnPointerDown(e); } }
+          onPointerMove={ (e) => { mapOnPointerMove(e); } }
+          onPointerLeave={ (e) => { mapOnPointerUp(e); } }
         >
           {mapContent.map((item, index) => (
             <React.Fragment key={index}>{parse(item)}</React.Fragment>
           ))}
         </div>
       </div>
-      <div className={ styles.gameMapTools } onMouseDown={(e) => e.stopPropagation()}>
+      <div className={ styles.gameMapTools } onMouseDown={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
         { paletteActions }
         { paletteColors }
         { paletteForms }
