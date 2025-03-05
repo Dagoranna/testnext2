@@ -683,10 +683,11 @@ export default function GameMap() {
     </div>
   );
 
-  const paletteActions = <div className={ styles.paletteActions }
-    onMouseDown={(e) => e.stopPropagation()} 
-    onPointerDown={(e) => e.stopPropagation()}
-    onTouchStart={(e) => e.stopPropagation()}
+  const paletteActions = <div 
+    className={ styles.paletteActions }
+    onMouseDown={(e) => {e.stopPropagation(); e.preventDefault()}} 
+    onPointerDown={(e) => {e.stopPropagation(); e.preventDefault()}}
+    onTouchStart={(e) => {e.stopPropagation(); e.preventDefault()}}
   >
     <div className={ styles.paletteActionElem } style={(activeAction === "arrow") ? {background: "yellow"} : {}} onClick={ () => dispatch(mapSlice.setActivePaletteAction("arrow")) }>&#x1F446;</div>
     <div className={ styles.paletteActionElem } style={(activeAction === "brush") ? {background: "yellow"} : {}}  onClick={ () => dispatch(mapSlice.setActivePaletteAction("brush")) }>&#128396;</div>
