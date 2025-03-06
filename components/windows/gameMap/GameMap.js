@@ -245,6 +245,8 @@ export default function GameMap() {
 
   function mapOnMouseUp(e){
    // if (e.button !== 0) return;
+    e.preventDefault();
+    
     const gameMap = mapRef.current;
     const gameMapRect = gameMap.getBoundingClientRect();
 
@@ -748,11 +750,13 @@ export default function GameMap() {
           name = "mapField"
           ref={mapRef} 
           droppable="true" 
-          onPointerUp={ (e) => mapOnPointerUp(e) } 
-          onPointerDown={ (e) => mapOnPointerDown(e) }
-          onPointerMove={ (e) => mapOnPointerMove(e) }
-          onPointerLeave={ (e) => mapOnPointerUp(e) }
-          onTouchMove={ (e) => touchBlock(e) }
+          onMouseUp={ (e) => mapOnMouseUp(e) } 
+          onMouseDown={ (e) => mapOnMouseDown(e) }
+          onMouseMove={ (e) => mapOnMouseMove(e) }
+          onMouseLeave={ (e) => mapOnMouseUp(e) }
+          onTouchEnd={ (e) => mapOnMouseUp(e) } 
+          onTouchStart={ (e) => mapOnMouseDown(e) }
+          onTouchMove={ (e) => mapOnMouseMove(e) } 
   */
   return (
     <div className={ styles.gameMapWrapper }>
