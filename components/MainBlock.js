@@ -44,6 +44,7 @@ export default function MainBlock() {
       onDragStop={(newLayout, oldItem, newItem) => {
         dispatch(actions.setLayout(newLayout));
       }}
+      draggableHandle=".my-drag-handle"
     >
       {winArray}
     </GridLayout>

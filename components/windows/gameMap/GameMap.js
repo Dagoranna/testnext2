@@ -244,9 +244,14 @@ export default function GameMap() {
    // if (e.button !== 0) return;
     const gameMap = mapRef.current;
     const gameMapRect = gameMap.getBoundingClientRect();
-    e.stopPropagation();
 
-    if (e.type === "mouseleave" ){
+    if (activeAction === null){
+      return;
+    } else {
+      e.stopPropagation();
+    }
+
+    if (e.type === "pointerleave" ){
       if (activeAction !== "arrow") return;
     }
 
@@ -683,15 +688,19 @@ export default function GameMap() {
     </div>
   );
 
+  function changePaletteAction(act){
+    activeAction === act ?  dispatch(mapSlice.setActivePaletteAction(null)) : dispatch(mapSlice.setActivePaletteAction(act));
+  }
+
   const paletteActions = <div 
     className={ styles.paletteActions }
     onMouseDown={(e) => {e.stopPropagation(); e.preventDefault()}} 
     onPointerDown={(e) => {e.stopPropagation(); e.preventDefault()}}
     onTouchStart={(e) => {e.stopPropagation(); e.preventDefault()}}
   >
-    <div className={ styles.paletteActionElem } style={(activeAction === "arrow") ? {background: "yellow"} : {}} onClick={ () => dispatch(mapSlice.setActivePaletteAction("arrow")) }>&#x1F446;</div>
-    <div className={ styles.paletteActionElem } style={(activeAction === "brush") ? {background: "yellow"} : {}}  onClick={ () => dispatch(mapSlice.setActivePaletteAction("brush")) }>&#128396;</div>
-    <div className={ styles.paletteActionElem } style={(activeAction === "rotate") ? {background: "yellow"} : {}} onClick={ () => dispatch(mapSlice.setActivePaletteAction("rotate")) }>&#8635;</div>
+    <div className={ styles.paletteActionElem } style={(activeAction === "arrow") ? {background: "yellow"} : {}} onClick={ () => changePaletteAction("arrow") }>&#x1F446;</div>
+    <div className={ styles.paletteActionElem } style={(activeAction === "brush") ? {background: "yellow"} : {}}  onClick={ () => changePaletteAction("brush") }>&#128396;</div>
+    <div className={ styles.paletteActionElem } style={(activeAction === "rotate") ? {background: "yellow"} : {}} onClick={ () => changePaletteAction("rotate") }>&#8635;</div>
     <div className={ styles.paletteActionElem } onClick={ () => mergeItems() }>
       <img src="/images/link.bmp" style={{width: "100%", height: "100%"}}></img>
     </div>

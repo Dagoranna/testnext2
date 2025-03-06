@@ -212,7 +212,7 @@ export default function AuthForm() {
   }
 
   return (
-    <form id='authForm' onSubmit={handleSubmit}>
+    <form id='authForm' style={{position: "relative", zIndex: 10002}} onSubmit={handleSubmit}>
       <div id='authInputFields'>
         <div className='tableTitle'>{ formMode }</div>
         <div className={ actionResult ? stylesFormWrapper.actionSuccess : stylesFormWrapper.actionFail }>{ actionMessage }</div>
