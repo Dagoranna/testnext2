@@ -245,8 +245,9 @@ export default function GameMap() {
 
   function mapOnMouseUp(e){
    // if (e.button !== 0) return;
-    e.preventDefault();
-    
+    //e.preventDefault();
+    //mapRef.current.innerText = e.eventType;
+
     const gameMap = mapRef.current;
     const gameMapRect = gameMap.getBoundingClientRect();
 
