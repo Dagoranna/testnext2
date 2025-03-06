@@ -743,6 +743,17 @@ export default function GameMap() {
     }
   }
 
+  /*
+          className={ styles.mapField } 
+          name = "mapField"
+          ref={mapRef} 
+          droppable="true" 
+          onPointerUp={ (e) => mapOnPointerUp(e) } 
+          onPointerDown={ (e) => mapOnPointerDown(e) }
+          onPointerMove={ (e) => mapOnPointerMove(e) }
+          onPointerLeave={ (e) => mapOnPointerUp(e) }
+          onTouchMove={ (e) => touchBlock(e) }
+  */
   return (
     <div className={ styles.gameMapWrapper }>
       <div className={ styles.mapFieldWrapper } 
@@ -755,11 +766,11 @@ export default function GameMap() {
           name = "mapField"
           ref={mapRef} 
           droppable="true" 
-          onPointerUp={ (e) => { mapOnPointerUp(e); } } 
-          onPointerDown={ (e) => { mapOnPointerDown(e); } }
-          onPointerMove={ (e) => { mapOnPointerMove(e); } }
-          onPointerLeave={ (e) => { mapOnPointerUp(e); } }
-          onTouchMove={ (e) => touchBlock(e) }
+          onPointerUp={ (e) => mapOnPointerUp(e) } 
+          onPointerDown={ (e) => mapOnPointerDown(e) }
+          onMouseMove={ (e) => mapOnPointerMove(e) }
+          onPointerLeave={ (e) => mapOnPointerUp(e) }
+          onTouchMove={ (e) => mapOnPointerMove(e) }
         >
           {mapContent.map((item, index) => (
             <React.Fragment key={index}>{parse(item)}</React.Fragment>
