@@ -776,9 +776,7 @@ export default function GameMap() {
           onMouseDown={ (e) => mapOnMouseDown(e) }
           onMouseMove={ (e) => mapOnMouseMove(e) }
           onMouseLeave={ (e) => mapOnMouseUp(e) }
-          onTouchEnd={ (e) => mapOnMouseUp(e) } 
-          onTouchStart={ (e) => mapOnMouseDown(e) }
-          onTouchMove={ (e) => mapOnMouseMove(e) }          
+      
         >
           {mapContent.map((item, index) => (
             <React.Fragment key={index}>{parse(item)}</React.Fragment>
