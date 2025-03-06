@@ -760,7 +760,7 @@ export default function GameMap() {
       <div className={ styles.mapFieldWrapper } 
         onMouseDown={(e) => e.stopPropagation()} 
         onPointerDown={(e) => e.stopPropagation()}
-        onTouchStart={(e) => e.stopPropagation()}
+        onTouchStart={ (e) => touchBlock(e) }
       >
         <div 
           className={ styles.mapField } 
