@@ -188,10 +188,12 @@ export default function GameMap() {
   }  
 
   function mapOnPointerMove(e){
-    console.log('e.button = ' + e.button);
-    //if (e.button !== 0) return;
+    if (activeAction === null){
+      return;
+    } else {
+      e.stopPropagation();
+    }
 
-    e.stopPropagation();
     if (isResizing) {
       const gameMap = mapRef.current;
       const gameMapRect = gameMap.getBoundingClientRect();
