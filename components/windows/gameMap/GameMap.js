@@ -252,7 +252,7 @@ export default function GameMap() {
     const gameMapRect = gameMap.getBoundingClientRect();
 
     //FOR TEST
-    gameMap.innerText = `up on ${mouseX} ${mouseY}`;
+    gameMap.innerText = `up on`;
 
     if (activeAction === null){
       return;
