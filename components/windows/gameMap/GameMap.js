@@ -257,7 +257,7 @@ export default function GameMap() {
       e.stopPropagation();
     }
 
-    if (e.type === "mouseleave" ){
+    if (e.type === "pointerleave" ){
       if (activeAction !== "arrow") return;
     }
 
@@ -772,10 +772,10 @@ export default function GameMap() {
           name = "mapField"
           ref={mapRef} 
           droppable="true" 
-          onMouseUp={ (e) => mapOnMouseUp(e) } 
-          onMouseDown={ (e) => mapOnMouseDown(e) }
-          onMouseMove={ (e) => mapOnMouseMove(e) }
-          onMouseLeave={ (e) => mapOnMouseUp(e) }
+          onPointerUp={ (e) => mapOnMouseUp(e) } 
+          onPointerDown={ (e) => mapOnMouseDown(e) }
+          onPointerMove={ (e) => mapOnMouseMove(e) }
+          onPointerLeave={ (e) => mapOnMouseUp(e) }
       
         >
           {mapContent.map((item, index) => (
