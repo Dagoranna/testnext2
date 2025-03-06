@@ -195,12 +195,13 @@ export default function GameMap() {
     }
 
     //e.pointerType === 'mouse', e.pointerType === 'touch'
-      /*let mouseX, mouseY;
+    let mouseX, mouseY;
 
-      mouseX = e.pageX;
-      mouseY = e.pageY;*/
-    let mouseX = e.clientX;
-    let mouseY = e.clientY;
+    mouseX = e.pageX;
+    mouseY = e.pageY;
+    /*let mouseX = e.clientX;
+    let mouseY = e.clientY;*/
+    mapRef.current.innerText = `${mouseX} ${mouseY}`;
 
     if (isResizing) {
       const gameMap = mapRef.current;
@@ -761,6 +762,7 @@ export default function GameMap() {
         onMouseDown={(e) => e.stopPropagation()} 
         onPointerDown={(e) => e.stopPropagation()}
         onTouchStart={ (e) => touchBlock(e) }
+        onTouchMove={ (e) => touchBlock(e) }
       >
         <div 
           className={ styles.mapField } 
@@ -771,7 +773,6 @@ export default function GameMap() {
           onPointerDown={ (e) => mapOnPointerDown(e) }
           onPointerMove={ (e) => mapOnPointerMove(e) }
           onPointerLeave={ (e) => mapOnPointerUp(e) }
-          onTouchMove={ (e) => touchBlock(e) }
         >
           {mapContent.map((item, index) => (
             <React.Fragment key={index}>{parse(item)}</React.Fragment>
