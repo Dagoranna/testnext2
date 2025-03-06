@@ -201,6 +201,8 @@ export default function GameMap() {
     mouseY = e.pageY;
     /*let mouseX = e.clientX;
     let mouseY = e.clientY;*/
+
+    //FOR TEST
     mapRef.current.innerText = `${mouseX} ${mouseY}`;
 
     if (isResizing) {
@@ -248,6 +250,9 @@ export default function GameMap() {
    // if (e.button !== 0) return;
     const gameMap = mapRef.current;
     const gameMapRect = gameMap.getBoundingClientRect();
+
+    //FOR TEST
+    gameMap.innerText = `up on ${mouseX} ${mouseY}`;
 
     if (activeAction === null){
       return;
