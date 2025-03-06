@@ -736,6 +736,13 @@ export default function GameMap() {
     </div>
   </div>
 
+  function touchBlock(e){
+    if ( activeAction !== null ){
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }
+
   return (
     <div className={ styles.gameMapWrapper }>
       <div className={ styles.mapFieldWrapper } 
@@ -752,6 +759,7 @@ export default function GameMap() {
           onPointerDown={ (e) => { mapOnPointerDown(e); } }
           onPointerMove={ (e) => { mapOnPointerMove(e); } }
           onPointerLeave={ (e) => { mapOnPointerUp(e); } }
+          onTouchMove={ (e) => touchBlock(e) }
         >
           {mapContent.map((item, index) => (
             <React.Fragment key={index}>{parse(item)}</React.Fragment>
