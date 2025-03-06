@@ -252,6 +252,7 @@ export default function GameMap() {
     const gameMapRect = gameMap.getBoundingClientRect();
 
     //FOR TEST
+    if (e.pointerType === 'touch') return;
     gameMap.innerText = `up on`;
 
     if (activeAction === null){
