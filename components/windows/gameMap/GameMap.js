@@ -191,6 +191,7 @@ export default function GameMap() {
     if (activeAction === null){
       return;
     } else {
+      e.preventDefault();
       e.stopPropagation();
     }
 
@@ -245,7 +246,6 @@ export default function GameMap() {
 
   function mapOnMouseUp(e){
    // if (e.button !== 0) return;
-    //e.preventDefault();
     //mapRef.current.innerText = e.eventType;
 
     const gameMap = mapRef.current;
@@ -254,6 +254,7 @@ export default function GameMap() {
     if (activeAction === null){
       return;
     } else {
+      e.preventDefault();
       e.stopPropagation();
     }
 
