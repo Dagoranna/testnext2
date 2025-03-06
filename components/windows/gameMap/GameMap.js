@@ -194,17 +194,18 @@ export default function GameMap() {
       e.stopPropagation();
     }
 
-    if (isResizing) {
-      const gameMap = mapRef.current;
-      const gameMapRect = gameMap.getBoundingClientRect();
-      tempObj = document.getElementById("traceItem");
-
+    //e.pointerType === 'mouse', e.pointerType === 'touch'
       /*let mouseX, mouseY;
 
       mouseX = e.pageX;
       mouseY = e.pageY;*/
-      let mouseX = e.clientX;
-      let mouseY = e.clientY;
+    let mouseX = e.clientX;
+    let mouseY = e.clientY;
+
+    if (isResizing) {
+      const gameMap = mapRef.current;
+      const gameMapRect = gameMap.getBoundingClientRect();
+      tempObj = document.getElementById("traceItem");
 
       const newWidth = mouseX - parseInt(tempObj.style.left);
       const newHeight = mouseY - parseInt(tempObj.style.top);
@@ -237,8 +238,8 @@ export default function GameMap() {
       circle.style.transform = `rotate(${radToDeg(alpha)}deg)`;
     } else if (isSelecting) {
       let traceItem = document.getElementById("traceItem");
-      traceItem.style.width = e.pageX - parseInt(traceItem.style.left) + "px";
-      traceItem.style.height = e.pageY - parseInt(traceItem.style.top) + "px";         
+      traceItem.style.width = mouseX - parseInt(traceItem.style.left) + "px";
+      traceItem.style.height = mouseY - parseInt(traceItem.style.top) + "px";         
     }
   }
 
@@ -768,9 +769,9 @@ export default function GameMap() {
           droppable="true" 
           onPointerUp={ (e) => mapOnPointerUp(e) } 
           onPointerDown={ (e) => mapOnPointerDown(e) }
-          onMouseMove={ (e) => mapOnPointerMove(e) }
+          onPointerMove={ (e) => mapOnPointerMove(e) }
           onPointerLeave={ (e) => mapOnPointerUp(e) }
-          onTouchMove={ (e) => mapOnPointerMove(e) }
+          onTouchMove={ (e) => touchBlock(e) }
         >
           {mapContent.map((item, index) => (
             <React.Fragment key={index}>{parse(item)}</React.Fragment>
