@@ -51,7 +51,7 @@ export default function GameMap() {
   let traceDiameter = 0;
   let handlingStarted = false;
 
-  function mapOnPointerDown(e){
+  function mapOnMouseDown(e){
     //if (e.button !== 0) return;
     e.preventDefault();
     const gameMap = mapRef.current;
@@ -187,23 +187,20 @@ export default function GameMap() {
     }
   }  
 
-  function mapOnPointerMove(e){
+  function mapOnMouseMove(e){
     if (activeAction === null){
       return;
     } else {
       e.stopPropagation();
     }
 
-    //e.pointerType === 'mouse', e.pointerType === 'touch'
     let mouseX, mouseY;
 
     mouseX = e.pageX;
     mouseY = e.pageY;
-    /*let mouseX = e.clientX;
-    let mouseY = e.clientY;*/
 
     //FOR TEST
-    mapRef.current.innerText = `${mouseX} ${mouseY}`;
+   // mapRef.current.innerText = `${mouseX} ${mouseY}`;
 
     if (isResizing) {
       const gameMap = mapRef.current;
@@ -246,14 +243,10 @@ export default function GameMap() {
     }
   }
 
-  function mapOnPointerUp(e){
+  function mapOnMouseUp(e){
    // if (e.button !== 0) return;
     const gameMap = mapRef.current;
     const gameMapRect = gameMap.getBoundingClientRect();
-
-    //FOR TEST
-    if (e.pointerType === 'touch') return;
-    gameMap.innerText = `up on`;
 
     if (activeAction === null){
       return;
@@ -261,7 +254,7 @@ export default function GameMap() {
       e.stopPropagation();
     }
 
-    if (e.type === "pointerleave" ){
+    if (e.type === "mouseleave" ){
       if (activeAction !== "arrow") return;
     }
 
@@ -705,7 +698,6 @@ export default function GameMap() {
   const paletteActions = <div 
     className={ styles.paletteActions }
     onMouseDown={(e) => {e.stopPropagation(); e.preventDefault()}} 
-    onPointerDown={(e) => {e.stopPropagation(); e.preventDefault()}}
     onTouchStart={(e) => {e.stopPropagation(); e.preventDefault()}}
   >
     <div className={ styles.paletteActionElem } style={(activeAction === "arrow") ? {background: "yellow"} : {}} onClick={ () => changePaletteAction("arrow") }>&#x1F446;</div>
@@ -766,19 +758,22 @@ export default function GameMap() {
     <div className={ styles.gameMapWrapper }>
       <div className={ styles.mapFieldWrapper } 
         onMouseDown={(e) => e.stopPropagation()} 
-        onPointerDown={(e) => e.stopPropagation()}
         onTouchStart={ (e) => touchBlock(e) }
         onTouchMove={ (e) => touchBlock(e) }
+        onTouchEnd={ (e) => touchBlock(e) }
       >
         <div 
           className={ styles.mapField } 
           name = "mapField"
           ref={mapRef} 
           droppable="true" 
-          onPointerUp={ (e) => mapOnPointerUp(e) } 
-          onPointerDown={ (e) => mapOnPointerDown(e) }
-          onPointerMove={ (e) => mapOnPointerMove(e) }
-          onPointerLeave={ (e) => mapOnPointerUp(e) }
+          onMouseUp={ (e) => mapOnMouseUp(e) } 
+          onMouseDown={ (e) => mapOnMouseDown(e) }
+          onMouseMove={ (e) => mapOnMouseMove(e) }
+          onMouseLeave={ (e) => mapOnMouseUp(e) }
+          onTouchEnd={ (e) => mapOnMouseUp(e) } 
+          onTouchStart={ (e) => mapOnMouseDown(e) }
+          onTouchMove={ (e) => mapOnMouseMove(e) }          
         >
           {mapContent.map((item, index) => (
             <React.Fragment key={index}>{parse(item)}</React.Fragment>
@@ -787,7 +782,6 @@ export default function GameMap() {
       </div>
       <div className={ styles.gameMapTools } 
         onMouseDown={(e) => e.stopPropagation()} 
-        onPointerDown={(e) => e.stopPropagation()}
         onTouchStart={(e) => e.stopPropagation()}
       >
         { paletteActions }
