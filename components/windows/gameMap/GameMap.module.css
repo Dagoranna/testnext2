@@ -173,8 +173,8 @@
 
 .mapElemResizer{
   position: absolute;
-  right: 1px;
-  bottom: 1px;
+  right: -1px;
+  bottom: -1px;
   width: 5px;
   height: 5px;
   /*border-right: 2px solid black;
