@@ -58,12 +58,12 @@ export default function GameMap() {
     const gameMapRect = gameMap.getBoundingClientRect();
 
     if (activeAction === null){
-      gameMap.style.touchAction = "";
+      //gameMap.style.touchAction = "";
       return;
     } else {
       e.preventDefault();
       e.stopPropagation();
-      gameMap.style.touchAction = "none";
+      //gameMap.style.touchAction = "none";
     }  
 
     if (activeAction === "brush"){
@@ -262,12 +262,12 @@ export default function GameMap() {
     const gameMapRect = gameMap.getBoundingClientRect();
 
     if (activeAction === null){
-      gameMap.style.touchAction = "";
+      //gameMap.style.touchAction = "";
       return;
     } else {
       e.preventDefault();
       e.stopPropagation();
-      gameMap.style.touchAction = "none";
+      //gameMap.style.touchAction = "none";
     }  
 
     if (e.type === "pointerleave" ){
@@ -708,7 +708,15 @@ export default function GameMap() {
   );
 
   function changePaletteAction(act){
-    activeAction === act ?  dispatch(mapSlice.setActivePaletteAction(null)) : dispatch(mapSlice.setActivePaletteAction(act));
+    let startState = mapRef.current.style.touchAction;
+
+    if (activeAction === act){
+      dispatch(mapSlice.setActivePaletteAction(null));
+      mapRef.current.style.touchAction = '';
+    } else {
+      dispatch(mapSlice.setActivePaletteAction(act));
+      if (startState !== "none") mapRef.current.style.touchAction = "none";
+    }
   }
 
   const paletteActions = <div 

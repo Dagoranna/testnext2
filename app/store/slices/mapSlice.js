@@ -102,7 +102,7 @@ const mapSlice = createSlice({
   initialState: {
     mapContent: [],
     mapElemsCounter: 0,
-    activePaletteAction: "arrow", 
+    activePaletteAction: null, 
     activeElemId: null,
     activePaletteStyle: {
       "color": "transparent",
