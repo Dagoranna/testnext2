@@ -52,18 +52,17 @@ export default function GameMap() {
   let handlingStarted = false;
 
   function mapOnMouseDown(e){
-    //if (e.button !== 0) return;
-    //e.preventDefault();
     const gameMap = mapRef.current;
     const gameMapRect = gameMap.getBoundingClientRect();
 
     if (activeAction === null){
-      //gameMap.style.touchAction = "";
       return;
     } else {
       e.preventDefault();
       e.stopPropagation();
-      //gameMap.style.touchAction = "none";
+      if (e.pointerType === "touch") {
+        if (!e.isPrimary) return;
+      }        
     }  
 
     if (activeAction === "brush"){
