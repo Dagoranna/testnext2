@@ -17,7 +17,7 @@ export default function MainBlock() {
   const layout = useSelector((state) => state.main.layout);
 
   const breakpoints = { lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 };
-  const cols = { lg: 10, md: 6, sm: 2, xs: 1, xxs: 1 };
+  const cols = { lg: 10, md: 6, sm: 4, xs: 1, xxs: 1 };
 
   const winArray = layout.map((item) => {
     return ( 
