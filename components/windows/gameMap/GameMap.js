@@ -53,9 +53,17 @@ export default function GameMap() {
 
   function mapOnMouseDown(e){
     //if (e.button !== 0) return;
-    e.preventDefault();
+    //e.preventDefault();
     const gameMap = mapRef.current;
-    const gameMapRect = gameMap.getBoundingClientRect();    
+    const gameMapRect = gameMap.getBoundingClientRect();
+
+    if (activeAction === null){
+      return;
+    } else {
+      e.preventDefault();
+      e.stopPropagation();
+      gameMap.style.touchAction = "none";
+    }  
 
     if (activeAction === "brush"){
       //all actions on mouseUp(?)
@@ -188,11 +196,15 @@ export default function GameMap() {
   }  
 
   function mapOnMouseMove(e){
+    const gameMap = mapRef.current;
+    const gameMapRect = gameMap.getBoundingClientRect();
+
     if (activeAction === null){
       return;
     } else {
       e.preventDefault();
       e.stopPropagation();
+      gameMap.style.touchAction = "none";
     }
 
     let mouseX, mouseY;
@@ -204,8 +216,6 @@ export default function GameMap() {
    // mapRef.current.innerText = `${mouseX} ${mouseY}`;
 
     if (isResizing) {
-      const gameMap = mapRef.current;
-      const gameMapRect = gameMap.getBoundingClientRect();
       tempObj = document.getElementById("traceItem");
 
       const newWidth = mouseX - parseInt(tempObj.style.left);
@@ -256,6 +266,7 @@ export default function GameMap() {
     } else {
       e.preventDefault();
       e.stopPropagation();
+      gameMap.style.touchAction = "none";
     }
 
     if (e.type === "pointerleave" ){
