@@ -5,7 +5,7 @@ import styles from './Charsheet.module.css';
 export default function Charsheet() {
 
   return (
-    <div id="testWindow">
+    <div>
       charsheet!
     </div>
   );

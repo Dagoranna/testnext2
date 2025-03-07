@@ -119,8 +119,6 @@ export default function AuthForm() {
 
         let baseResponse = await response.json();
 
-        document.getElementById('testWindow').innerHTML = baseResponse.message;
-
         if (response.ok) {
           if (baseResponse.loginState === true){
             dispatch(actions.setLoginState(true));
