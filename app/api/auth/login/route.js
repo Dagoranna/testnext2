@@ -30,33 +30,33 @@ export async function POST(req) {
       if (rememberMe){
         const baseTokenData = await getToken(email); 
 
-        if ((baseTokenData[0].authtoken == '') || (baseTokenData[0].authtoken == null)){
-          const token = await makeHash(email+password);
-          const setTokenAttempt = await writeTokenToBase(email,token);
+        /*if ((baseTokenData[0].authtoken == '') || (baseTokenData[0].authtoken == null)){*/
+        const token = await makeHash(email+password);
+        const setTokenAttempt = await writeTokenToBase(email,token);
 
-          if (setTokenAttempt){
-            const expirationDate = new Date();
-            expirationDate.setFullYear(expirationDate.getFullYear() + 5);
-        
-            const response = NextResponse.json({ message: 'login successful, token saved', loginState: true }, { status: 200 });
+        if (setTokenAttempt){
+          const expirationDate = new Date();
+          expirationDate.setFullYear(expirationDate.getFullYear() + 5);
+      
+          const response = NextResponse.json({ message: 'login successful, token saved', loginState: true }, { status: 200 });
 
-            response.headers.append(
-              'Set-Cookie',
-              `token=${token}; Path=/; HttpOnly; Secure; Expires=${expirationDate.toUTCString()}`
-            );   
-            response.headers.append(
-              'Set-Cookie',
-              `email=${email}; Path=/; HttpOnly; Secure; Expires=${expirationDate.toUTCString()}`
-            );            
-        
-            return response;
-          } else {
-            return NextResponse.json({ message: 'problem with token setting', loginState: false }, { status: 200 });
-          }
-
+          response.headers.append(
+            'Set-Cookie',
+            `token=${token}; Path=/; HttpOnly; Secure; Expires=${expirationDate.toUTCString()}`
+          );   
+          response.headers.append(
+            'Set-Cookie',
+            `email=${email}; Path=/; HttpOnly; Secure; Expires=${expirationDate.toUTCString()}`
+          );            
+      
+          return response;
         } else {
-          return NextResponse.json({ message: 'login successful, token already exists', loginState: true }, { status: 200 });
+          return NextResponse.json({ message: 'problem with token setting', loginState: false }, { status: 200 });
         }
+
+        /*} else {
+          return NextResponse.json({ message: 'login successful, token already exists', loginState: true }, { status: 200 });
+        }*/
       } else {
         return NextResponse.json({ message: 'session login successful', loginState: true }, { status: 200 });
       }
