@@ -24,7 +24,7 @@ export async function POST(req) {
       return NextResponse.json({ message: 'Token valid', tokenState: 1, email: baseData[0].email }, { status: 200 });
     }
   } else {
-    return NextResponse.json({ message: `No saved token for ${cookieStore.get('email')?.value}`, tokenState: -1 }, { status: 200 }); 
+    return NextResponse.json({ message: 'No saved token', tokenState: -1 }, { status: 200 }); 
   }
 }
 

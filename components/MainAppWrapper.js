@@ -38,9 +38,7 @@ export default function MainAppWrapper({ children }) {
       } else {
         throw new Error('error in database response');
       }  
-      
-          //FOR TEST
-          document.getElementById("testWindow").innerHTML = baseResponse.message;      
+   
     }
 
     checkAuthToken();
