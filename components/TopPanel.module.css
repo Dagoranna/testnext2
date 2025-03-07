@@ -5,6 +5,7 @@
   height: 2rem;
   padding: .2rem;
   z-index: 1000;
+  flex-wrap: wrap;
 }
 
 .plainMessage{
@@ -14,7 +15,7 @@
   text-align: center;
   user-select: none;
   padding: 5px; 
-  margin-left: 5px;
+  margin-left: auto;
   height: 2rem;
   border-bottom-left-radius: 1rem;
   font-weight: bold;
