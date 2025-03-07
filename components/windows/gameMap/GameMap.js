@@ -58,6 +58,7 @@ export default function GameMap() {
     const gameMapRect = gameMap.getBoundingClientRect();
 
     if (activeAction === null){
+      gameMap.style.touchAction = "";
       return;
     } else {
       e.preventDefault();
@@ -204,7 +205,6 @@ export default function GameMap() {
     } else {
       e.preventDefault();
       e.stopPropagation();
-      gameMap.style.touchAction = "none";
     }
 
     let mouseX, mouseY;
@@ -262,12 +262,13 @@ export default function GameMap() {
     const gameMapRect = gameMap.getBoundingClientRect();
 
     if (activeAction === null){
+      gameMap.style.touchAction = "";
       return;
     } else {
       e.preventDefault();
       e.stopPropagation();
       gameMap.style.touchAction = "none";
-    }
+    }  
 
     if (e.type === "pointerleave" ){
       if (activeAction !== "arrow") return;
