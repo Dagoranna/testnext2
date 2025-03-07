@@ -766,19 +766,6 @@ export default function GameMap() {
     }
   }
 
-  /*
-          className={ styles.mapField } 
-          name = "mapField"
-          ref={mapRef} 
-          droppable="true" 
-          onMouseUp={ (e) => mapOnMouseUp(e) } 
-          onMouseDown={ (e) => mapOnMouseDown(e) }
-          onMouseMove={ (e) => mapOnMouseMove(e) }
-          onMouseLeave={ (e) => mapOnMouseUp(e) }
-          onTouchEnd={ (e) => mapOnMouseUp(e) } 
-          onTouchStart={ (e) => mapOnMouseDown(e) }
-          onTouchMove={ (e) => mapOnMouseMove(e) } 
-  */
   return (
     <div className={ styles.gameMapWrapper }>
       <div className={ styles.mapFieldWrapper } 
@@ -803,15 +790,18 @@ export default function GameMap() {
           ))}
         </div>
       </div>
-      <div className={ styles.gameMapTools } 
-        onMouseDown={(e) => e.stopPropagation()} 
-        onTouchStart={(e) => e.stopPropagation()}
-      >
-        { paletteActions }
-        { paletteColors }
-        { paletteForms }
-        { paletteLayers }
-      </div>
+      <details>
+        <summary>Palette &#x1F3A8;</summary>
+        <div className={ styles.gameMapTools } 
+          onMouseDown={(e) => e.stopPropagation()} 
+          onTouchStart={(e) => e.stopPropagation()}
+        >
+          { paletteActions }
+          { paletteColors }
+          { paletteForms }
+          { paletteLayers }
+        </div>
+      </details>
     </div>
   );
 }
