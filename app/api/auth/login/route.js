@@ -30,7 +30,7 @@ export async function POST(req) {
       if (rememberMe){
         const baseTokenData = await getToken(email); 
 
-        if (baseTokenData[0].authtoken === ''){
+        if ((baseTokenData[0].authtoken == '') || (baseTokenData[0].authtoken == null)){
           const token = await makeHash(email+password);
           const setTokenAttempt = await writeTokenToBase(email,token);
 
