@@ -49,9 +49,15 @@ export default function GameMap() {
   const [selectedObjects, setSelectedObjects] = useState([]);
   const [isElemSaving, setIsElemSaving] = useState(false);
 
+  const [screenSize, setScreenSize] = useState([0, 0]);
+
   let tempObj = {};
   let traceDiameter = 0;
   let handlingStarted = false;
+
+  useEffect(() => {
+    setScreenSize([window.innerWidth, window.innerHeight]);
+  }, []);  
 
   function mapOnMouseDown(e){
     const gameMap = mapRef.current;
@@ -708,8 +714,8 @@ export default function GameMap() {
     };
 
     const addFormStyle = {
-      width: parseInt(window.innerWidth) / 2 + 'px',
-      height: parseInt(window.innerHeight) / 2 + 'px',
+      width: parseInt(screenSize[0]) / 2 + 'px',
+      height: parseInt(screenSize[1]) / 2 + 'px',
     };
     return (
     <div className={ styles.paletteForms }>
