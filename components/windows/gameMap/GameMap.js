@@ -716,6 +716,7 @@ export default function GameMap() {
     const addFormStyle = {
       width: parseInt(screenSize[0]) / 2 + 'px',
       height: parseInt(screenSize[1]) / 2 + 'px',
+      top: '0'
     };
     return (
     <div className={ styles.paletteForms }>
