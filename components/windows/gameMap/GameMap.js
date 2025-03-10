@@ -9,6 +9,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import * as mapSlice from '../../../app/store/slices/mapSlice';
 import { manageWebsocket } from "../../../app/store/slices/websocketSlice";
 import * as clientUtils from '../../../utils/clientUtils';
+import FormWrapper from '../../forms/FormWrapper';
 import MapElem from "./MapElem";
 import { GoTrueClient } from '@supabase/supabase-js';
 import parse from 'html-react-parser';
@@ -46,6 +47,7 @@ export default function GameMap() {
   const [rotatingObject, setRotatingObject] = useState(null);  
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectedObjects, setSelectedObjects] = useState([]);
+  const [isElemSaving, setIsElemSaving] = useState(false);
 
   let tempObj = {};
   let traceDiameter = 0;
@@ -696,15 +698,41 @@ export default function GameMap() {
     dispatch(mapSlice.setActivePaletteForm(e.target.id));
   }  
 
-  const paletteForms = (
+  function PaletteForms () {
+    const addButtonStyle = { 
+      minWidth: "1rem",
+      borderWidth: "2px",
+      margin: "3px",
+      gridColumn: "span 3",
+      padding: "0",        
+    };
+
+    const addFormStyle = {
+      width: parseInt(window.innerWidth) / 2 + 'px',
+      height: parseInt(window.innerHeight) / 2 + 'px',
+    };
+    return (
     <div className={ styles.paletteForms }>
       {
         Array.from({length: 18}, (_, i) => 
           <PaletteElem key={i} id={`elemForm_${i}`} />
         )
-      }      
+      }    
+      <FormWrapper 
+        formName="Save" 
+        addButtonStyle={ addButtonStyle } 
+        addFormStyle={ addFormStyle }
+      />
+      <FormWrapper 
+        formName="Load" 
+        addButtonStyle={ addButtonStyle } 
+        addFormStyle = { addFormStyle }
+      />   
     </div>
-  );
+    )
+  };
+
+
 
   function changePaletteAction(act){
     let startState = mapRef.current.style.touchAction;
@@ -723,19 +751,19 @@ export default function GameMap() {
     onMouseDown={(e) => {e.stopPropagation(); e.preventDefault()}} 
     onTouchStart={(e) => {e.stopPropagation(); e.preventDefault()}}
   >
-    <div className={ styles.paletteActionElem } style={(activeAction === "arrow") ? {background: "yellow"} : {}} onClick={ () => changePaletteAction("arrow") }>&#x1F446;</div>
-    <div className={ styles.paletteActionElem } style={(activeAction === "brush") ? {background: "yellow"} : {}}  onClick={ () => changePaletteAction("brush") }>&#128396;</div>
-    <div className={ styles.paletteActionElem } style={(activeAction === "rotate") ? {background: "yellow"} : {}} onClick={ () => changePaletteAction("rotate") }>&#8635;</div>
-    <div className={ styles.paletteActionElem } onClick={ () => mergeItems() }>
+    <button className={ styles.paletteActionElem } style={(activeAction === "arrow") ? {background: "yellow"} : {}} onClick={ () => changePaletteAction("arrow") }>&#x1F446;</button>
+    <button className={ styles.paletteActionElem } style={(activeAction === "brush") ? {background: "yellow"} : {}}  onClick={ () => changePaletteAction("brush") }>&#128396;</button>
+    <button className={ styles.paletteActionElem } style={(activeAction === "rotate") ? {background: "yellow"} : {}} onClick={ () => changePaletteAction("rotate") }>&#8635;</button>
+    <button className={ styles.paletteActionElem } onClick={ () => mergeItems() }>
       <img src="/images/link.bmp" style={{width: "100%", height: "100%"}}></img>
-    </div>
-    <div className={ styles.paletteActionElem } onClick={ () => splitItems() }>
+    </button>
+    <button className={ styles.paletteActionElem } onClick={ () => splitItems() }>
       <img src="/images/link_d.bmp" style={{width: "100%", height: "100%"}}></img>
-    </div>
-    <div className={ styles.paletteActionElem } onClick={ () => deleteItems() }>&#10006;</div> 
-    <div className={ styles.paletteActionElem } onClick={ () => copyItems() }>
+    </button>
+    <button className={ styles.paletteActionElem } onClick={ () => deleteItems() }>&#10006;</button> 
+    <button className={ styles.paletteActionElem } onClick={ () => copyItems() }>
       <img src="/images/copy.bmp" style={{width: "100%", height: "100%"}}></img>
-    </div>
+    </button>
 
   </div>; 
 
@@ -798,7 +826,7 @@ export default function GameMap() {
         >
           { paletteActions }
           { paletteColors }
-          { paletteForms }
+          <PaletteForms />
           { paletteLayers }
         </div>
       </details>

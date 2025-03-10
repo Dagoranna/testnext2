@@ -68,6 +68,26 @@
   /*justify-content: space-between;*/
 }
 
+.paletteButton{
+  background: linear-gradient(#dac1a5, #a9855d);
+  cursor: pointer;
+  text-align: center;
+  user-select: none;
+  text-decoration: none;
+  text-shadow: 0 -1px 1px #777;
+  color: #fff;
+  outline: none;
+  min-width: 1rem;
+  box-shadow: .2em .2em .3em #d7c6b3 inset,.2em .2em .2em #4d3a25;
+  border: 2px ridge #caa67e;
+  margin: 3px;
+  grid-column: span 3;
+}
+
+.paletteButton:active{
+  box-shadow: .2em .2em .3em #d7c6b3 inset,1px 1px 1px black;
+}
+
 .paletteLayers{
   display: flex;
   flex-direction: column;
@@ -158,9 +178,13 @@
   cursor: pointer;
   margin: 1px;
   line-height: 1.5rem;
-  box-shadow: aliceblue 2px 2px 3px inset, black -2px -2px 3px inset;
+  box-shadow: aliceblue 2px 2px 3px inset, black -2px -2px 3px inset, 2px 2px 2px black;
   font-weight: bold;
   color: black;
+}
+
+.paletteActionElem:active{
+  box-shadow: aliceblue 2px 2px 3px inset, black -2px -2px 3px inset;
 }
 
 .mapElem{
