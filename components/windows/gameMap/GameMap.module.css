@@ -1,4 +1,4 @@
-.gameMapWrapper{
+.gameMapWrapper {
   width: 100%;
   height: 100%;
   display: flex;
@@ -7,15 +7,16 @@
   --cell: 20px;
 }
 
-.mapField{
-  background: linear-gradient( gray, transparent 1px), linear-gradient( 90deg, gray, transparent 1px);
+.mapField {
+  background: linear-gradient(gray, transparent 1px),
+    linear-gradient(90deg, gray, transparent 1px);
   background-size: var(--cell) var(--cell);
   width: 10000px;
   height: 10000px;
   position: relative;
 }
 
-.mapFieldWrapper{
+.mapFieldWrapper {
   flex: 1 1 auto;
   overflow: auto;
 }
@@ -28,14 +29,14 @@
   background-color: red;
 }
 
-.gameMapTools{
+.gameMapTools {
   display: flex;
   flex-wrap: wrap;
   width: 100%;
   padding: 3px;
 }
 
-.paletteForms{
+.paletteForms {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
   width: 140px;
@@ -46,7 +47,7 @@
   padding: 2px;
 }
 
-.paletteColors{
+.paletteColors {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr;
   width: 84px;
@@ -57,7 +58,7 @@
   padding: 2px;
 }
 
-.paletteActions{
+.paletteActions {
   display: flex;
   text-align: center;
   border: 1px solid #caa67e;
@@ -68,7 +69,7 @@
   /*justify-content: space-between;*/
 }
 
-.paletteButton{
+.paletteButton {
   background: linear-gradient(#dac1a5, #a9855d);
   cursor: pointer;
   text-align: center;
@@ -78,32 +79,32 @@
   color: #fff;
   outline: none;
   min-width: 1rem;
-  box-shadow: .2em .2em .3em #d7c6b3 inset,.2em .2em .2em #4d3a25;
+  box-shadow: 0.2em 0.2em 0.3em #d7c6b3 inset, 0.2em 0.2em 0.2em #4d3a25;
   border: 2px ridge #caa67e;
   margin: 3px;
   grid-column: span 3;
 }
 
-.paletteButton:active{
-  box-shadow: .2em .2em .3em #d7c6b3 inset,1px 1px 1px black;
+.paletteButton:active {
+  box-shadow: 0.2em 0.2em 0.3em #d7c6b3 inset, 1px 1px 1px black;
 }
 
-.paletteLayers{
+.paletteLayers {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   border: 1px solid #caa67e;
   margin-right: 5px;
-  padding: 2px;  
+  padding: 2px;
 }
 
-.paletteColorItem{
+.paletteColorItem {
   position: relative;
   border: 1px solid #7d7a7a;
   user-select: none;
 }
 
-.paletteColorTransparent{
+.paletteColorTransparent {
   grid-column: 1 / 5;
   position: relative;
   border: 1px solid #7d7a7a;
@@ -111,27 +112,28 @@
   user-select: none;
 }
 
-.paletteColorGrid{
+.paletteColorGrid {
   grid-column: 1 / 5;
   position: relative;
   border: 1px solid #7d7a7a;
   cursor: pointer;
   user-select: none;
-  background: linear-gradient( gray, transparent 1px), linear-gradient( 90deg, gray, transparent 1px);
+  background: linear-gradient(gray, transparent 1px),
+    linear-gradient(90deg, gray, transparent 1px);
   background-size: auto, auto;
-  background-size: var(--cell) var(--cell);   
+  background-size: var(--cell) var(--cell);
 }
 
-.activeElem{
+.activeElem {
   outline: 3px solid yellow;
-  z-index: 2;  
+  z-index: 2;
 }
 
-.activeMapElem{
+.activeMapElem {
   outline: 3px dashed yellow;
 }
 
-.paletteElem{
+.paletteElem {
   width: 20px;
   height: 20px;
   border: 1px solid #7d7a7a;
@@ -139,16 +141,16 @@
   margin: 1px;
 }
 
-.paletteTraceElem{
+.paletteTraceElem {
   position: absolute;
   display: block;
   border: 5px dashed yellow;
-/*  opacity: 0.5;*/
+  /*  opacity: 0.5;*/
   pointer-events: none;
   z-index: 100;
 }
 
-.paletteTraceElemCircle{
+.paletteTraceElemCircle {
   position: absolute;
   box-sizing: content-box;
   display: block;
@@ -158,7 +160,7 @@
   z-index: 110;
 }
 
-.paletteTraceMarker{
+.paletteTraceMarker {
   position: absolute;
   display: block;
   pointer-events: none;
@@ -167,10 +169,24 @@
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  z-index: 111;  
+  z-index: 111;
 }
 
-.paletteActionElem{
+.savingElem::after {
+  content: "";
+  width: calc(100% + 2 * var(--cell));
+  height: calc(100% + 2 * var(--cell));
+  display: block;
+  top: calc(0px - var(--cell));
+  position: absolute;
+  left: calc(0px - var(--cell));
+  background: linear-gradient(gray, transparent 1px),
+    linear-gradient(90deg, gray, transparent 1px);
+  background-size: var(--cell) var(--cell);
+  background-position: -1px -1px;
+}
+
+.paletteActionElem {
   width: 20px;
   height: 30px;
   border: 1px solid #7d7a7a;
@@ -178,16 +194,38 @@
   cursor: pointer;
   margin: 1px;
   line-height: 1.5rem;
-  box-shadow: aliceblue 2px 2px 3px inset, black -2px -2px 3px inset, 2px 2px 2px black;
+  box-shadow: aliceblue 2px 2px 3px inset, black -2px -2px 3px inset,
+    2px 2px 2px black;
   font-weight: bold;
   color: black;
 }
 
-.paletteActionElem:active{
+.formButton {
+  background: linear-gradient(#dac1a5, #a9855d);
+  cursor: pointer;
+  text-align: center;
+  user-select: none;
+  text-decoration: none;
+  text-shadow: 0 -1px 1px #777;
+  color: #fff;
+  outline: none;
+  border: 0.1em solid #4d3a25;
+  padding: 3px;
+  border-radius: 5px;
+  width: fit-content;
+  align-self: center;
+  box-shadow: 0.2em 0.2em 0.3em #d7c6b3 inset, 0.1em 0.1em 0.2em #4d3a25;
+}
+
+.formButton:active {
+  box-shadow: 0.2em 0.2em 0.3em #d7c6b3 inset;
+}
+
+.paletteActionElem:active {
   box-shadow: aliceblue 2px 2px 3px inset, black -2px -2px 3px inset;
 }
 
-.mapElem{
+.mapElem {
   display: block;
   position: absolute;
   width: 20px;
@@ -195,7 +233,7 @@
   border: 1px solid black;
 }
 
-.mapElemResizer{
+.mapElemResizer {
   position: absolute;
   right: -1px;
   bottom: -1px;
@@ -206,18 +244,18 @@
   cursor: se-resize;
 }
 
-.square{
+.square {
   border-radius: 0;
 }
 
-.circle{
+.circle {
   border-radius: 50%;
 }
 
-.softSquare{
+.softSquare {
   border-radius: 5px;
 }
 
-.halfTransparent{
-  opacity: .5;
+.halfTransparent {
+  opacity: 0.5;
 }
