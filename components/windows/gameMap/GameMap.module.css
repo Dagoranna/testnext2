@@ -225,6 +225,24 @@
   box-shadow: aliceblue 2px 2px 3px inset, black -2px -2px 3px inset;
 }
 
+.divLibrary {
+  border: 1px solid blue;
+  height: 100%;
+  overflow-y: scroll;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.elemLibrary {
+  background: linear-gradient(gray, transparent 1px),
+    linear-gradient(90deg, gray, transparent 1px);
+  background-size: var(--cell) var(--cell);
+  height: fit-content;
+  background-position: 3px 3px;
+  background-color: #f9f0e7;
+  margin: 3px;
+}
+
 .mapElem {
   display: block;
   position: absolute;

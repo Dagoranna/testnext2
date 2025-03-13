@@ -10,7 +10,7 @@ import * as mapSlice from "../../../app/store/slices/mapSlice";
 import { manageWebsocket } from "../../../app/store/slices/websocketSlice";
 import * as clientUtils from "../../../utils/clientUtils";
 import FormWrapper from "../../forms/FormWrapper";
-import MapElem from "./MapElem";
+import FormWrapper_2 from "../../forms/FormWrapper_2";
 import { GoTrueClient } from "@supabase/supabase-js";
 import parse from "html-react-parser";
 
@@ -22,6 +22,7 @@ const mainBGColor = "rgb(227, 214, 199)";
 export default function GameMap() {
   const dispatch = useDispatch();
   const mapRef = useRef("");
+  const libRef = useRef("");
 
   const activeColor = useSelector(
     (state) => state.map.activePaletteStyle.color
@@ -56,9 +57,12 @@ export default function GameMap() {
   const [rotatingObject, setRotatingObject] = useState(null);
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectedObjectsId, setSelectedObjectsId] = useState(new Set());
-  const [isElemSaving, setIsElemSaving] = useState(false);
-
   const [screenSize, setScreenSize] = useState([0, 0]);
+
+  const [dialogContent, setDialogContent] = useState("");
+  const [isLibraryOpen, setIsLibraryOpen] = useState(false);
+  const [isLoadOpen, setIsLoadOpen] = useState(false);
+  const [isSaveOpen, setIsSaveOpen] = useState(false);
 
   let tempObj = {};
   let traceDiameter = 0;
@@ -886,7 +890,6 @@ export default function GameMap() {
 
     let windowContent = "";
 
-    console.log("selectedObjectsId.size = " + selectedObjectsId.size);
     if (selectedObjectsId.size !== 1) {
       windowContent = <div>Select a single object</div>;
     } else {
@@ -897,11 +900,11 @@ export default function GameMap() {
         windowContent = parse(selectedObj.outerHTML);
         windowContent.props.style.outline = "none";
         windowContent.props.style.left =
-          parseInt(screenSize[0]) / 2 / 2 -
+          parseInt(screenSize[0]) / 4 -
           parseInt(windowContent.props.style.width) / 2 +
           "px";
         windowContent.props.style.top =
-          parseInt(screenSize[1]) / 2 / 2 -
+          parseInt(screenSize[1]) / 4 -
           parseInt(windowContent.props.style.height) / 2 +
           "px";
         windowContent = cloneElement(windowContent, {
@@ -937,9 +940,33 @@ export default function GameMap() {
       }
     }
 
-    async function loadElemFromBase() {
+    /*    async function loadElemFromBase() {
       console.log("load");
-    }
+      let response = await fetch("/api/gamedata/gamemap/loadelem", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          callbackUrl: "/",
+          email: userEmail,
+        }),
+      });
+
+      let baseResponse = await response.json();
+      if (response.ok) {
+        if (baseResponse.loadState) {
+          console.log("ok");
+          let parsedElems = JSON.parse(baseResponse.message);
+          console.log(parsedElems);
+          windowContent = parsedElems.map((item) => parse(item));
+        } else {
+          console.log(baseResponse.message);
+        }
+      } else {
+        throw new Error("error in database response");
+      }
+    }*/
 
     return (
       <div className={styles.paletteForms}>
@@ -964,18 +991,81 @@ export default function GameMap() {
           addButtonStyle={addButtonStyle}
           addFormStyle={addFormStyle}
         >
-          {windowContent}
+          <div ref={libRef} className={styles.divLibrary}></div>
           <button
             className={styles.formButton}
-            onClick={async () => loadElemFromBase()}
+            onClick={async (e) => loadLocalLibrary(e)}
           >
-            Load element
+            Local library
+          </button>
+          <button
+            className={styles.formButton}
+            onClick={async (e) => loadGlobalLibrary(e)}
+          >
+            Global library
           </button>
         </FormWrapper>
       </div>
     );
   }
 
+  async function loadLocalLibrary(e) {
+    e.stopPropagation();
+
+    let response = await fetch("/api/gamedata/gamemap/loadelem", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        callbackUrl: "/",
+        email: userEmail,
+      }),
+    });
+
+    let baseResponse = await response.json();
+    if (response.ok) {
+      if (baseResponse.loadState) {
+        console.log("ok");
+        let parsedElems = JSON.parse(baseResponse.message);
+        console.table(parsedElems);
+
+        libRef.current.innerHTML = parsedElems.reduce((res, item, key) => {
+          let newItem = parse(item);
+          newItem.props.style.position = "relative";
+          newItem.props.style.top = "auto";
+          newItem.props.style.left = "auto";
+          newItem.props.style.border = "2px ridge #caa67e";
+          newItem.props.style.boxSizing = "content-box";
+          newItem = cloneElement(newItem, {
+            className: (newItem.props.className || "")
+              .replace(/\bGameMap_savingElem\S*\b/g, "")
+              .trim(),
+          });
+          let stringItem = ReactDOMServer.renderToStaticMarkup(newItem);
+          return (
+            res +
+            `<div key=${key} class="${styles.elemLibrary}">${stringItem}</div>`
+          );
+        }, "");
+      } else {
+        console.log(baseResponse.message);
+      }
+    } else {
+      //throw new Error("error in database response");
+      console.log("empty library");
+    }
+  }
+
+  async function loadGlobalLibrary(e) {
+    e.stopPropagation();
+    libRef.current.innerHTML = "global";
+    console.log("global");
+  }
+
+  function insertElem(e) {
+    e.stopPropagation();
+  }
   /*      <div className={styles.paletteForms}>
         {Array.from({ length: 18 }, (_, i) => (
           <PaletteElem key={i} id={`elemForm_${i}`} />

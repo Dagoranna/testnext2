@@ -3,36 +3,34 @@
 import { useState } from "react";
 import styles from "./FormWrapper.module.css";
 
-export default function FormWrapper({
+export default function FormWrapper_2({
   formName,
   children,
-  isFormOpen = false,
+  isFormOpen,
   addButtonStyle = {},
   addFormStyle = {},
 }) {
-  const [isOpen, setIsOpen] = useState(isFormOpen);
-  // const isOpen = isFormOpen;
   let buttonId = formName.replace(/\s+/g, "") + "Button";
   let closeId = formName.replace(/\s+/g, "") + "FormClose";
 
   return (
     <>
-      {!isOpen && (
+      {!isFormOpen && (
         <button
           id={buttonId}
           className="mainButton"
-          onClick={() => setIsOpen(true)}
+          onClick={() => (isFormOpen = true)}
           style={{ ...addButtonStyle }}
         >
           {formName}
         </button>
       )}
-      {isOpen && (
+      {isFormOpen && (
         <div className={styles.baseTable} style={{ ...addFormStyle }}>
           <button
             id={closeId}
             className={styles.closeButton}
-            onClick={() => setIsOpen(false)}
+            onClick={() => (isFormOpen = false)}
           >
             &#x2716;
           </button>
