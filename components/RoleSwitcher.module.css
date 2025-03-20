@@ -36,7 +36,7 @@
   border-bottom-right-radius: 15px;
 }
 
-@media only screen and (max-width: 320px) {
+@media only screen and (max-width: 414px) {
   .roleSwitcher {
     margin-left: initial;
   }
