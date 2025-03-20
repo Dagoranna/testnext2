@@ -1,37 +1,43 @@
-.roleSwitcher{
+.roleSwitcher {
   display: flex;
   min-height: 2rem;
   margin-left: auto;
   height: fit-content;
 }
 
-.sliderButton{
+.sliderButton {
   border: 2px solid #caa67e;
-  box-shadow: .1em .1em .2em #4d3a25;
+  box-shadow: 0.1em 0.1em 0.2em #4d3a25;
   cursor: pointer;
   text-align: center;
   user-select: none;
   padding: 5px;
 }
 
-.buttonOn{
+.buttonOn {
   background: linear-gradient(#dac1a5, #a9855d);
-  color: #fff;  
-  text-shadow: 0 -1px 1px #777;  
+  color: #fff;
+  text-shadow: 0 -1px 1px #777;
 }
 
-.buttonOff{
+.buttonOff {
   background-color: #e3d6c7;
   color: #8e5a1f;
   text-shadow: none;
 }
 
-.leftPart{
+.leftPart {
   border-top-left-radius: 15px;
   border-bottom-left-radius: 15px;
 }
 
-.rightPart{
+.rightPart {
   border-top-right-radius: 15px;
   border-bottom-right-radius: 15px;
+}
+
+@media only screen and (max-width: 320px) {
+  .roleSwitcher {
+    margin-left: initial;
+  }
 }

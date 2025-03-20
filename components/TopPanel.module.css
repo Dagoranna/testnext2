@@ -1,40 +1,57 @@
-.topPanel{
+.topPanel {
   position: relative;
   display: flex;
   justify-content: flex-start;
-  height: 2rem;
-  padding: .2rem;
+  /* height: 2rem;*/
+  padding: 0.2rem;
   z-index: 1000;
   flex-wrap: wrap;
 }
 
-.plainMessage{
+.plainMessage {
   border: 2px solid #caa67e;
   background-color: #e3d6c7;
-  color: #8e5a1f; 
+  color: #8e5a1f;
   text-align: center;
   user-select: none;
-  padding: 5px; 
+  padding: 5px;
   margin-left: auto;
   height: 2rem;
   border-bottom-left-radius: 1rem;
   font-weight: bold;
 }
 
-.colorCircle{
+.colorCircle {
   display: block;
   width: 20px;
   border-radius: 50%;
   height: 20px;
   margin-left: 5px;
-  background: linear-gradient(124deg, #ff2400, #e81d1d, #e8b71d, #e3e81d, #1de840, #1ddde8, #2b1de8, #dd00f3, #dd00f3);
+  background: linear-gradient(
+    124deg,
+    #ff2400,
+    #e81d1d,
+    #e8b71d,
+    #e3e81d,
+    #1de840,
+    #1ddde8,
+    #2b1de8,
+    #dd00f3,
+    #dd00f3
+  );
 }
 
-.colorsBlock{
+.colorsBlock {
   position: absolute;
   height: 5rem;
   overflow-y: auto;
   overflow-x: hidden;
   border: 2px solid #caa67e;
-  background-color: #9b9b9b
+  background-color: #9b9b9b;
+}
+
+@media only screen and (max-width: 320px) {
+  .plainMessage {
+    margin-left: initial;
+  }
 }
