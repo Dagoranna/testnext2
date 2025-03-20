@@ -37,14 +37,24 @@
 }
 
 .paletteForms {
+  display: flex;
+  border: 2px ridge #caa67e;
+  margin-right: 5px;
+}
+
+.paletteFormsSimple {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
   width: 140px;
   height: 125px;
   text-align: center;
-  border: 1px solid #caa67e;
-  margin-right: 5px;
+  border-right: 1px solid #caa67e;
   padding: 2px;
+}
+
+.paletteFormsButtons {
+  display: flex;
+  flex-direction: column;
 }
 
 .paletteColors {
@@ -53,7 +63,7 @@
   width: 84px;
   height: 125px;
   text-align: center;
-  border: 1px solid #caa67e;
+  border: 2px ridge #caa67e;
   margin-right: 5px;
   padding: 2px;
 }
@@ -61,7 +71,7 @@
 .paletteActions {
   display: flex;
   text-align: center;
-  border: 1px solid #caa67e;
+  border: 2px ridge #caa67e;
   margin-right: 5px;
   padding: 2px;
   flex-wrap: wrap;
@@ -93,7 +103,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  border: 1px solid #caa67e;
+  border: 2px ridge #caa67e;
   margin-right: 5px;
   padding: 2px;
 }
@@ -174,16 +184,15 @@
 
 .savingElem::after {
   content: "";
-  width: calc(100% + 2 * var(--cell));
-  height: calc(100% + 2 * var(--cell));
+  width: 100%;
+  height: 100%;
   display: block;
-  top: calc(0px - var(--cell));
+  top: 0;
   position: absolute;
-  left: calc(0px - var(--cell));
+  left: 0;
   background: linear-gradient(gray, transparent 1px),
     linear-gradient(90deg, gray, transparent 1px);
   background-size: var(--cell) var(--cell);
-  background-position: -1px -1px;
 }
 
 .paletteActionElem {
@@ -241,6 +250,25 @@
   background-position: 3px 3px;
   background-color: #f9f0e7;
   margin: 3px;
+}
+
+.libraryGrid {
+  display: grid;
+  grid-template-columns: repeat(12, var(--cell));
+  grid-auto-rows: var(--cell);
+  grid-auto-flow: dense;
+  gap: 2px 2px;
+  overflow-y: scroll;
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(gray, transparent 1px),
+    linear-gradient(90deg, gray, transparent 1px);
+  background-size: var(--cell) var(--cell);
+}
+
+.libButtonBlock {
+  display: flex;
+  justify-content: space-around;
 }
 
 .mapElem {

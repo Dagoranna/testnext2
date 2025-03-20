@@ -18,7 +18,6 @@ const CELL_SIZE = 20;
 const MARKER_RADIUS = 5;
 const radToDeg = (rad) => rad * (180 / Math.PI);
 const mainBGColor = "rgb(227, 214, 199)";
-const mainBorderColor = "rgb(202, 166, 126)";
 const colorsObj = {
   black: "white",
   gray: "black",
@@ -85,18 +84,11 @@ function MapField() {
   const [isRotating, setIsRotating] = useState(false);
   const [rotatingObject, setRotatingObject] = useState(null);
   const [isSelecting, setIsSelecting] = useState(false);
+  const [selectedObjectsId, setSelectedObjectsId] = useState(new Set());
   const [screenSize, setScreenSize] = useState([0, 0]);
 
-  const elemFromLib = useSelector((state) => state.map.elemFromLib);
+  const [elemFromLib, setElemFromLib] = useState(null);
 
-  /* //FOR TEST
-  const [counter, setCounter] = useState(0);
-  useEffect(() => {
-    setCounter(counter + 1);
-    console.log("counter = " + counter);
-    console.log(mapContent);
-  }, [mapContent]);
-*/
   let tempObj = {};
   let traceDiameter = 0;
   let handlingStarted = false;
@@ -124,7 +116,6 @@ function MapField() {
     } else if (activeAction === "arrow") {
       const eventTargetName = e.target.getAttribute("name");
       console.log(eventTargetName);
-      console.log("id = " + e.target.getAttribute("id"));
       if (eventTargetName === "elemResizer") {
         //resizing
         setIsResizing(true);
@@ -143,7 +134,6 @@ function MapField() {
         //dragging
         setIsDragging(true);
         setDraggingObject(e.target);
-        console.log("setDraggingObject = " + draggingObject);
 
         let rect = e.target.getBoundingClientRect();
 
@@ -316,6 +306,7 @@ function MapField() {
     }
 
     if (activeAction === "brush") {
+      dispatch(mapSlice.incMapElemsCounter());
       let elemX, elemY;
 
       if (!gridBinding) {
@@ -349,39 +340,32 @@ function MapField() {
         elemX = Math.round(elemX / CELL_SIZE) * CELL_SIZE + "px";
         elemY = Math.round(elemY / CELL_SIZE) * CELL_SIZE + "px";
       }
-
-      let copyID = mapElemsCounter;
+      const elemId = `mapElem_${mapElemsCounter}`;
 
       let formClone;
-      const parser = new DOMParser();
       if (elemFromLib) {
-        let textElemCopy = elemFromLib.replaceAll(
-          'id="mapElem_',
-          `id="mapElem_c_${copyID}_`
-        );
-        const doc = parser.parseFromString(textElemCopy, "text/html");
-        formClone = doc.body.firstElementChild;
-        formClone.id = `mapElem_${copyID++}`;
+        formClone = elemFromLib;
+        formClone.id = elemId;
         formClone.style.left = elemX;
         formClone.style.top = elemY;
         formClone.style.position = "absolute";
         formClone.style.outline = "none";
+        formClone.draggable = "true";
         formClone.setAttribute("name", "mapElem");
-        //    setElemFromLib(null);
+        formClone.style.boxShadow = "none";
+        setElemFromLib(null);
       } else {
         formClone = document.getElementById(activeForm).cloneNode(true);
-        formClone.id = `mapElem_${copyID++}`;
+        formClone.id = elemId;
         formClone.style.left = elemX;
         formClone.style.top = elemY;
         formClone.style.width = CELL_SIZE + "px";
         formClone.style.height = CELL_SIZE + "px";
         formClone.style.position = "absolute";
         formClone.style.outline = "none";
+        formClone.draggable = "true";
         formClone.setAttribute("name", "mapElem");
       }
-
-      /*      console.log("--------------formClone-------------");
-      console.log(formClone);*/
 
       if (activeColor == mainBGColor) {
         console.log("main color");
@@ -430,10 +414,7 @@ function MapField() {
       formCloneResizer.setAttribute("name", "elemResizer");
       formClone.appendChild(formCloneResizer);
 
-      dispatch(mapSlice.setMapElemsCounter(copyID));
-      console.log("copyID = " + copyID);
       dispatch(mapSlice.addElemToMap(formClone.outerHTML));
-      console.log("formClone.outerHTML = " + formClone.outerHTML);
     } else if (activeAction === "arrow") {
       if (isResizing) {
         tempObj = resizingObject.cloneNode(true);
@@ -485,9 +466,7 @@ function MapField() {
         document.getElementById("traceItem").remove();
         tempObj = {};
       } else if (isDragging) {
-        console.log("elem1");
         tempObj = draggingObject.cloneNode(true);
-        console.log(tempObj);
         let traceItem = document.getElementById("traceItem");
 
         if (!gridBinding) {
@@ -521,8 +500,6 @@ function MapField() {
         }
 
         dispatch(mapSlice.changeElemOnMap(tempObj.outerHTML));
-        console.log("elem2");
-        console.log(mapSlice.changeElemOnMap(tempObj.outerHTML));
         setDraggingObject({});
         setStartPoint({});
         setIsDragging(false);
@@ -557,10 +534,7 @@ function MapField() {
         });
         traceItem.remove();
 
-        //setSelectedObjectsId(tempSet);
-        let tempArray = Array.from(tempSet);
-        dispatch(mapSlice.setSelectedObjectsId(tempArray));
-        console.log(tempArray);
+        setSelectedObjectsId(tempSet);
         setStartPoint({});
       }
     } else if (activeAction === "rotate") {
@@ -592,6 +566,213 @@ function MapField() {
     }
   }
 
+  function mergeItems(e) {
+    console.log("merge");
+    if (activeAction !== "arrow") return;
+
+    let selectedArray = mapContent.filter((item) =>
+      item.includes("outline: yellow dashed 3px")
+    );
+    if (selectedArray.length === 0) return;
+
+    selectedArray.map((item) => dispatch(mapSlice.removeElemFromMap(item)));
+
+    let sortedArray = selectedArray.map((item) =>
+      item.replaceAll('name="mapElem"', 'name="mapInnerElem"')
+    );
+    sortedArray = sortedArray.map((item) =>
+      item.replaceAll(
+        "outline: yellow dashed 3px",
+        "outline: none; pointer-events: none;"
+      )
+    );
+
+    dispatch(mapSlice.incMapElemsCounter());
+
+    sortedArray = sortedArray
+      .map((item) => parse(item))
+      .sort(
+        (a, b) => parseInt(a.props.style.left) - parseInt(b.props.style.left)
+      );
+    let startX = sortedArray[0].props.style.left;
+    sortedArray = sortedArray.sort(
+      (a, b) => parseInt(a.props.style.top) - parseInt(b.props.style.top)
+    );
+    let startY = sortedArray[0].props.style.top;
+
+    sortedArray = sortedArray.sort(
+      (b, a) =>
+        parseInt(a.props.style.left) +
+        parseInt(a.props.style?.width ?? "20") -
+        (parseInt(b.props.style.left) + parseInt(b.props.style?.width ?? "20"))
+    );
+    let endX =
+      parseInt(sortedArray[0].props.style.left) +
+      parseInt(sortedArray[0].props.style?.width ?? "20") +
+      "px";
+    sortedArray = sortedArray.sort(
+      (b, a) =>
+        parseInt(a.props.style.top) +
+        parseInt(a.props.style?.height ?? "20") -
+        (parseInt(b.props.style.top) + parseInt(b.props.style?.height ?? "20"))
+    );
+    let endY =
+      parseInt(sortedArray[0].props.style.top) +
+      parseInt(sortedArray[0].props.style?.height ?? "20") +
+      "px";
+
+    sortedArray = sortedArray.map((item) => {
+      // -1 a.f.
+      item.props.style.left =
+        parseInt(item.props.style.left) - parseInt(startX) - 1 + "px";
+      item.props.style.top =
+        parseInt(item.props.style.top) - parseInt(startY) - 1 + "px";
+      item.props.style.pointerEvents = "none";
+      return item;
+    });
+    const elemId = `mapElem_${mapElemsCounter}`;
+
+    let formClone = document.createElement("div");
+    formClone.id = elemId;
+    formClone.className = styles.paletteElem;
+    formClone.style.left = startX;
+    formClone.style.top = startY;
+    formClone.style.width = parseInt(endX) - parseInt(startX) + "px";
+    formClone.style.height = parseInt(endY) - parseInt(startY) + "px";
+    formClone.style.position = "absolute";
+    formClone.style.outline = "none";
+    formClone.style.border = "none";
+    formClone.draggable = "true";
+    formClone.setAttribute("name", "mapElem");
+    switch (activeLayer) {
+      case "top":
+        formClone.style.zIndex = "20";
+        break;
+      case "middle":
+        formClone.style.zIndex = "15";
+        break;
+      case "bottom":
+        formClone.style.zIndex = "10";
+        break;
+    }
+
+    formClone.innerHTML = sortedArray
+      .map((item) => ReactDOMServer.renderToStaticMarkup(item))
+      .join("");
+
+    let formCloneResizer = document.createElement("div");
+    switch (activeLayer) {
+      case "top":
+        formCloneResizer.style.zIndex = "21";
+        break;
+      case "middle":
+        formCloneResizer.style.zIndex = "16";
+        break;
+      case "bottom":
+        formCloneResizer.style.zIndex = "11";
+        break;
+    }
+
+    formCloneResizer.className = styles.mapElemResizer;
+    formCloneResizer.setAttribute("name", "elemResizer");
+    formClone.appendChild(formCloneResizer);
+
+    dispatch(mapSlice.addElemToMap(formClone.outerHTML));
+  }
+
+  function splitItems(e) {
+    console.log("split");
+    if (activeAction !== "arrow") return;
+
+    let selectedArray = mapContent.filter((item) =>
+      item.includes("outline: yellow dashed 3px")
+    );
+    if (selectedArray.length === 0) return;
+    selectedArray.map((item) => dispatch(mapSlice.removeElemFromMap(item)));
+    let parsedArray = selectedArray.map((item) => parse(item));
+
+    parsedArray.map((pItem, index) => {
+      let startX = parsedArray[index]?.props.style?.left ?? "0";
+      let startY = parsedArray[index]?.props.style?.top ?? "0";
+
+      let innerArray = parsedArray.map((item) => item.props.children)[index];
+
+      if (innerArray.length > 0) {
+        innerArray = innerArray.filter(
+          (item) => item.props.name !== "elemResizer"
+        );
+
+        innerArray = innerArray.map((item) => {
+          let itemXStart = item.props.style.left;
+          let itemYStart = item.props.style.top;
+          let itemX =
+            parseInt(item.props.style.left) + 1 + parseInt(startX) + "px";
+          let itemY =
+            parseInt(item.props.style.top) + 1 + parseInt(startY) + "px";
+          let tempItem = ReactDOMServer.renderToStaticMarkup(item);
+          tempItem = tempItem.replace('name="mapInnerElem"', 'name="mapElem"');
+          tempItem = tempItem.replace(
+            "pointer-events:none",
+            "pointer-events:auto"
+          );
+          tempItem = tempItem.replace(`left:${itemXStart}`, `left:${itemX}`);
+          tempItem = tempItem.replace(`top:${itemYStart}`, `top:${itemY}`);
+          dispatch(mapSlice.addElemToMap(tempItem));
+        });
+      } else {
+        let tempItem = ReactDOMServer.renderToStaticMarkup(pItem);
+        tempItem = tempItem.replace(
+          "outline:yellow dashed 3px",
+          "outline:none"
+        );
+        dispatch(mapSlice.addElemToMap(tempItem));
+      }
+    });
+  }
+
+  function deleteItems(e) {
+    console.log("delete");
+    if (activeAction !== "arrow") return;
+
+    let selectedArray = mapContent.filter((item) =>
+      item.includes("outline: yellow dashed 3px")
+    );
+    if (selectedArray.length === 0) return;
+    selectedArray.map((item) => dispatch(mapSlice.removeElemFromMap(item)));
+  }
+
+  function copyItems(e) {
+    console.log("copy");
+    let selectedArray = mapContent.filter((item) =>
+      item.includes("outline: yellow dashed 3px")
+    );
+    if (selectedArray.length === 0) return;
+    console.log(selectedArray);
+    let copyID = mapElemsCounter + 1;
+
+    selectedArray.map((item) => {
+      console.log(item);
+      let parsedItem = parse(item);
+      let oldX = parsedItem.props.style.left;
+      let oldY = parsedItem.props.style.top;
+      let newX = parseInt(oldX) + 10 + "px";
+      let newY = parseInt(oldY) + 10 + "px";
+      parsedItem.props.style.left = newX;
+      parsedItem.props.style.top = newY;
+      let textElemCopy = ReactDOMServer.renderToStaticMarkup(parsedItem);
+      textElemCopy = textElemCopy.replaceAll(
+        'id="mapElem_',
+        `id="mapElem_c_${copyID++}_`
+      );
+      textElemCopy = textElemCopy.replaceAll(
+        'id="mapInnerElem_',
+        `id="mapElem_c_${copyID++}_`
+      );
+      dispatch(mapSlice.addElemToMap(textElemCopy));
+    });
+    dispatch(mapSlice.setMapElemsCounter(copyID));
+  }
+
   useEffect(() => {
     if (!clientUtils.isValidJSON(serverMessage)) return;
     let messageJSON = JSON.parse(serverMessage);
@@ -620,6 +801,29 @@ function MapField() {
     );
   }, [mapContent]);
 
+  /* const mapFieldJSX = useMemo(() => {
+    return (
+      <div
+        className={styles.mapFieldWrapper}
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        <div
+          className={styles.mapField}
+          ref={mapRef}
+          name="mapField"
+          onPointerUp={(e) => mapOnMouseUp(e)}
+          onPointerDown={(e) => mapOnMouseDown(e)}
+          onPointerMove={(e) => mapOnMouseMove(e)}
+          onPointerLeave={(e) => mapOnMouseUp(e)}
+        >
+          {mapContent.map((item, index) => (
+            <React.Fragment key={index}>{parse(item)}</React.Fragment>
+          ))}
+        </div>
+      </div>
+    );
+  }, []);*/
+
   useEffect(() => {
     if (activeAction === null) {
       mapRef.current.style.touchAction = "";
@@ -635,6 +839,7 @@ function MapField() {
     }
   }
 
+  // return mapFieldJSX;
   return (
     <div
       className={styles.mapFieldWrapper}
@@ -809,10 +1014,9 @@ function Palette() {
 function PaletteForms() {
   console.log("🔄 PaletteForms re-rendered");
   return (
-    <div className={styles.paletteForms}>
+    <>
       <PaletteFormsSimple />
-      <PaletteFormsButtons />
-    </div>
+    </>
   );
 }
 //      <PaletteFormsButtons />
@@ -820,281 +1024,10 @@ function PaletteFormsSimple() {
   console.log("🔄 PaletteFormsSimple re-rendered");
 
   return (
-    <div className={styles.paletteFormsSimple}>
+    <div className={styles.paletteForms}>
       {Array.from({ length: 18 }, (_, i) => (
         <PaletteElem key={i} id={`elemForm_${i}`} />
       ))}
-    </div>
-  );
-}
-
-function PaletteFormsButtons() {
-  /*const [screenSize, setScreenSize] = useState([0, 0]);
-  useEffect(() => {
-    setScreenSize([window.innerWidth, window.innerHeight]);
-  }, []);*/
-  const dispatch = useDispatch();
-  const userEmail = useSelector((state) => state.main.userEmail);
-  const selectedObjectsId = useSelector((state) => state.map.selectedObjectsId);
-  const [elemForSaving, setElemForSaving] = useState(
-    "<div style='gridColumn: span 15; textAlign: center;'>Select a single object</div>"
-  );
-  const [libraryContent, setLibraryContent] = useState(
-    "<div style='gridColumn: span 15; textAlign: center;'></div>"
-  );
-  // const elemFromLib = useSelector((state) => state.map.elemFromLib);
-
-  const addButtonStyle = {
-    minWidth: "1rem",
-    borderWidth: "2px",
-    margin: "3px",
-    width: "fit-content",
-    alignSelf: "center",
-    padding: "3px",
-    borderRadius: "5px",
-  };
-
-  const addFormStyle = {
-    /*  width: parseInt(screenSize[0]) / 2 + "px",
-    height: parseInt(screenSize[1]) / 2 + "px",*/
-    width: "300px",
-    height: "400px",
-    top: "0",
-    display: "flex",
-    flexDirection: "column",
-    right: "0",
-  };
-
-  function captureElem() {
-    let windowContent = (
-      <div style="gridColumn: span 15; textAlign: center;">
-        Select a single object
-      </div>
-    );
-    console.log(selectedObjectsId);
-    console.log(selectedObjectsId.length);
-    if (selectedObjectsId.length === 1) {
-      let selectedObj = document.getElementById(selectedObjectsId[0]);
-      if (selectedObj) {
-        windowContent = parse(selectedObj.outerHTML);
-        windowContent.props.style.outline = "1px solid black";
-        windowContent.props.style.left = "0";
-        windowContent.props.style.top = "0";
-        windowContent.props.style.gridColumn = `span
-          ${Math.ceil(parseInt(windowContent.props.style.width) / CELL_SIZE)}`;
-        windowContent.props.style.gridRow = `span 
-          ${Math.ceil(parseInt(windowContent.props.style.height) / CELL_SIZE)}`;
-        windowContent = cloneElement(windowContent, {
-          className:
-            (windowContent.props.className || "").replace(
-              /\bGameMap_activeElem\S*\b/g,
-              ""
-            ) +
-            " " +
-            styles.savingElem,
-          id: undefined,
-        });
-      }
-      setElemForSaving(ReactDOMServer.renderToStaticMarkup(windowContent));
-      console.log(windowContent);
-    }
-  }
-  //activeElem
-  async function saveElem() {
-    console.log("save");
-    let elem = ReactDOMServer.renderToStaticMarkup(elemForSaving);
-    setElemForSaving(
-      "<div style='gridColumn: span 15; textAlign: center;'>Saving...</div>"
-    );
-    let response = await fetch("/api/gamedata/gamemap/saveelem", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        callbackUrl: "/",
-        email: userEmail,
-        elem: elem,
-      }),
-    });
-
-    let baseResponse = await response.json();
-
-    if (response.ok) {
-      setElemForSaving(
-        "<div style='gridColumn: span 15; textAlign: center;'>Saved!</div>"
-      );
-      console.log(baseResponse.message);
-    } else {
-      console.log(baseResponse.message);
-      setElemForSaving(
-        `<div style='gridColumn: span 15; textAlign: center;'>${baseResponse.message}</div>`
-      );
-      //throw new Error("error in database response");
-    }
-  }
-
-  async function loadLocalLibrary(e) {
-    e.stopPropagation();
-    setLibraryContent(
-      "<div style='gridColumn: span 15; textAlign: center;'>Loading...</div>"
-    );
-    let response = await fetch("/api/gamedata/gamemap/loadelem", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        callbackUrl: "/",
-        email: userEmail,
-      }),
-    });
-
-    let baseResponse = await response.json();
-    if (response.ok) {
-      let library;
-      if (baseResponse.loadState) {
-        console.log("ok");
-
-        let parsedElems = JSON.parse(baseResponse.message);
-
-        parsedElems = parsedElems.map((item) => {
-          return parse(item);
-        });
-
-        let elemsHeap = parsedElems.reduce((res, item, key) => {
-          let newItem = parse(item);
-          newItem.props.style.position = "relative";
-          newItem.props.style.top = "auto";
-          newItem.props.style.left = "auto";
-
-          newItem = cloneElement(newItem, {
-            className: (newItem.props.className || "")
-              .replace(/\bGameMap_savingElem\S*\b/g, "")
-              .trim(),
-            id: undefined,
-          });
-          let stringItem = ReactDOMServer.renderToStaticMarkup(newItem);
-          return res + stringItem;
-        }, "");
-
-        setLibraryContent(elemsHeap);
-      } else {
-        console.log(baseResponse.message);
-      }
-    } else {
-      //throw new Error("error in database response");
-      console.log("empty library");
-    }
-  }
-
-  async function loadGlobalLibrary(e) {
-    e.stopPropagation();
-    setLibraryContent(
-      "<div style='gridColumn: span 15; textAlign: center;'>Loading...</div>"
-    );
-    let response = await fetch("/api/gamedata/gamemap/loadglobalelem", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        callbackUrl: "/",
-      }),
-    });
-
-    let baseResponse = await response.json();
-    if (response.ok) {
-      let library;
-      if (baseResponse.loadState) {
-        console.log("ok");
-
-        let parsedElems = JSON.parse(baseResponse.message);
-
-        parsedElems = parsedElems.map((item) => {
-          return parse(item);
-        });
-
-        let elemsHeap = parsedElems.reduce((res, item, key) => {
-          let newItem = parse(item);
-          newItem.props.style.position = "relative";
-          newItem.props.style.top = "auto";
-          newItem.props.style.left = "auto";
-
-          newItem = cloneElement(newItem, {
-            className: (newItem.props.className || "")
-              .replace(/\bGameMap_savingElem\S*\b/g, "")
-              .trim(),
-            id: undefined,
-          });
-          let stringItem = ReactDOMServer.renderToStaticMarkup(newItem);
-          return res + stringItem;
-        }, "");
-
-        setLibraryContent(elemsHeap);
-      } else {
-        console.log(baseResponse.message);
-      }
-    } else {
-      //throw new Error("error in database response");
-      console.log("empty library");
-    }
-  }
-
-  function selectElement(e) {
-    e.stopPropagation();
-    let elem = e.target.closest('[name="mapElem"]');
-    if (!elem) return;
-    if (elem.style.outline == "rgb(106, 5, 114) dashed 5px") {
-      elem.style.outline = "black solid 1px";
-      dispatch(mapSlice.setElemFromLib(null));
-    } else {
-      console.log(e.target);
-      [...e.currentTarget.querySelectorAll('[name="mapElem"]')].map(
-        (item) => (item.style.outline = "black solid 1px")
-      );
-
-      elem.style.outline = "rgb(106, 5, 114) dashed 5px";
-      dispatch(mapSlice.setElemFromLib(elem.outerHTML));
-    }
-  }
-
-  function clearElem() {
-    dispatch(mapSlice.setElemFromLib(null));
-    setLibraryContent(
-      "<div style='gridColumn: span 15; textAlign: center;'></div>"
-    );
-  }
-
-  return (
-    <div className={styles.paletteFormsButtons}>
-      <FormWrapper
-        formName="Save"
-        addButtonStyle={addButtonStyle}
-        addFormStyle={addFormStyle}
-      >
-        <div className={styles.libraryGrid}>{parse(elemForSaving)}</div>
-        <div className={styles.libButtonBlock}>
-          <button onClick={() => captureElem()}>Capture element</button>
-          <button onClick={async () => saveElem()}>Save element</button>
-        </div>
-      </FormWrapper>
-      <FormWrapper
-        formName="Load"
-        addButtonStyle={addButtonStyle}
-        addFormStyle={addFormStyle}
-        addOnClose={clearElem}
-      >
-        <div className={styles.libraryGrid} onClick={(e) => selectElement(e)}>
-          {parse(libraryContent)}
-        </div>
-        <button onClick={async (e) => loadLocalLibrary(e)}>
-          Local library
-        </button>
-        <button onClick={async (e) => loadGlobalLibrary(e)}>
-          Global library
-        </button>
-      </FormWrapper>
     </div>
   );
 }
@@ -1138,11 +1071,6 @@ function PaletteElem({ id }) {
 function PaletteActions() {
   const dispatch = useDispatch();
   const activeAction = useSelector((state) => state.map.activePaletteAction);
-  const mapContent = useSelector((state) => state.map.mapContent);
-  const mapElemsCounter = useSelector((state) => state.map.mapElemsCounter);
-  const activeLayer = useSelector(
-    (state) => state.map.activePaletteStyle.layer
-  );
 
   function changePaletteAction(act, dispatch) {
     if (activeAction === act) {
@@ -1150,212 +1078,6 @@ function PaletteActions() {
     } else {
       dispatch(mapSlice.setActivePaletteAction(act));
     }
-  }
-
-  function mergeItems(e) {
-    console.log("merge");
-    if (activeAction !== "arrow") return;
-
-    let selectedArray = mapContent.filter((item) =>
-      item.includes("outline: yellow dashed 3px")
-    );
-    if (selectedArray.length === 0) return;
-
-    selectedArray.map((item) => dispatch(mapSlice.removeElemFromMap(item)));
-
-    let sortedArray = selectedArray.map((item) =>
-      item.replaceAll('name="mapElem"', 'name="mapInnerElem"')
-    );
-    sortedArray = sortedArray.map((item) =>
-      item.replaceAll(
-        "outline: yellow dashed 3px",
-        "outline: none; pointer-events: none;"
-      )
-    );
-
-    dispatch(mapSlice.incMapElemsCounter());
-
-    sortedArray = sortedArray
-      .map((item) => parse(item))
-      .sort(
-        (a, b) => parseInt(a.props.style.left) - parseInt(b.props.style.left)
-      );
-    let startX = sortedArray[0].props.style.left;
-    sortedArray = sortedArray.sort(
-      (a, b) => parseInt(a.props.style.top) - parseInt(b.props.style.top)
-    );
-    let startY = sortedArray[0].props.style.top;
-
-    sortedArray = sortedArray.sort(
-      (b, a) =>
-        parseInt(a.props.style.left) +
-        parseInt(a.props.style?.width ?? "20") -
-        (parseInt(b.props.style.left) + parseInt(b.props.style?.width ?? "20"))
-    );
-    let endX =
-      parseInt(sortedArray[0].props.style.left) +
-      parseInt(sortedArray[0].props.style?.width ?? "20") +
-      "px";
-    sortedArray = sortedArray.sort(
-      (b, a) =>
-        parseInt(a.props.style.top) +
-        parseInt(a.props.style?.height ?? "20") -
-        (parseInt(b.props.style.top) + parseInt(b.props.style?.height ?? "20"))
-    );
-    let endY =
-      parseInt(sortedArray[0].props.style.top) +
-      parseInt(sortedArray[0].props.style?.height ?? "20") +
-      "px";
-
-    sortedArray = sortedArray.map((item) => {
-      // -1 a.f.
-      item.props.style.left =
-        parseInt(item.props.style.left) - parseInt(startX) - 1 + "px";
-      item.props.style.top =
-        parseInt(item.props.style.top) - parseInt(startY) - 1 + "px";
-      item.props.style.pointerEvents = "none";
-      return item;
-    });
-    const elemId = `mapElem_${mapElemsCounter}`;
-
-    let formClone = document.createElement("div");
-    formClone.id = elemId;
-    formClone.className = styles.paletteElem;
-    formClone.style.left = startX;
-    formClone.style.top = startY;
-    formClone.style.width = parseInt(endX) - parseInt(startX) + "px";
-    formClone.style.height = parseInt(endY) - parseInt(startY) + "px";
-    formClone.style.position = "absolute";
-    formClone.style.outline = "none";
-    formClone.style.border = "none";
-    formClone.setAttribute("name", "mapElem");
-    switch (activeLayer) {
-      case "top":
-        formClone.style.zIndex = "20";
-        break;
-      case "middle":
-        formClone.style.zIndex = "15";
-        break;
-      case "bottom":
-        formClone.style.zIndex = "10";
-        break;
-    }
-
-    formClone.innerHTML = sortedArray
-      .map((item) => ReactDOMServer.renderToStaticMarkup(item))
-      .join("");
-
-    let formCloneResizer = document.createElement("div");
-    switch (activeLayer) {
-      case "top":
-        formCloneResizer.style.zIndex = "21";
-        break;
-      case "middle":
-        formCloneResizer.style.zIndex = "16";
-        break;
-      case "bottom":
-        formCloneResizer.style.zIndex = "11";
-        break;
-    }
-
-    formCloneResizer.className = styles.mapElemResizer;
-    formCloneResizer.setAttribute("name", "elemResizer");
-    formClone.appendChild(formCloneResizer);
-
-    dispatch(mapSlice.addElemToMap(formClone.outerHTML));
-  }
-
-  function splitItems(e) {
-    console.log("split");
-    if (activeAction !== "arrow") return;
-
-    let selectedArray = mapContent.filter((item) =>
-      item.includes("outline: yellow dashed 3px")
-    );
-    if (selectedArray.length === 0) return;
-    selectedArray.map((item) => dispatch(mapSlice.removeElemFromMap(item)));
-    let parsedArray = selectedArray.map((item) => parse(item));
-
-    parsedArray.map((pItem, index) => {
-      let startX = parsedArray[index]?.props.style?.left ?? "0";
-      let startY = parsedArray[index]?.props.style?.top ?? "0";
-
-      let innerArray = parsedArray.map((item) => item.props.children)[index];
-
-      if (innerArray.length > 0) {
-        innerArray = innerArray.filter(
-          (item) => item.props.name !== "elemResizer"
-        );
-
-        innerArray = innerArray.map((item) => {
-          let itemXStart = item.props.style.left;
-          let itemYStart = item.props.style.top;
-          let itemX =
-            parseInt(item.props.style.left) + 1 + parseInt(startX) + "px";
-          let itemY =
-            parseInt(item.props.style.top) + 1 + parseInt(startY) + "px";
-          let tempItem = ReactDOMServer.renderToStaticMarkup(item);
-          tempItem = tempItem.replace('name="mapInnerElem"', 'name="mapElem"');
-          tempItem = tempItem.replace(
-            "pointer-events:none",
-            "pointer-events:auto"
-          );
-          tempItem = tempItem.replace(`left:${itemXStart}`, `left:${itemX}`);
-          tempItem = tempItem.replace(`top:${itemYStart}`, `top:${itemY}`);
-          dispatch(mapSlice.addElemToMap(tempItem));
-        });
-      } else {
-        let tempItem = ReactDOMServer.renderToStaticMarkup(pItem);
-        tempItem = tempItem.replace(
-          "outline:yellow dashed 3px",
-          "outline:none"
-        );
-        dispatch(mapSlice.addElemToMap(tempItem));
-      }
-    });
-  }
-
-  function deleteItems(e) {
-    console.log("delete");
-    if (activeAction !== "arrow") return;
-
-    let selectedArray = mapContent.filter((item) =>
-      item.includes("outline: yellow dashed 3px")
-    );
-    if (selectedArray.length === 0) return;
-    selectedArray.map((item) => dispatch(mapSlice.removeElemFromMap(item)));
-  }
-
-  function copyItems(e) {
-    console.log("copy");
-    let selectedArray = mapContent.filter((item) =>
-      item.includes("outline: yellow dashed 3px")
-    );
-    if (selectedArray.length === 0) return;
-    console.log(selectedArray);
-    let copyID = mapElemsCounter + 1;
-
-    selectedArray.map((item) => {
-      console.log(item);
-      let parsedItem = parse(item);
-      let oldX = parsedItem.props.style.left;
-      let oldY = parsedItem.props.style.top;
-      let newX = parseInt(oldX) + 10 + "px";
-      let newY = parseInt(oldY) + 10 + "px";
-      parsedItem.props.style.left = newX;
-      parsedItem.props.style.top = newY;
-      let textElemCopy = ReactDOMServer.renderToStaticMarkup(parsedItem);
-      textElemCopy = textElemCopy.replaceAll(
-        'id="mapElem_',
-        `id="mapElem_c_${copyID++}_`
-      );
-      textElemCopy = textElemCopy.replaceAll(
-        'id="mapInnerElem_',
-        `id="mapElem_c_${copyID++}_`
-      );
-      dispatch(mapSlice.addElemToMap(textElemCopy));
-    });
-    dispatch(mapSlice.setMapElemsCounter(copyID));
   }
 
   return (

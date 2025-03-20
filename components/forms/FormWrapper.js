@@ -9,11 +9,17 @@ export default function FormWrapper({
   isFormOpen = false,
   addButtonStyle = {},
   addFormStyle = {},
+  addOnClose = null,
 }) {
   const [isOpen, setIsOpen] = useState(isFormOpen);
   // const isOpen = isFormOpen;
   let buttonId = formName.replace(/\s+/g, "") + "Button";
   let closeId = formName.replace(/\s+/g, "") + "FormClose";
+
+  function onClose() {
+    if (addOnClose) addOnClose();
+    setIsOpen(false);
+  }
 
   return (
     <>
@@ -32,7 +38,7 @@ export default function FormWrapper({
           <button
             id={closeId}
             className={styles.closeButton}
-            onClick={() => setIsOpen(false)}
+            onClick={() => onClose()}
           >
             &#x2716;
           </button>

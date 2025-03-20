@@ -1,40 +1,40 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import styles from "./FormWrapper.module.css";
 
 export default function FormWrapper_2({
   formName,
   children,
-  isFormOpen,
   addButtonStyle = {},
   addFormStyle = {},
 }) {
   let buttonId = formName.replace(/\s+/g, "") + "Button";
   let closeId = formName.replace(/\s+/g, "") + "FormClose";
-
+  const [isOpen, setIsOpen] = useState(false);
+  const memoizedChildren = useMemo(() => children, [children]);
   return (
     <>
-      {!isFormOpen && (
+      {!isOpen && (
         <button
           id={buttonId}
           className="mainButton"
-          onClick={() => (isFormOpen = true)}
+          onClick={() => setIsOpen(true)}
           style={{ ...addButtonStyle }}
         >
           {formName}
         </button>
       )}
-      {isFormOpen && (
+      {isOpen && (
         <div className={styles.baseTable} style={{ ...addFormStyle }}>
           <button
             id={closeId}
             className={styles.closeButton}
-            onClick={() => (isFormOpen = false)}
+            onClick={() => setIsOpen(false)}
           >
             &#x2716;
           </button>
-          {children}
+          {memoizedChildren}
         </div>
       )}
     </>
