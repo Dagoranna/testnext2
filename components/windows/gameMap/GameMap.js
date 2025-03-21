@@ -586,10 +586,7 @@ function MapField() {
       e.stopPropagation();
       let elem = e.target.closest('[name="mapElem"]');
       if (!elem) return;
-      /*  const [isWriting, setIsWriting] = useState(false);
-  const [writtenObject, setWrittenObject] = useState(null); 
-  const [writtenTextElem, setWrittenTextElem] = useState(null);*/
-      console.log(elem);
+
       setIsWriting(true);
       setWrittenObject(elem);
       let textField = document.createElement("input");
@@ -600,12 +597,11 @@ function MapField() {
       mapOuter.current.append(textField);
       textField.focus();
       textField.addEventListener("keyup", function (e) {
+        alert(e.code);
         if (e.code === "Enter") {
           e.preventDefault();
-          //sendChatMessage(dispatch);
-          e.target.blur();
+          console.log("eveeeeent");
 
-          console.log(textField.value);
           let elemCopy = elem.cloneNode(true);
           let newText = document.createElement("div");
           newText.innerText = textField.value;
@@ -615,7 +611,6 @@ function MapField() {
           elemCopy.appendChild(newText);
           dispatch(mapSlice.changeElemOnMap(elemCopy.outerHTML));
 
-          console.log(newText);
           textField.remove();
           setIsWriting(false);
           setWrittenObject(null);
