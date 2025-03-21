@@ -597,7 +597,6 @@ function MapField() {
       mapOuter.current.append(textField);
       textField.focus();
       textField.addEventListener("keyup", function (e) {
-        alert(e.code);
         if (e.code === "Enter") {
           e.preventDefault();
           console.log("eveeeeent");
@@ -605,6 +604,21 @@ function MapField() {
           let elemCopy = elem.cloneNode(true);
           let newText = document.createElement("div");
           newText.innerText = textField.value;
+          newText.setAttribute("name", "textField");
+          newText.setAttribute("class", styles.textField);
+          elemCopy.querySelector("[name = 'textField']")?.remove();
+          elemCopy.appendChild(newText);
+          dispatch(mapSlice.changeElemOnMap(elemCopy.outerHTML));
+
+          textField.remove();
+          setIsWriting(false);
+          setWrittenObject(null);
+          setWrittenTextElem(null);
+        } else {
+          e.preventDefault();
+          let elemCopy = elem.cloneNode(true);
+          let newText = document.createElement("div");
+          newText.innerText = e.code;
           newText.setAttribute("name", "textField");
           newText.setAttribute("class", styles.textField);
           elemCopy.querySelector("[name = 'textField']")?.remove();
