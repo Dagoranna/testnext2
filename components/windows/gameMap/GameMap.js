@@ -598,6 +598,7 @@ function MapField() {
       textField.focus();
       textField.addEventListener("keyup", function (e) {
         if (e.code === "Enter" || e.key === "Enter") {
+          //e.code failed for mobile
           e.preventDefault();
           console.log("eveeeeent");
 
