@@ -1,9 +1,8 @@
-.dropDownMenu{
+.dropDownMenu {
   text-align: right;
- 
 }
 
-.dropDownMenuTitle{
+.dropDownMenuTitle {
   background: linear-gradient(#dac1a5, #a9855d);
   cursor: pointer;
   text-align: center;
@@ -13,62 +12,73 @@
   color: #fff;
   outline: none;
   min-width: 5rem;
-  border: .1em solid #4d3a25;
-  box-shadow: .2em .2em .3em #d7c6b3 inset,.1em .1em .2em #4d3a25;
-  padding: .2rem;
+  border: 0.1em solid #4d3a25;
+  box-shadow: 0.2em 0.2em 0.3em #d7c6b3 inset, 0.1em 0.1em 0.2em #4d3a25;
+  padding: 0.2rem;
   border: 3px ridge #caa67e;
 }
 
-.dropDownMenuItem{
+.dropDownMenuItem {
   border: 1px solid #caa67e;
-  padding: .2rem;
+  padding: 0.2rem;
   text-align: center;
   cursor: pointer;
 }
 
-.dropDownMenuSwitcher{
+.dropDownMenuSwitcher {
   border: 1px solid #caa67e;
-  padding: .2rem;
+  padding: 0.2rem;
   text-align: center;
   cursor: pointer;
 }
 
-.dropDownMenuItem:hover{
+.dropDownMenuItem:hover {
   box-shadow: 0 0 2px 2px #caa67e inset;
   border: 1px solid #836c51;
 }
 
-.dropDownMenuList{
+.dropDownMenuList {
   border: 3px ridge #caa67e;
-  background-color: #e3d6c7; 
+  background-color: #e3d6c7;
   width: fit-content;
-  box-shadow: .2em .2em .1em #444;
+  box-shadow: 0.2em 0.2em 0.1em #444;
+  position: absolute;
 }
 
-.activeStyle{
-/*  color: rgb(0, 255, 21);
+.activeStyle {
+  /*  color: rgb(0, 255, 21);
   box-shadow: 0 0 .5em rgb(0, 255, 21) inset,.1em .1em .2em #4d3a25;
   background: linear-gradient(#c0daa5, #0d240a);
   border: 3px ridge #16bb28;  */
   color: yellow;
-  box-shadow: 0 0 .5em yellow inset,.1em .1em .2em #4d3a25;
-  background: linear-gradient(rgb(247, 247, 101) 0%, #8e5a1f 50%, rgb(247, 247, 101) 100%);
+  box-shadow: 0 0 0.5em yellow inset, 0.1em 0.1em 0.2em #4d3a25;
+  background: linear-gradient(
+    rgb(247, 247, 101) 0%,
+    #8e5a1f 50%,
+    rgb(247, 247, 101) 100%
+  );
   border: 3px ridge orange;
   text-shadow: 1px 1px 1px #0d240a, 1px 0 1px #0d240a;
 }
 
-.passiveStyle{
+.passiveStyle {
   color: white;
 }
 
-.changingStyle{
+.changingStyle {
   animation-name: pulsingYellow;
   animation-duration: 1s;
   animation-iteration-count: infinite;
 }
 
-@keyframes pulsingYellow{
-  0% {color: white}
-  50% {color: yellow}
-  100% {color: white}
+@keyframes pulsingYellow {
+  0% {
+    color: white;
+  }
+  50% {
+    color: yellow;
+  }
+  100% {
+    color: white;
+  }
 }

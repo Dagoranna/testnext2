@@ -39,7 +39,7 @@ const colorsObj = {
 };
 
 export default function GameMap() {
-  console.log("🔄 GameMap re-rendered");
+  //console.log("🔄 GameMap re-rendered");
 
   return (
     <div className={styles.gameMapWrapper}>
@@ -50,8 +50,9 @@ export default function GameMap() {
 }
 
 function MapField() {
-  console.log("🔄 MapField re-rendered");
+  //console.log("🔄 MapField re-rendered");
   const mapRef = useRef(null);
+  const mapOuter = useRef(null);
   const dispatch = useDispatch();
   const activeColor = useSelector(
     (state) => state.map.activePaletteStyle.color
@@ -86,17 +87,12 @@ function MapField() {
   const [rotatingObject, setRotatingObject] = useState(null);
   const [isSelecting, setIsSelecting] = useState(false);
   const [screenSize, setScreenSize] = useState([0, 0]);
+  const [isWriting, setIsWriting] = useState(false);
+  const [writtenObject, setWrittenObject] = useState(null);
+  const [writtenTextElem, setWrittenTextElem] = useState(null);
 
   const elemFromLib = useSelector((state) => state.map.elemFromLib);
 
-  /* //FOR TEST
-  const [counter, setCounter] = useState(0);
-  useEffect(() => {
-    setCounter(counter + 1);
-    console.log("counter = " + counter);
-    console.log(mapContent);
-  }, [mapContent]);
-*/
   let tempObj = {};
   let traceDiameter = 0;
   let handlingStarted = false;
@@ -120,7 +116,7 @@ function MapField() {
     }
 
     if (activeAction === "brush") {
-      //all actions on mouseUp(?)
+      //all actions on mouseUp
     } else if (activeAction === "arrow") {
       const eventTargetName = e.target.getAttribute("name");
       console.log(eventTargetName);
@@ -431,9 +427,7 @@ function MapField() {
       formClone.appendChild(formCloneResizer);
 
       dispatch(mapSlice.setMapElemsCounter(copyID));
-      console.log("copyID = " + copyID);
       dispatch(mapSlice.addElemToMap(formClone.outerHTML));
-      console.log("formClone.outerHTML = " + formClone.outerHTML);
     } else if (activeAction === "arrow") {
       if (isResizing) {
         tempObj = resizingObject.cloneNode(true);
@@ -557,10 +551,8 @@ function MapField() {
         });
         traceItem.remove();
 
-        //setSelectedObjectsId(tempSet);
         let tempArray = Array.from(tempSet);
         dispatch(mapSlice.setSelectedObjectsId(tempArray));
-        console.log(tempArray);
         setStartPoint({});
       }
     } else if (activeAction === "rotate") {
@@ -589,6 +581,43 @@ function MapField() {
       dispatch(mapSlice.changeElemOnMap(tempObj.outerHTML));
       tempObj = {};
       handlingStarted = false;
+    } else if (activeAction === "text") {
+      e.preventDefault();
+      e.stopPropagation();
+      let elem = e.target.closest('[name="mapElem"]');
+      if (!elem) return;
+      /*  const [isWriting, setIsWriting] = useState(false);
+  const [writtenObject, setWrittenObject] = useState(null); 
+  const [writtenTextElem, setWrittenTextElem] = useState(null);*/
+      console.log(elem);
+      setIsWriting(true);
+      setWrittenObject(elem);
+      let textField = document.createElement("input");
+      setWrittenTextElem(textField);
+      textField.style.position = "absolute";
+      textField.style.top = e.pageY + "px";
+      textField.style.left = e.pageX + "px";
+      mapOuter.current.append(textField);
+      textField.focus();
+      textField.addEventListener("keydown", function (e) {
+        if (e.code === "Enter") {
+          console.log(textField.value);
+          let elemCopy = elem.cloneNode(true);
+          let newText = document.createElement("div");
+          newText.innerText = textField.value;
+          newText.setAttribute("name", "textField");
+          newText.setAttribute("class", styles.textField);
+          elemCopy.querySelector("[name = 'textField']")?.remove();
+          elemCopy.appendChild(newText);
+          dispatch(mapSlice.changeElemOnMap(elemCopy.outerHTML));
+
+          console.log(newText);
+          textField.remove();
+          setIsWriting(false);
+          setWrittenObject(null);
+          setWrittenTextElem(null);
+        }
+      });
     }
   }
 
@@ -638,6 +667,7 @@ function MapField() {
   return (
     <div
       className={styles.mapFieldWrapper}
+      ref={mapOuter}
       onMouseDown={(e) => e.stopPropagation()}
     >
       <div
@@ -663,12 +693,24 @@ function PaletteColorElem({
   backgroundColor,
   textColor,
 }) {
-  console.log(`🔄 PaletteColorElem ${backgroundColor} re-rendered`);
+  //console.log(`🔄 PaletteColorElem ${backgroundColor} re-rendered`);
   const dispatch = useDispatch();
+  const selectedObjects = useSelector((state) => state.map.selectedObjectsId);
+  // const mapContent = useSelector((state) => state.map.mapContent);
 
   function chooseColor(e) {
-    dispatch(mapSlice.setActivePaletteColor(e.target.style.backgroundColor));
-    dispatch(mapSlice.setActivePaletteTextColor(e.target.style.color));
+    let newColor = e.target.style.color;
+    let newBGColor = e.target.style.backgroundColor;
+    dispatch(mapSlice.setActivePaletteColor(newBGColor));
+    dispatch(mapSlice.setActivePaletteTextColor(newColor));
+    if (selectedObjects.length > 0) {
+      selectedObjects.map((itemId) => {
+        let elem = document.getElementById(itemId);
+        elem.style.backgroundColor = newBGColor;
+        elem.style.color = newColor;
+        dispatch(mapSlice.changeElemOnMap(elem.outerHTML));
+      });
+    }
   }
 
   const activeColor = useSelector(
@@ -700,7 +742,7 @@ function PaletteColorElem({
 }
 
 function PaletteColors() {
-  console.log(`🔄 PaletteColors re-rendered`);
+  //console.log(`🔄 PaletteColors re-rendered`);
 
   const elemsArray = useMemo(() => {
     return Object.keys(colorsObj).map((bgColor) => (
@@ -735,9 +777,35 @@ function PaletteLayers() {
   const activeLayer = useSelector(
     (state) => state.map.activePaletteStyle.layer
   );
+  const selectedObjects = useSelector((state) => state.map.selectedObjectsId);
   const gridBinding = useSelector(
     (state) => state.map.activePaletteStyle.bindToGrid
   );
+
+  function changeLayer(layer) {
+    dispatch(mapSlice.setActivePaletteLayer(layer));
+
+    if (selectedObjects.length > 0) {
+      let zLayer;
+      switch (layer) {
+        case "top":
+          zLayer = 20;
+          break;
+        case "middle":
+          zLayer = 15;
+          break;
+        case "bottom":
+          zLayer = 10;
+          break;
+      }
+      selectedObjects.map((itemId) => {
+        let elem = document.getElementById(itemId);
+
+        elem.style.zIndex = zLayer;
+        dispatch(mapSlice.changeElemOnMap(elem.outerHTML));
+      });
+    }
+  }
 
   return (
     <div className={styles.paletteLayers}>
@@ -748,7 +816,7 @@ function PaletteLayers() {
           name="layersSection"
           checked={activeLayer === "top"}
           type="radio"
-          onChange={() => dispatch(mapSlice.setActivePaletteLayer("top"))}
+          onChange={() => changeLayer("top")}
         />
       </div>
       <div>
@@ -757,7 +825,7 @@ function PaletteLayers() {
           name="layersSection"
           checked={activeLayer === "middle"}
           type="radio"
-          onChange={() => dispatch(mapSlice.setActivePaletteLayer("middle"))}
+          onChange={() => changeLayer("middle")}
         />
       </div>
       <div>
@@ -766,7 +834,7 @@ function PaletteLayers() {
           name="layersSection"
           checked={activeLayer === "bottom"}
           type="radio"
-          onChange={() => dispatch(mapSlice.setActivePaletteLayer("bottom"))}
+          onChange={() => changeLayer("bottom")}
         />
       </div>
       <div>
@@ -781,33 +849,8 @@ function PaletteLayers() {
   );
 }
 
-function Palette() {
-  console.log("🔄 Palette re-rendered");
-  return (
-    <details>
-      <summary>Palette &#x1F3A8;</summary>
-      <div
-        className={styles.gameMapTools}
-        onMouseDown={(e) => {
-          e.stopPropagation();
-          e.preventDefault();
-        }}
-        onTouchStart={(e) => {
-          e.stopPropagation();
-          e.preventDefault();
-        }}
-      >
-        <PaletteActions />
-        <PaletteColors />
-        <PaletteForms />
-        <PaletteLayers />
-      </div>
-    </details>
-  );
-}
-
 function PaletteForms() {
-  console.log("🔄 PaletteForms re-rendered");
+  //console.log("🔄 PaletteForms re-rendered");
   return (
     <div className={styles.paletteForms}>
       <PaletteFormsSimple />
@@ -815,9 +858,9 @@ function PaletteForms() {
     </div>
   );
 }
-//      <PaletteFormsButtons />
+
 function PaletteFormsSimple() {
-  console.log("🔄 PaletteFormsSimple re-rendered");
+  // console.log("🔄 PaletteFormsSimple re-rendered");
 
   return (
     <div className={styles.paletteFormsSimple}>
@@ -878,8 +921,8 @@ function PaletteFormsButtons() {
       if (selectedObj) {
         windowContent = parse(selectedObj.outerHTML);
         windowContent.props.style.outline = "1px solid black";
-        windowContent.props.style.left = "0";
-        windowContent.props.style.top = "0";
+        windowContent.props.style.left = "28px";
+        windowContent.props.style.top = "43px";
         windowContent.props.style.gridColumn = `span
           ${Math.ceil(parseInt(windowContent.props.style.width) / CELL_SIZE)}`;
         windowContent.props.style.gridRow = `span 
@@ -983,8 +1026,9 @@ function PaletteFormsButtons() {
         console.log(baseResponse.message);
       }
     } else {
-      //throw new Error("error in database response");
-      console.log("empty library");
+      setLibraryContent(
+        "<div style='gridColumn: span 15; textAlign: center;'>Library is empty</div>"
+      );
     }
   }
 
@@ -1075,8 +1119,18 @@ function PaletteFormsButtons() {
       >
         <div className={styles.libraryGrid}>{parse(elemForSaving)}</div>
         <div className={styles.libButtonBlock}>
-          <button onClick={() => captureElem()}>Capture element</button>
-          <button onClick={async () => saveElem()}>Save element</button>
+          <button
+            className={styles.paletteButton}
+            onClick={() => captureElem()}
+          >
+            Capture element
+          </button>
+          <button
+            className={styles.paletteButton}
+            onClick={async () => saveElem()}
+          >
+            Save element
+          </button>
         </div>
       </FormWrapper>
       <FormWrapper
@@ -1088,19 +1142,27 @@ function PaletteFormsButtons() {
         <div className={styles.libraryGrid} onClick={(e) => selectElement(e)}>
           {parse(libraryContent)}
         </div>
-        <button onClick={async (e) => loadLocalLibrary(e)}>
-          Local library
-        </button>
-        <button onClick={async (e) => loadGlobalLibrary(e)}>
-          Global library
-        </button>
+        <div className={styles.libButtonBlock}>
+          <button
+            className={styles.paletteButton}
+            onClick={async (e) => loadLocalLibrary(e)}
+          >
+            Local library
+          </button>
+          <button
+            className={styles.paletteButton}
+            onClick={async (e) => loadGlobalLibrary(e)}
+          >
+            Global library
+          </button>
+        </div>
       </FormWrapper>
     </div>
   );
 }
 
 function PaletteElem({ id }) {
-  console.log(`🔄 PaletteElem ${id} re-rendered`);
+  //console.log(`🔄 PaletteElem ${id} re-rendered`);
   const activeForm = useSelector((state) => state.map.activePaletteStyle.form);
   const activeColor = useSelector(
     (state) => state.map.activePaletteStyle.color
@@ -1150,9 +1212,16 @@ function PaletteActions() {
     } else {
       dispatch(mapSlice.setActivePaletteAction(act));
     }
+
+    /*    if (activeAction === "text" && activeAction !== act) {
+      writtenTextElem.remove();
+      setIsWriting(false);
+      setWrittenObject(null);
+      setWrittenTextElem(null);
+    }*/
   }
 
-  function mergeItems(e) {
+  function mergeItems() {
     console.log("merge");
     if (activeAction !== "arrow") return;
 
@@ -1265,7 +1334,7 @@ function PaletteActions() {
     dispatch(mapSlice.addElemToMap(formClone.outerHTML));
   }
 
-  function splitItems(e) {
+  function splitItems() {
     console.log("split");
     if (activeAction !== "arrow") return;
 
@@ -1284,7 +1353,8 @@ function PaletteActions() {
 
       if (innerArray.length > 0) {
         innerArray = innerArray.filter(
-          (item) => item.props.name !== "elemResizer"
+          (item) =>
+            item.props.name !== "elemResizer" && item.props.name !== "textField"
         );
 
         innerArray = innerArray.map((item) => {
@@ -1315,7 +1385,7 @@ function PaletteActions() {
     });
   }
 
-  function deleteItems(e) {
+  function deleteItems() {
     console.log("delete");
     if (activeAction !== "arrow") return;
 
@@ -1326,7 +1396,7 @@ function PaletteActions() {
     selectedArray.map((item) => dispatch(mapSlice.removeElemFromMap(item)));
   }
 
-  function copyItems(e) {
+  function copyItems() {
     console.log("copy");
     let selectedArray = mapContent.filter((item) =>
       item.includes("outline: yellow dashed 3px")
@@ -1405,6 +1475,40 @@ function PaletteActions() {
           style={{ width: "100%", height: "100%" }}
         ></img>
       </button>
+      <button
+        className={styles.paletteActionElem}
+        style={activeAction === "text" ? { background: "yellow" } : {}}
+        onClick={() => changePaletteAction("text", dispatch)}
+      >
+        <span style={{ fontFamily: "Times New Roman", fontSize: "1.1rem" }}>
+          T
+        </span>
+      </button>
     </div>
+  );
+}
+
+function Palette() {
+  //console.log("🔄 Palette re-rendered");
+  return (
+    <details>
+      <summary>Palette &#x1F3A8;</summary>
+      <div
+        className={styles.gameMapTools}
+        onMouseDown={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
+        }}
+        onTouchStart={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
+        }}
+      >
+        <PaletteActions />
+        <PaletteColors />
+        <PaletteForms />
+        <PaletteLayers />
+      </div>
+    </details>
   );
 }
