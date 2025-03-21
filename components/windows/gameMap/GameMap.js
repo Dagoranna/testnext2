@@ -599,7 +599,7 @@ function MapField() {
       textField.style.left = e.pageX + "px";
       mapOuter.current.append(textField);
       textField.focus();
-      textField.addEventListener("keydown", function (e) {
+      textField.addEventListener("keyup", function (e) {
         if (e.code === "Enter") {
           console.log(textField.value);
           let elemCopy = elem.cloneNode(true);
