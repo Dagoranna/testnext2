@@ -1,6 +1,6 @@
-import { makeHash } from '../../../../utils/generalUtils.js';
+import { makeHash } from "../../../../utils/generalUtils.js";
 import { createClient } from "@supabase/supabase-js";
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -8,41 +8,64 @@ const supabase = createClient(
 );
 
 export async function POST(req) {
-  const body = await req.json(); 
+  const body = await req.json();
   const { email, password } = body;
 
   const baseData = await getUser(email);
-  
-  if (baseData === null){
-    return NextResponse.json({ message: 'Database error', registerState: false }, { status: 500 });  
+
+  if (baseData === null) {
+    return NextResponse.json(
+      { message: "Database error", registerState: false },
+      { status: 500 }
+    );
   }
 
-  if (baseData.length !== 0){
-    return NextResponse.json({ message: 'User already exists', registerState: false }, { status: 200 });  
+  if (baseData.length !== 0) {
+    return NextResponse.json(
+      { message: "User already exists", registerState: false },
+      { status: 200 }
+    );
   } else {
     const hashedpass = await makeHash(password);
-    const token = await makeHash(email+password);
+    const token = await makeHash(email + password);
 
-    const regAttempt = await saveUserToBase(email,hashedpass,token);
+    const regAttempt = await saveUserToBase(email, hashedpass, token);
 
-    if (regAttempt){
-      return NextResponse.json({ message: 'Registration successful', registerState: true }, { status: 200 });
+    if (regAttempt) {
+      //API_URL
+      let response = await fetch(
+        `${process.env.API_URL}/api/gamedata/setname`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: email,
+            name: "Stranger",
+          }),
+        }
+      );
+      return NextResponse.json(
+        { message: "Registration successful", registerState: true },
+        { status: 200 }
+      );
     } else {
-      return NextResponse.json({ message: 'Registration failed', registerState: false }, { status: 200 });
+      return NextResponse.json(
+        { message: "Registration failed", registerState: false },
+        { status: 200 }
+      );
     }
   }
-   
 }
 
-async function saveUserToBase(email,password,token) {
+async function saveUserToBase(email, password, token) {
   const { error } = await supabase
-    .from('advancedauth')
-    .insert([
-      { email: email, passwordhash: password, authtoken: token }
-    ]);
-         
+    .from("advancedauth")
+    .insert([{ email: email, passwordhash: password, authtoken: token }]);
+
   if (error) {
-    console.error('Error:', error);
+    console.error("Error:", error);
     return false;
   } else {
     return true;
@@ -51,12 +74,12 @@ async function saveUserToBase(email,password,token) {
 
 async function getUser(email) {
   const { data, error } = await supabase
-    .from('advancedauth')
-    .select('*')
-    .eq('email', email);   
+    .from("advancedauth")
+    .select("*")
+    .eq("email", email);
 
   if (error) {
-    console.error('Error:', error);
+    console.error("Error:", error);
     return null;
   } else {
     return data;
