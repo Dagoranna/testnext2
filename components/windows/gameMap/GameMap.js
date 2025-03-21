@@ -601,6 +601,10 @@ function MapField() {
       textField.focus();
       textField.addEventListener("keyup", function (e) {
         if (e.code === "Enter") {
+          e.preventDefault();
+          //sendChatMessage(dispatch);
+          e.target.blur();
+
           console.log(textField.value);
           let elemCopy = elem.cloneNode(true);
           let newText = document.createElement("div");
