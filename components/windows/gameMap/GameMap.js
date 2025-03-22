@@ -908,6 +908,9 @@ function PaletteFormsButtons() {
   };
 
   function captureElem() {
+    setElemForSaving(
+      "<div style='gridColumn: span 15; textAlign: center;'></div>"
+    );
     let windowContent = (
       <div style="gridColumn: span 15; textAlign: center;">
         Select a single object
@@ -919,9 +922,10 @@ function PaletteFormsButtons() {
       let selectedObj = document.getElementById(selectedObjectsId[0]);
       if (selectedObj) {
         windowContent = parse(selectedObj.outerHTML);
-        windowContent.props.style.outline = "1px solid black";
-        windowContent.props.style.left = "28px";
-        windowContent.props.style.top = "43px";
+        windowContent.props.style.outline = "2px dotted black";
+        windowContent.props.style.left = "auto"; //"28px";
+        windowContent.props.style.top = "auto"; //43px";
+        windowContent.props.style.position = "relative";
         windowContent.props.style.gridColumn = `span
           ${Math.ceil(parseInt(windowContent.props.style.width) / CELL_SIZE)}`;
         windowContent.props.style.gridRow = `span 
@@ -943,8 +947,10 @@ function PaletteFormsButtons() {
   }
   //activeElem
   async function saveElem() {
-    console.log("save");
     let elem = ReactDOMServer.renderToStaticMarkup(elemForSaving);
+    if (!elem) return;
+    if (!elem.includes("GameMap_savingElem")) return;
+
     setElemForSaving(
       "<div style='gridColumn: span 15; textAlign: center;'>Saving...</div>"
     );
@@ -966,7 +972,6 @@ function PaletteFormsButtons() {
       setElemForSaving(
         "<div style='gridColumn: span 15; textAlign: center;'>Saved!</div>"
       );
-      console.log(baseResponse.message);
     } else {
       console.log(baseResponse.message);
       setElemForSaving(
@@ -1088,7 +1093,7 @@ function PaletteFormsButtons() {
     e.stopPropagation();
     let elem = e.target.closest('[name="mapElem"]');
     if (!elem) return;
-    if (elem.style.outline == "rgb(106, 5, 114) dashed 5px") {
+    if (elem.style.outline == "yellow dotted 5px") {
       elem.style.outline = "black solid 1px";
       dispatch(mapSlice.setElemFromLib(null));
     } else {
@@ -1097,7 +1102,7 @@ function PaletteFormsButtons() {
         (item) => (item.style.outline = "black solid 1px")
       );
 
-      elem.style.outline = "rgb(106, 5, 114) dashed 5px";
+      elem.style.outline = "yellow dotted 5px";
       dispatch(mapSlice.setElemFromLib(elem.outerHTML));
     }
   }
@@ -1109,12 +1114,21 @@ function PaletteFormsButtons() {
     );
   }
 
+  function clearElemSaving() {
+    console.log("clear");
+    setElemForSaving(
+      "<div style='gridColumn: span 15; textAlign: center;'></div>"
+    );
+  }
+
   return (
     <div className={styles.paletteFormsButtons}>
       <FormWrapper
         formName="Save"
         addButtonStyle={addButtonStyle}
+        addButtonFunc={captureElem}
         addFormStyle={addFormStyle}
+        addOnClose={clearElemSaving}
       >
         <div className={styles.libraryGrid}>{parse(elemForSaving)}</div>
         <div className={styles.libButtonBlock}>

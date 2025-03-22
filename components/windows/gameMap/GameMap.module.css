@@ -202,6 +202,7 @@
 .savingElem {
   top: 20px;
   left: 20px;
+  position: relative;
 }
 
 .savingElem::after {
@@ -283,6 +284,7 @@
   grid-auto-flow: dense;
   gap: 2px 2px;
   overflow-y: scroll;
+  overflow-x: scroll;
   height: 100%;
   width: 100%;
   background: linear-gradient(gray, transparent 1px),

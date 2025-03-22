@@ -10,6 +10,7 @@ export default function FormWrapper({
   addButtonStyle = {},
   addFormStyle = {},
   addOnClose = null,
+  addButtonFunc = null,
 }) {
   const [isOpen, setIsOpen] = useState(isFormOpen);
   // const isOpen = isFormOpen;
@@ -21,13 +22,18 @@ export default function FormWrapper({
     setIsOpen(false);
   }
 
+  function onOpen() {
+    setIsOpen(true);
+    if (addButtonFunc) addButtonFunc();
+  }
+
   return (
     <>
       {!isOpen && (
         <button
           id={buttonId}
           className="mainButton"
-          onClick={() => setIsOpen(true)}
+          onClick={() => onOpen()}
           style={{ ...addButtonStyle }}
         >
           {formName}
