@@ -39,7 +39,7 @@
 .paletteForms {
   display: flex;
   border: 2px ridge #caa67e;
-  margin-right: 5px;
+  margin: 2px;
 }
 
 .paletteFormsSimple {
@@ -61,10 +61,9 @@
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr;
   width: 84px;
-  height: 125px;
   text-align: center;
   border: 2px ridge #caa67e;
-  margin-right: 5px;
+  margin: 2px;
   padding: 2px;
 }
 
@@ -72,10 +71,10 @@
   display: flex;
   text-align: center;
   border: 2px ridge #caa67e;
-  margin-right: 5px;
   padding: 2px;
   flex-wrap: wrap;
   max-width: 80px;
+  margin: 2px;
   /*justify-content: space-between;*/
 }
 
@@ -111,7 +110,7 @@
   flex-direction: column;
   align-items: flex-end;
   border: 2px ridge #caa67e;
-  margin-right: 5px;
+  margin: 2px;
   padding: 2px;
 }
 

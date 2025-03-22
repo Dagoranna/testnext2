@@ -900,7 +900,7 @@ function PaletteFormsButtons() {
     /*  width: parseInt(screenSize[0]) / 2 + "px",
     height: parseInt(screenSize[1]) / 2 + "px",*/
     width: "300px",
-    height: "400px",
+    height: "350px",
     top: "0",
     display: "flex",
     flexDirection: "column",

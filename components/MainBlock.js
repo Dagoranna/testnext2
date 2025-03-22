@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
 import React from "react";
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import { WidthProvider, Responsive } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import styles from "./MainBlock.module.css";
-import WindowComponent from './windows/WindowComponent';
-import { useSelector, useDispatch } from 'react-redux';
-import * as actions from '../app/store/slices/mainSlice';
+import WindowComponent from "./windows/WindowComponent";
+import { useSelector, useDispatch } from "react-redux";
+import * as actions from "../app/store/slices/mainSlice";
 
 const GridLayout = WidthProvider(Responsive);
 
@@ -20,16 +20,12 @@ export default function MainBlock() {
   const cols = { lg: 10, md: 6, sm: 4, xs: 1, xxs: 1 };
 
   const winArray = layout.map((item) => {
-    return ( 
-      <div 
-        key={item.i} 
-        className={`${styles.floatingBlock} react-grid-item`}
-      >
+    return (
+      <div key={item.i} className={`${styles.floatingBlock} react-grid-item`}>
         <WindowComponent title={item.i} />
       </div>
-    )
-
-  }); 
+    );
+  });
 
   return (
     <GridLayout
@@ -39,7 +35,7 @@ export default function MainBlock() {
       cols={cols}
       rowHeight={10}
       onResizeStop={(newLayout, oldItem, newItem) => {
-        dispatch(actions.setLayout(newLayout)); 
+        dispatch(actions.setLayout(newLayout));
       }}
       onDragStop={(newLayout, oldItem, newItem) => {
         dispatch(actions.setLayout(newLayout));
@@ -50,4 +46,3 @@ export default function MainBlock() {
     </GridLayout>
   );
 }
-

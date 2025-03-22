@@ -117,7 +117,6 @@ export default function TopPanel() {
               w: 5,
               h: 15,
               minH: 20,
-              minW: 4,
             });
           }
         } else {
@@ -128,7 +127,6 @@ export default function TopPanel() {
             w: 5,
             h: 15,
             minH: 20,
-            minW: 4,
           });
         }
       }
