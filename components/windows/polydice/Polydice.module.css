@@ -1,18 +1,18 @@
-.diceWrapper{
+.diceWrapper {
   display: flex;
   flex-direction: column;
   height: 100%;
   position: relative;
 }
 
-.diceSet{
+.diceSet {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   border: 1px solid orange;
 }
 
-.dice{
+.dice {
   display: block;
   border-radius: 3px;
   margin: 2px;
@@ -20,95 +20,124 @@
   text-shadow: 1px 1px 1px white;
 }
 
-.switcherOn{
+.switcherOn {
   color: yellow;
-  box-shadow: 0 0 .5em yellow inset,.1em .1em .2em #4d3a25;
-  background: linear-gradient(rgb(247, 247, 101) 0%, #8e5a1f 50%, rgb(247, 247, 101) 100%);
+  box-shadow: 0 0 0.5em yellow inset, 0.1em 0.1em 0.2em #4d3a25;
+  background: linear-gradient(
+    rgb(247, 247, 101) 0%,
+    #8e5a1f 50%,
+    rgb(247, 247, 101) 100%
+  );
   text-shadow: 1px 1px 1px #0d240a, 1px 0 1px #0d240a;
   border: 1px solid #8e5a1f;
 }
 
-.switcherOff{
+.switcherOff {
   background: radial-gradient(circle at 20% 20%, lightgray 0%, gray 100%);
   border: 1px solid rgb(51, 51, 51);
 }
 
-.rollVariations{
+.rollVariations {
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap; 
+  flex-wrap: wrap;
 }
 
-.logs{
+.logs {
   flex-grow: 1;
   border-bottom: 3px ridge #caa67e;
-  border-top: 3px ridge #caa67e; 
-  background-color: #9b9b9b; 
+  border-top: 3px ridge #caa67e;
+  background-color: #9b9b9b;
   overflow-y: auto;
   padding: 5px;
   color: black;
 }
 
-.diceFooter{
-  display: flex;
-  flex-direction: row;  
+.rollResultText {
+  text-shadow: 1px 1px 3px silver;
+  font-weight: bold;
 }
 
-.rollButton{
+.offlineMessage {
+  border-bottom: 3px ridge #caa67e;
+  background: #9b9b9b;
+  font-style: italic;
+  text-align: center;
+  color: white;
+  text-shadow: 5px 0 5px black, -5px 0 5px black;
+  font-weight: bold;
+}
+
+.diceFooter {
+  display: flex;
+  flex-direction: row;
+}
+
+.rollButton {
   width: 3rem;
   height: 3rem;
   margin: 5px;
   border-radius: 50%;
   position: relative;
-  background: radial-gradient(circle at 50% 120%, rgb(117, 191, 251), #71d5ff 10%, #523d60 80%, #40354d 100%);
+  background: radial-gradient(
+    circle at 50% 120%,
+    rgb(117, 191, 251),
+    #71d5ff 10%,
+    #523d60 80%,
+    #40354d 100%
+  );
   text-shadow: 0 -1px 1px #777;
   color: #fff;
   text-align: center;
   line-height: 3rem;
-  box-shadow: .1em .1em .2em rgb(14, 0, 136);  
+  box-shadow: 0.1em 0.1em 0.2em rgb(14, 0, 136);
   border: none;
 }
-.rollButton::before{
+.rollButton::before {
   content: "";
   position: absolute;
   left: 5%;
   width: 90%;
   height: 90%;
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 0px, #ffffff, rgba(255, 255, 255, 0) 58%);
+  background: radial-gradient(
+    circle at 30% 0px,
+    #ffffff,
+    rgba(255, 255, 255, 0) 58%
+  );
   filter: blur(5px);
   z-index: 2;
 }
-.rollButton:active{
+.rollButton:active {
   top: 1px;
   left: 1px;
-  box-shadow: 1px 1px 1px rgb(14, 0, 136); 
+  box-shadow: 1px 1px 1px rgb(14, 0, 136);
 }
 
-.numberOfRolls{
+.numberOfRolls {
   margin-left: auto;
   margin-right: 0.5rem;
 }
 
-.optionTitle{
+.optionTitle {
   color: #8e5a1f;
 }
 
-.numberOfRollsInput{
+.numberOfRollsInput {
   width: 3rem;
 }
 
-.chat{
+.chat {
   display: flex;
   border-bottom: 3px ridge #caa67e;
 }
 
-.chatString{
+.chatString {
   background-color: white;
   flex: 1 1 auto;
 }
 
-.chatButton{
+.chatButton {
   background: linear-gradient(#dac1a5, #a9855d);
   cursor: pointer;
   border: 3px ridge #caa67e;

@@ -1094,12 +1094,12 @@ function PaletteFormsButtons() {
     let elem = e.target.closest('[name="mapElem"]');
     if (!elem) return;
     if (elem.style.outline == "yellow dotted 5px") {
-      elem.style.outline = "black solid 1px";
+      elem.style.outline = "black dotted 2px";
       dispatch(mapSlice.setElemFromLib(null));
     } else {
       console.log(e.target);
       [...e.currentTarget.querySelectorAll('[name="mapElem"]')].map(
-        (item) => (item.style.outline = "black solid 1px")
+        (item) => (item.style.outline = "black dotted 2px")
       );
 
       elem.style.outline = "yellow dotted 5px";

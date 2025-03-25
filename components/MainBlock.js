@@ -15,16 +15,29 @@ const GridLayout = WidthProvider(Responsive);
 export default function MainBlock() {
   const dispatch = useDispatch();
   const layout = useSelector((state) => state.main.layout);
+  const loginState = useSelector((state) => state.main.loginState);
 
   const breakpoints = { lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 };
   const cols = { lg: 10, md: 6, sm: 4, xs: 1, xxs: 1 };
 
   const winArray = layout.map((item) => {
-    return (
-      <div key={item.i} className={`${styles.floatingBlock} react-grid-item`}>
-        <WindowComponent title={item.i} />
-      </div>
-    );
+    if (loginState || item.i === "Game Map" || item.i === "Polydice") {
+      return (
+        <div key={item.i} className={`${styles.floatingBlock} react-grid-item`}>
+          <WindowComponent title={item.i} />
+        </div>
+      );
+    } else {
+      return (
+        <div
+          key={item.i}
+          className={`${styles.floatingBlock} react-grid-item`}
+          style={{ display: "none" }}
+        >
+          <WindowComponent title={item.i} />
+        </div>
+      );
+    }
   });
 
   return (
