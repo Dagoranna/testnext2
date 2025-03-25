@@ -394,15 +394,10 @@ export default function TopPanel() {
           />
         </>
       )}
-      {loginState && (
-        <>
-          <DropDownMenu
-            id="zoneMenu"
-            title="Interface"
-            itemsList={windowsList}
-          />
-        </>
-      )}
+      <>
+        <DropDownMenu id="zoneMenu" title="Interface" itemsList={windowsList} />
+      </>
+
       {loginState && (
         <>
           <DropDownMenu

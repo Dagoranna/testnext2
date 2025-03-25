@@ -62,7 +62,11 @@ export default function Polydice() {
       );
     } else {
       //offline roll
-      let currentLog = `<b style="color: ${userColor}"}>${userName}:</b> `;
+      let currentLog = "";
+      if (loginState) {
+        currentLog = `<b style="color: ${userColor}"}>${userName}:</b> `;
+      }
+
       let dice = activeDice;
 
       let rollResults = [];
@@ -276,7 +280,7 @@ export default function Polydice() {
           </button>
         </div>
       )}
-      {connectionState === 3 && (
+      {connectionState !== 1 && (
         <div className={styles.offlineMessage}>offline mode</div>
       )}
       <div className={styles.diceFooter}>
