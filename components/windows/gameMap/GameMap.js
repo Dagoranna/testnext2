@@ -18,7 +18,6 @@ const CELL_SIZE = 20;
 const MARKER_RADIUS = 5;
 const radToDeg = (rad) => rad * (180 / Math.PI);
 const mainBGColor = "rgb(227, 214, 199)";
-const mainBorderColor = "rgb(202, 166, 126)";
 const colorsObj = {
   black: "white",
   gray: "black",
@@ -76,6 +75,9 @@ function MapField() {
   const userName = useSelector((state) => state.main.userName);
   const userColor = useSelector((state) => state.main.userColor);
 
+  const connectionState = useSelector(
+    (state) => state.websocket.connectionState
+  );
   const serverMessage = useSelector((state) => state.websocket.serverMessage);
 
   const [isDragging, setIsDragging] = useState(false);
@@ -625,27 +627,30 @@ function MapField() {
     let messageJSON = JSON.parse(serverMessage);
     if (!messageJSON?.sectionName || messageJSON.sectionName !== "gameMap")
       return;
+    //if (userRole === "Master") return;
     mapRef.current.innerHTML = JSON.parse(messageJSON.sectionInfo.mapField);
   }, [serverMessage]);
 
   useEffect(() => {
-    const messageForServer = clientUtils.messageMainWrapper(
-      userRole,
-      userName,
-      userColor,
-      0
-    );
-    messageForServer["sectionName"] = "gameMap";
-    messageForServer["sectionInfo"] = {
-      mapField: JSON.stringify(mapRef.current.innerHTML),
-    };
-    dispatch(
-      manageWebsocket(
-        "send",
-        process.env.NEXT_PUBLIC_SERVER_URL,
-        JSON.stringify(messageForServer)
-      )
-    );
+    if (connectionState === 1 && userRole === "Master") {
+      const messageForServer = clientUtils.messageMainWrapper(
+        userRole,
+        userName,
+        userColor,
+        0
+      );
+      messageForServer["sectionName"] = "gameMap";
+      messageForServer["sectionInfo"] = {
+        mapField: JSON.stringify(mapRef.current.innerHTML),
+      };
+      dispatch(
+        manageWebsocket(
+          "send",
+          process.env.NEXT_PUBLIC_SERVER_URL,
+          JSON.stringify(messageForServer)
+        )
+      );
+    }
   }, [mapContent]);
 
   useEffect(() => {
@@ -877,6 +882,7 @@ function PaletteFormsButtons() {
   }, []);*/
   const dispatch = useDispatch();
   const userEmail = useSelector((state) => state.main.userEmail);
+  const loginState = useSelector((state) => state.main.loginState);
   const selectedObjectsId = useSelector((state) => state.map.selectedObjectsId);
   const [elemForSaving, setElemForSaving] = useState(
     "<div style='gridColumn: span 15; textAlign: center;'>Select a single object</div>"
@@ -1123,29 +1129,31 @@ function PaletteFormsButtons() {
 
   return (
     <div className={styles.paletteFormsButtons}>
-      <FormWrapper
-        formName="Save"
-        addButtonStyle={addButtonStyle}
-        addButtonFunc={captureElem}
-        addFormStyle={addFormStyle}
-        addOnClose={clearElemSaving}
-      >
-        <div className={styles.libraryGrid}>{parse(elemForSaving)}</div>
-        <div className={styles.libButtonBlock}>
-          <button
-            className={styles.paletteButton}
-            onClick={() => captureElem()}
-          >
-            Capture element
-          </button>
-          <button
-            className={styles.paletteButton}
-            onClick={async () => saveElem()}
-          >
-            Save element
-          </button>
-        </div>
-      </FormWrapper>
+      {loginState && (
+        <FormWrapper
+          formName="Save"
+          addButtonStyle={addButtonStyle}
+          addButtonFunc={captureElem}
+          addFormStyle={addFormStyle}
+          addOnClose={clearElemSaving}
+        >
+          <div className={styles.libraryGrid}>{parse(elemForSaving)}</div>
+          <div className={styles.libButtonBlock}>
+            <button
+              className={styles.paletteButton}
+              onClick={() => captureElem()}
+            >
+              Capture element
+            </button>
+            <button
+              className={styles.paletteButton}
+              onClick={async () => saveElem()}
+            >
+              Save element
+            </button>
+          </div>
+        </FormWrapper>
+      )}
       <FormWrapper
         formName="Load"
         addButtonStyle={addButtonStyle}
@@ -1156,12 +1164,14 @@ function PaletteFormsButtons() {
           {parse(libraryContent)}
         </div>
         <div className={styles.libButtonBlock}>
-          <button
-            className={styles.paletteButton}
-            onClick={async (e) => loadLocalLibrary(e)}
-          >
-            Local library
-          </button>
+          {loginState && (
+            <button
+              className={styles.paletteButton}
+              onClick={async (e) => loadLocalLibrary(e)}
+            >
+              Local library
+            </button>
+          )}
           <button
             className={styles.paletteButton}
             onClick={async (e) => loadGlobalLibrary(e)}
