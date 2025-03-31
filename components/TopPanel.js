@@ -130,7 +130,7 @@ export default function TopPanel() {
         tempServerList.push({
           itemName: connectTitle,
           itemType: "button",
-          itemHandling: async () => handleDMConnection(DMMail),
+          itemHandling: async (e) => handleServerConnection(),
         });
       } else {
         //DMs > 1
