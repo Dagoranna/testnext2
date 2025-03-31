@@ -98,60 +98,72 @@ export default function TopPanel() {
     if (messageJSON === null) return;
 
     console.log("messageJSON.sectionName" + messageJSON.sectionName);
-    if (messageJSON.sectionName !== "games") return;
-
-    console.log(messageJSON.list);
+    if (
+      messageJSON.sectionName !== "games" &&
+      messageJSON.sectionName !== "choosemaster"
+    )
+      return;
 
     let tempServerList = [];
-    if (Object.keys(messageJSON.list).length === 0) {
-      //no DMs
-      let connectTitle = "";
-      alert("No DMs available, try later");
-      connectTitle = "Look for DM";
-      tempServerList.push({
-        itemName: connectTitle,
-        itemType: "button",
-        itemHandling: async (e) => handleServerConnection(),
-      });
-      dispatch(
-        manageWebsocket("disconnect", process.env.NEXT_PUBLIC_SERVER_URL)
-      );
-    } else if (Object.keys(messageJSON.list).length === 1) {
-      //1 DM => autoconnect
-      let DMName = Object.values(messageJSON.list)[0];
-      let DMMail = Object.keys(messageJSON.list)[0];
+    if (messageJSON.sectionName !== "games") {
+      if (Object.keys(messageJSON.list).length === 0) {
+        //no DMs
+        let connectTitle = "";
+        alert("No DMs available, try later");
+        connectTitle = "Look for DM";
+        tempServerList.push({
+          itemName: connectTitle,
+          itemType: "button",
+          itemHandling: async (e) => handleServerConnection(),
+        });
+        dispatch(
+          manageWebsocket("disconnect", process.env.NEXT_PUBLIC_SERVER_URL)
+        );
+      } else if (Object.keys(messageJSON.list).length === 1) {
+        //1 DM => autoconnect
+        let DMName = Object.values(messageJSON.list)[0];
+        let DMMail = Object.keys(messageJSON.list)[0];
+        dispatch(websocketActions.setGameId(DMMail));
+        dispatch(websocketActions.setDMName(DMName));
+        let connectTitle = "Disconnect from " + DMName;
+        tempServerList.push({
+          itemName: connectTitle,
+          itemType: "button",
+          itemHandling: async (DMMail) => handleDMConnection(),
+        });
+      } else {
+        //DMs > 1
+        for (let DMMail in messageJSON.list) {
+          let DMName = messageJSON.list[DMMail];
+          let connectTitle = "Connect to " + DMName;
+          tempServerList.push({
+            itemName: connectTitle,
+            itemType: "button",
+            itemHandling: async (DMMail, DMName) => handleDMConnection(),
+          });
+        }
+      }
+    } else if (messageJSON.sectionName !== "choosemaster") {
+      messageJSON.gameId;
+      let DMName = messageJSON.DMName;
+      let DMMail = messageJSON.gameId;
       dispatch(websocketActions.setGameId(DMMail));
       dispatch(websocketActions.setDMName(DMName));
       let connectTitle = "Disconnect from " + DMName;
       tempServerList.push({
         itemName: connectTitle,
         itemType: "button",
-        itemHandling: async (DMMail) => handleDMConnection(),
+        itemHandling: async (e) => handleServerConnection(),
       });
-    } else {
-      //DMs > 1
-      for (let DMMail in messageJSON.list) {
-        let DMName = messageJSON.list[DMMail];
-        let connectTitle = "Connect to " + DMName;
-        tempServerList.push({
-          itemName: connectTitle,
-          itemType: "button",
-          itemHandling: async (DMMail) => handleDMConnection(),
-        });
-      }
-      dispatch(
-        manageWebsocket("disconnect", process.env.NEXT_PUBLIC_SERVER_URL)
-      );
-      dispatch(websocketActions.setGameId(0));
     }
 
     setServerList(tempServerList);
   }, [serverMessage]);
 
-  function handleDMConnection(DMMail) {
+  function handleDMConnection(DMMail, DMName) {
     switch (connectionState) {
-      case 3:
-        //checking and opening connection
+      case 1:
+        //sending message with new gameId
         let messageForServer = {
           user: {
             userRole: userRole,
@@ -160,23 +172,20 @@ export default function TopPanel() {
             userEmail: userEmail,
           },
         };
-        messageForServer["sectionName"] = "connection";
+        messageForServer["sectionName"] = "choosemaster";
         messageForServer["gameId"] = DMMail;
+        messageForServer["DMName"] = DMName;
 
         dispatch(
           manageWebsocket(
-            "connect",
+            "send",
             process.env.NEXT_PUBLIC_SERVER_URL,
             JSON.stringify(messageForServer)
           )
         );
         break;
-      case 1:
-        //closing working connection
-        dispatch(
-          manageWebsocket("disconnect", process.env.NEXT_PUBLIC_SERVER_URL)
-        );
-        dispatch(websocketActions.setGameId(0));
+      case 3:
+        //connection closed, need reopening?
         break;
     }
   }
