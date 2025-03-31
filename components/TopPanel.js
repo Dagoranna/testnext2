@@ -139,7 +139,8 @@ export default function TopPanel() {
           tempServerList.push({
             itemName: connectTitle,
             itemType: "button",
-            itemHandling: async (DMMail, DMName) => handleDMConnection(),
+            itemHandling: async (DMMail, DMName) =>
+              handleDMConnection(DMMail, DMName),
           });
         }
       }
@@ -153,7 +154,7 @@ export default function TopPanel() {
       tempServerList.push({
         itemName: connectTitle,
         itemType: "button",
-        itemHandling: async (e) => handleServerConnection(),
+        itemHandling: async () => handleServerConnection(),
       });
     }
 
