@@ -31,6 +31,7 @@ export default function Polydice() {
   const userName = useSelector((state) => state.main.userName);
   const userColor = useSelector((state) => state.main.userColor);
   const serverMessage = useSelector((state) => state.websocket.serverMessage);
+  const gameId = useSelector((state) => state.websocket.gameId);
 
   function makeRoll(dispatch, activeDice) {
     let rollsCount = numberOfRolls.current?.value || 1;
@@ -38,12 +39,14 @@ export default function Polydice() {
     if (rollsCount > 100) rollsCount = 100;
 
     if (connectionState === 1) {
-      const messageForServer = clientUtils.messageMainWrapper(
-        userRole,
-        userName,
-        userColor,
-        0
-      );
+      const messageForServer = {
+        gameId: gameId,
+        user: {
+          userRole: userRole,
+          userName: userName,
+          userColor: userColor,
+        },
+      };
 
       messageForServer["sectionName"] = "polydice";
       messageForServer["sectionInfo"] = {
@@ -143,12 +146,14 @@ export default function Polydice() {
   }, [serverMessage]);
 
   function sendChatMessage(dispatch) {
-    const messageForServer = clientUtils.messageMainWrapper(
-      userRole,
-      userName,
-      userColor,
-      0
-    );
+    const messageForServer = {
+      gameId: gameId,
+      user: {
+        userRole: userRole,
+        userName: userName,
+        userColor: userColor,
+      },
+    };
 
     messageForServer["sectionName"] = "chat";
     messageForServer["sectionInfo"] = {

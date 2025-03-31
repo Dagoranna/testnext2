@@ -79,6 +79,7 @@ function MapField() {
     (state) => state.websocket.connectionState
   );
   const serverMessage = useSelector((state) => state.websocket.serverMessage);
+  const gameId = useSelector((state) => state.websocket.gameId);
 
   const [isDragging, setIsDragging] = useState(false);
   const [draggingObject, setDraggingObject] = useState({});
@@ -121,8 +122,8 @@ function MapField() {
       //all actions on mouseUp
     } else if (activeAction === "arrow") {
       const eventTargetName = e.target.getAttribute("name");
-      console.log(eventTargetName);
-      console.log("id = " + e.target.getAttribute("id"));
+      //console.log(eventTargetName);
+      //console.log("id = " + e.target.getAttribute("id"));
       if (eventTargetName === "elemResizer") {
         //resizing
         setIsResizing(true);
@@ -141,7 +142,7 @@ function MapField() {
         //dragging
         setIsDragging(true);
         setDraggingObject(e.target);
-        console.log("setDraggingObject = " + draggingObject);
+        // console.log("setDraggingObject = " + draggingObject);
 
         let rect = e.target.getBoundingClientRect();
 
@@ -382,7 +383,7 @@ function MapField() {
       console.log(formClone);*/
 
       if (activeColor == mainBGColor) {
-        console.log("main color");
+        //   console.log("main color");
 
         formClone.style.backgroundColor = mainBGColor;
         formClone.style.backgroundImage = `
@@ -481,9 +482,7 @@ function MapField() {
         document.getElementById("traceItem").remove();
         tempObj = {};
       } else if (isDragging) {
-        console.log("elem1");
         tempObj = draggingObject.cloneNode(true);
-        console.log(tempObj);
         let traceItem = document.getElementById("traceItem");
 
         if (!gridBinding) {
@@ -517,8 +516,6 @@ function MapField() {
         }
 
         dispatch(mapSlice.changeElemOnMap(tempObj.outerHTML));
-        console.log("elem2");
-        console.log(mapSlice.changeElemOnMap(tempObj.outerHTML));
         setDraggingObject({});
         setStartPoint({});
         setIsDragging(false);
@@ -602,7 +599,6 @@ function MapField() {
         if (e.code === "Enter" || e.key === "Enter") {
           //e.code failed for mobile
           e.preventDefault();
-          console.log("eveeeeent");
 
           let elemCopy = elem.cloneNode(true);
           let newText = document.createElement("div");
@@ -633,12 +629,14 @@ function MapField() {
 
   useEffect(() => {
     if (connectionState === 1 && userRole === "Master") {
-      const messageForServer = clientUtils.messageMainWrapper(
-        userRole,
-        userName,
-        userColor,
-        0
-      );
+      const messageForServer = {
+        gameId: gameId,
+        user: {
+          userRole: userRole,
+          userName: userName,
+          userColor: userColor,
+        },
+      };
       messageForServer["sectionName"] = "gameMap";
       messageForServer["sectionInfo"] = {
         mapField: JSON.stringify(mapRef.current.innerHTML),
@@ -922,8 +920,7 @@ function PaletteFormsButtons() {
         Select a single object
       </div>
     );
-    console.log(selectedObjectsId);
-    console.log(selectedObjectsId.length);
+
     if (selectedObjectsId.length === 1) {
       let selectedObj = document.getElementById(selectedObjectsId[0]);
       if (selectedObj) {
@@ -948,7 +945,6 @@ function PaletteFormsButtons() {
         });
       }
       setElemForSaving(ReactDOMServer.renderToStaticMarkup(windowContent));
-      console.log(windowContent);
     }
   }
   //activeElem
@@ -979,7 +975,6 @@ function PaletteFormsButtons() {
         "<div style='gridColumn: span 15; textAlign: center;'>Saved!</div>"
       );
     } else {
-      console.log(baseResponse.message);
       setElemForSaving(
         `<div style='gridColumn: span 15; textAlign: center;'>${baseResponse.message}</div>`
       );
@@ -1007,8 +1002,6 @@ function PaletteFormsButtons() {
     if (response.ok) {
       let library;
       if (baseResponse.loadState) {
-        console.log("ok");
-
         let parsedElems = JSON.parse(baseResponse.message);
 
         parsedElems = parsedElems.map((item) => {
@@ -1061,8 +1054,6 @@ function PaletteFormsButtons() {
     if (response.ok) {
       let library;
       if (baseResponse.loadState) {
-        console.log("ok");
-
         let parsedElems = JSON.parse(baseResponse.message);
 
         parsedElems = parsedElems.map((item) => {
@@ -1103,7 +1094,6 @@ function PaletteFormsButtons() {
       elem.style.outline = "black dotted 2px";
       dispatch(mapSlice.setElemFromLib(null));
     } else {
-      console.log(e.target);
       [...e.currentTarget.querySelectorAll('[name="mapElem"]')].map(
         (item) => (item.style.outline = "black dotted 2px")
       );
@@ -1121,7 +1111,6 @@ function PaletteFormsButtons() {
   }
 
   function clearElemSaving() {
-    console.log("clear");
     setElemForSaving(
       "<div style='gridColumn: span 15; textAlign: center;'></div>"
     );
@@ -1245,7 +1234,6 @@ function PaletteActions() {
   }
 
   function mergeItems() {
-    console.log("merge");
     if (activeAction !== "arrow") return;
 
     let selectedArray = mapContent.filter((item) =>
@@ -1358,7 +1346,6 @@ function PaletteActions() {
   }
 
   function splitItems() {
-    console.log("split");
     if (activeAction !== "arrow") return;
 
     let selectedArray = mapContent.filter((item) =>
@@ -1409,7 +1396,6 @@ function PaletteActions() {
   }
 
   function deleteItems() {
-    console.log("delete");
     if (activeAction !== "arrow") return;
 
     let selectedArray = mapContent.filter((item) =>
@@ -1420,16 +1406,14 @@ function PaletteActions() {
   }
 
   function copyItems() {
-    console.log("copy");
     let selectedArray = mapContent.filter((item) =>
       item.includes("outline: yellow dashed 3px")
     );
     if (selectedArray.length === 0) return;
-    console.log(selectedArray);
+
     let copyID = mapElemsCounter + 1;
 
     selectedArray.map((item) => {
-      console.log(item);
       let parsedItem = parse(item);
       let oldX = parsedItem.props.style.left;
       let oldY = parsedItem.props.style.top;

@@ -91,7 +91,7 @@ export default function MainAppWrapper({ children }) {
 
   //getUserName
   useEffect(() => {
-    //if (!userEmail) return;
+    if (!userEmail) return;
 
     async function getUserName() {
       let response = await fetch("/api/gamedata/getname", {

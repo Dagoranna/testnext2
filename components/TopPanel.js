@@ -5,9 +5,10 @@ import RoleSwitcher from "./RoleSwitcher";
 import { useState, useEffect } from "react";
 import FormWrapperFree from "./forms/FormWrapperFree";
 import { serverMessageHandling } from "../utils/generalUtils";
-import * as clientUtils from "../utils/clientUtils";
+import { parseJSON } from "../utils/clientUtils";
 import { useSelector, useDispatch } from "react-redux";
 import * as actions from "../app/store/slices/mainSlice";
+import * as websocketActions from "../app/store/slices/websocketSlice";
 import { manageWebsocket } from "../app/store/slices/websocketSlice";
 
 export default function TopPanel() {
@@ -25,6 +26,7 @@ export default function TopPanel() {
   const connectionState = useSelector(
     (state) => state.websocket.connectionState
   );
+  const gameId = useSelector((state) => state.websocket.gameId);
 
   const itemsListGamer = [
     {
@@ -86,6 +88,94 @@ export default function TopPanel() {
     const gamerColor = localStorage.getItem("userColor");
     if (gamerColor) dispatch(actions.setUserColor(gamerColor));
   }, []);
+
+  useEffect(() => {
+    ///{"sectionName":"games","list":{"icywizard1@gmail.com":"IcyWizard"}}
+    console.log("TopPanel hook");
+    if (!serverMessage) return;
+    console.log(serverMessage);
+    const messageJSON = parseJSON(serverMessage);
+    if (messageJSON === null) return;
+
+    console.log("messageJSON.sectionName" + messageJSON.sectionName);
+    if (messageJSON.sectionName !== "games") return;
+
+    console.log(messageJSON.list);
+
+    let tempServerList = [];
+    if (Object.keys(messageJSON.list).length === 0) {
+      //no DMs
+      let connectTitle = "";
+      alert("No DMs available, try later");
+      connectTitle = "Look for DM";
+      tempServerList.push({
+        itemName: connectTitle,
+        itemType: "button",
+        itemHandling: async (e) => handleServerConnection(),
+      });
+      dispatch(
+        manageWebsocket("disconnect", process.env.NEXT_PUBLIC_SERVER_URL)
+      );
+    } else if (Object.keys(messageJSON.list).length === 1) {
+      //1 DM => autoconnect
+      let DMName = Object.values(messageJSON.list)[0];
+      let DMMail = Object.keys(messageJSON.list)[0];
+      dispatch(websocketActions.setGameId(DMMail));
+      dispatch(websocketActions.setDMName(DMName));
+      let connectTitle = "Disconnect from " + DMName;
+      tempServerList.push({
+        itemName: connectTitle,
+        itemType: "button",
+        itemHandling: async (DMMail) => handleDMConnection(),
+      });
+    } else {
+      //DMs > 1
+      for (let DMMail in messageJSON.list) {
+        let DMName = messageJSON.list[DMMail];
+        let connectTitle = "Connect to " + DMName;
+        tempServerList.push({
+          itemName: connectTitle,
+          itemType: "button",
+          itemHandling: async (DMMail) => handleDMConnection(),
+        });
+      }
+    }
+
+    setServerList(tempServerList);
+  }, [serverMessage]);
+
+  function handleDMConnection(DMMail) {
+    switch (connectionState) {
+      case 3:
+        //checking and opening connection
+        let messageForServer = {
+          user: {
+            userRole: userRole,
+            userName: userName,
+            userColor: userColor,
+            userEmail: userEmail,
+          },
+        };
+        messageForServer["sectionName"] = "connection";
+        messageForServer["gameId"] = DMMail;
+
+        dispatch(
+          manageWebsocket(
+            "connect",
+            process.env.NEXT_PUBLIC_SERVER_URL,
+            JSON.stringify(messageForServer)
+          )
+        );
+        break;
+      case 1:
+        //closing working connection
+        dispatch(
+          manageWebsocket("disconnect", process.env.NEXT_PUBLIC_SERVER_URL)
+        );
+        dispatch(websocketActions.setGameId(0));
+        break;
+    }
+  }
 
   function toggleWindow(item) {
     let currentWindowInfo = false;
@@ -265,7 +355,7 @@ export default function TopPanel() {
     switch (connectionState) {
       case 3:
         if (userRole === "Gamer") {
-          connectTitle = "Connect to game";
+          connectTitle = "Look for DM";
         } else {
           if (userRole === "Master") connectTitle = "Create game";
         }
@@ -303,21 +393,23 @@ export default function TopPanel() {
     }
 
     setServerList(tempServerList);
-  }, [userRole, connectionState]);
+  }, [userRole, userName, connectionState]);
 
   function handleServerConnection() {
-    console.log("connectionState = " + connectionState);
-
     switch (connectionState) {
       case 3:
         //checking and opening connection
-        let messageForServer = clientUtils.messageMainWrapper(
-          userRole,
-          userName,
-          userColor,
-          0
-        );
+        let messageForServer = {
+          user: {
+            userRole: userRole,
+            userName: userName,
+            userColor: userColor,
+            userEmail: userEmail,
+          },
+        };
         messageForServer["sectionName"] = "connection";
+        messageForServer["gameId"] = gameId;
+
         dispatch(
           manageWebsocket(
             "connect",
@@ -331,6 +423,7 @@ export default function TopPanel() {
         dispatch(
           manageWebsocket("disconnect", process.env.NEXT_PUBLIC_SERVER_URL)
         );
+        if (userRole === "Gamer") dispatch(websocketActions.setGameId(0));
         break;
     }
   }
