@@ -83,6 +83,7 @@ export default function TopPanel() {
   const [addComps, setAddComps] = useState(null);
   const [menuStyle, setMenuStyle] = useState("");
   const [serverList, setServerList] = useState([]);
+  const [connectionTitle, setConnectionTitle] = useState("Connect");
 
   useEffect(() => {
     const gamerColor = localStorage.getItem("userColor");
@@ -133,6 +134,7 @@ export default function TopPanel() {
         });
       } else {
         //DMs > 1
+        setConnectionTitle("Choose DM");
         for (let DMMail in messageJSON.list) {
           let DMName = messageJSON.list[DMMail];
           let connectTitle = "Connect to " + DMName;
@@ -153,6 +155,7 @@ export default function TopPanel() {
       console.log("DMName, DMMail " + DMName + " " + DMMail);
       dispatch(websocketActions.setGameId(DMMail));
       dispatch(websocketActions.setDMName(DMName));
+      setConnectionTitle("Disconnect");
       let connectTitle = "Disconnect from " + DMName;
       tempServerList.push({
         itemName: connectTitle,
@@ -446,6 +449,7 @@ export default function TopPanel() {
           manageWebsocket("disconnect", process.env.NEXT_PUBLIC_SERVER_URL)
         );
         if (userRole === "Gamer") dispatch(websocketActions.setGameId(0));
+        setConnectionTitle("Connect");
         break;
     }
   }
@@ -517,7 +521,7 @@ export default function TopPanel() {
         <>
           <DropDownMenu
             id="serverMenu"
-            title="Connection"
+            title={connectionTitle}
             itemsList={serverList}
             addStyle={menuStyle}
           />
