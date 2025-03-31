@@ -127,6 +127,7 @@ export default function TopPanel() {
         dispatch(websocketActions.setGameId(DMMail));
         dispatch(websocketActions.setDMName(DMName));
         let connectTitle = "Disconnect from " + DMName;
+        setConnectionTitle("Connected");
         tempServerList.push({
           itemName: connectTitle,
           itemType: "button",
@@ -155,7 +156,7 @@ export default function TopPanel() {
       console.log("DMName, DMMail " + DMName + " " + DMMail);
       dispatch(websocketActions.setGameId(DMMail));
       dispatch(websocketActions.setDMName(DMName));
-      setConnectionTitle("Disconnect");
+      setConnectionTitle("Connected");
       let connectTitle = "Disconnect from " + DMName;
       tempServerList.push({
         itemName: connectTitle,
