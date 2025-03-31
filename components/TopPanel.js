@@ -105,7 +105,7 @@ export default function TopPanel() {
       return;
 
     let tempServerList = [];
-    if (messageJSON.sectionName !== "games") {
+    if (messageJSON.sectionName === "games") {
       if (Object.keys(messageJSON.list).length === 0) {
         //no DMs
         let connectTitle = "";
@@ -143,7 +143,7 @@ export default function TopPanel() {
           });
         }
       }
-    } else if (messageJSON.sectionName !== "choosemaster") {
+    } else if (messageJSON.sectionName === "choosemaster") {
       messageJSON.gameId;
       let DMName = messageJSON.DMName;
       let DMMail = messageJSON.gameId;
