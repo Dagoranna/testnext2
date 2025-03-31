@@ -139,6 +139,10 @@ export default function TopPanel() {
           itemHandling: async (DMMail) => handleDMConnection(),
         });
       }
+      dispatch(
+        manageWebsocket("disconnect", process.env.NEXT_PUBLIC_SERVER_URL)
+      );
+      dispatch(websocketActions.setGameId(0));
     }
 
     setServerList(tempServerList);
