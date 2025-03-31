@@ -129,25 +129,28 @@ export default function TopPanel() {
         tempServerList.push({
           itemName: connectTitle,
           itemType: "button",
-          itemHandling: async (DMMail) => handleDMConnection(),
+          itemHandling: async () => handleDMConnection(DMMail),
         });
       } else {
         //DMs > 1
         for (let DMMail in messageJSON.list) {
           let DMName = messageJSON.list[DMMail];
           let connectTitle = "Connect to " + DMName;
+          //console.log("DMName, DMMail " + DMName + " " + DMMail);
           tempServerList.push({
             itemName: connectTitle,
             itemType: "button",
-            itemHandling: async (DMMail, DMName) =>
-              handleDMConnection(DMMail, DMName),
+            itemHandling: async () => handleDMConnection(DMMail, DMName),
           });
         }
       }
     } else if (messageJSON.sectionName === "choosemaster") {
       messageJSON.gameId;
+      console.log("here? 3");
       let DMName = messageJSON.DMName;
       let DMMail = messageJSON.gameId;
+      console.log(messageJSON);
+      console.log("DMName, DMMail " + DMName + " " + DMMail);
       dispatch(websocketActions.setGameId(DMMail));
       dispatch(websocketActions.setDMName(DMName));
       let connectTitle = "Disconnect from " + DMName;
@@ -162,6 +165,8 @@ export default function TopPanel() {
   }, [serverMessage]);
 
   function handleDMConnection(DMMail, DMName) {
+    console.log("here?");
+    console.log("DMName, DMMail " + DMName + " " + DMMail);
     switch (connectionState) {
       case 1:
         //sending message with new gameId
@@ -176,12 +181,15 @@ export default function TopPanel() {
         messageForServer["sectionName"] = "choosemaster";
         messageForServer["gameId"] = DMMail;
         messageForServer["DMName"] = DMName;
-
+        console.log("here? 2");
+        console.log(messageForServer);
+        let JSONMessage = JSON.stringify(messageForServer);
+        console.log("here? 3");
         dispatch(
           manageWebsocket(
             "send",
             process.env.NEXT_PUBLIC_SERVER_URL,
-            JSON.stringify(messageForServer)
+            JSONMessage
           )
         );
         break;
