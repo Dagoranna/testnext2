@@ -1,0 +1,68 @@
+.charsheetWrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.mainBlock {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.sectionsBlock {
+  width: 100%;
+  flex: 1 1;
+}
+
+.buttonBlock {
+  display: flex;
+  flex-direction: row;
+}
+
+.bookmarkBlock {
+  display: flex;
+  flex-direction: row;
+}
+
+.bookmark {
+  user-select: none;
+  color: #8e5a1f;
+  padding: 0.2rem;
+  background: #e3d6c7;
+  border: 2px ridge #caa67e;
+  border-bottom: none;
+  font-size: 0.8rem;
+  z-index: 100;
+  width: fit-content;
+  top: calc(-1.5rem - 2px);
+  border-top-right-radius: 10px;
+  border-top-left-radius: 10px;
+  right: -3px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.isActive {
+  background: #a9855d;
+  color: white;
+  box-shadow: 0.2em 0.2em 0.3em #d7c6b3 inset;
+}
+
+.charSection {
+  width: 100%;
+  height: 100%;
+  border: 2px ridge #caa67e;
+}
+
+@media only screen and (max-width: 414px) {
+  .bookmarkBlock {
+    flex-direction: column;
+  }
+
+  .bookmark {
+    writing-mode: vertical-lr;
+  }
+}

@@ -1000,7 +1000,7 @@ function PaletteFormsButtons() {
 
     let baseResponse = await response.json();
     if (response.ok) {
-      let library;
+      //let library;
       if (baseResponse.loadState) {
         let parsedElems = JSON.parse(baseResponse.message);
 
@@ -1052,7 +1052,7 @@ function PaletteFormsButtons() {
 
     let baseResponse = await response.json();
     if (response.ok) {
-      let library;
+      //let library;
       if (baseResponse.loadState) {
         let parsedElems = JSON.parse(baseResponse.message);
 
@@ -1499,7 +1499,7 @@ function Palette() {
   //console.log("🔄 Palette re-rendered");
   return (
     <details>
-      <summary>Palette &#x1F3A8;</summary>
+      <summary style={{ userSelect: "none" }}>Palette &#x1F3A8;</summary>
       <div
         className={styles.gameMapTools}
         onMouseDown={(e) => {
