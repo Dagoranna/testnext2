@@ -16,6 +16,7 @@ const mainSlice = createSlice({
       { i: "Game Map", x: 0, y: 0, w: 5, h: 15, minH: 15 },
       { i: "Polydice", x: 0, y: 0, w: 5, h: 15, minH: 15 },
     ],
+    connectionTitle: "Connect",
   },
   reducers: {
     setLoginState: (state, action) => {
@@ -39,6 +40,9 @@ const mainSlice = createSlice({
     setLayout: (state, action) => {
       state.layout = action.payload;
     },
+    setConnectionTitle: (state, action) => {
+      state.connectionTitle = action.payload;
+    },
   },
 });
 
@@ -50,6 +54,7 @@ export const {
   setUserRole,
   setWinList,
   setLayout,
+  setConnectionTitle,
 } = mainSlice.actions;
 
 export default mainSlice.reducer;

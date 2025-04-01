@@ -26,6 +26,7 @@ export default function TopPanel() {
   const connectionState = useSelector(
     (state) => state.websocket.connectionState
   );
+  const connectionTitle = useSelector((state) => state.main.connectionTitle);
   const gameId = useSelector((state) => state.websocket.gameId);
 
   const itemsListGamer = [
@@ -83,7 +84,6 @@ export default function TopPanel() {
   const [addComps, setAddComps] = useState(null);
   const [menuStyle, setMenuStyle] = useState("");
   const [serverList, setServerList] = useState([]);
-  const [connectionTitle, setConnectionTitle] = useState("Connect");
 
   useEffect(() => {
     const gamerColor = localStorage.getItem("userColor");
@@ -97,7 +97,8 @@ export default function TopPanel() {
     console.log(serverMessage);
     const messageJSON = parseJSON(serverMessage);
     if (messageJSON === null) {
-      if (serverMessage === "connected") setConnectionTitle("Connected");
+      if (serverMessage === "connected")
+        dispatch(actions.setConnectionTitle("Connected"));
       return;
     }
 
@@ -130,7 +131,7 @@ export default function TopPanel() {
         dispatch(websocketActions.setGameId(DMMail));
         dispatch(websocketActions.setDMName(DMName));
         let connectTitle = "Disconnect from " + DMName;
-        setConnectionTitle("Connected");
+        dispatch(actions.setConnectionTitle("Connected"));
         tempServerList.push({
           itemName: connectTitle,
           itemType: "button",
@@ -138,7 +139,7 @@ export default function TopPanel() {
         });
       } else {
         //DMs > 1
-        setConnectionTitle("Choose DM");
+        dispatch(actions.setConnectionTitle("Choose DM"));
         for (let DMMail in messageJSON.list) {
           let DMName = messageJSON.list[DMMail];
           let connectTitle = "Connect to " + DMName;
@@ -156,7 +157,7 @@ export default function TopPanel() {
       let DMMail = messageJSON.gameId;
       dispatch(websocketActions.setGameId(DMMail));
       dispatch(websocketActions.setDMName(DMName));
-      setConnectionTitle("Connected");
+      dispatch(actions.setConnectionTitle("Connected"));
       let connectTitle = "Disconnect from " + DMName;
       tempServerList.push({
         itemName: connectTitle,
@@ -445,7 +446,7 @@ export default function TopPanel() {
           manageWebsocket("disconnect", process.env.NEXT_PUBLIC_SERVER_URL)
         );
         if (userRole === "Gamer") dispatch(websocketActions.setGameId(0));
-        setConnectionTitle("Connect");
+        dispatch(actions.setConnectionTitle("Connect"));
         break;
     }
   }

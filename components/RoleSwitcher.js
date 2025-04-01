@@ -11,6 +11,7 @@ export default function RoleSwitcher() {
   const userRole = useSelector((state) => state.main.userRole);
   const userEmail = useSelector((state) => state.main.userEmail);
   const winList = useSelector((state) => state.main.winList);
+  const connectionTitle = useSelector((state) => state.main.connectionTitle);
 
   function switchRole(role) {
     if (userRole !== role) {
@@ -41,6 +42,7 @@ export default function RoleSwitcher() {
       dispatch(
         manageWebsocket("disconnect", process.env.NEXT_PUBLIC_SERVER_URL)
       );
+      dispatch(actions.setConnectionTitle("Connect"));
     }
   }
 
