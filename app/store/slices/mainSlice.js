@@ -13,8 +13,8 @@ const mainSlice = createSlice({
       Master: ["Game Map", "Polydice", "Game Table"],
     },
     layout: [
-      { i: "Game Map", x: 0, y: 0, w: 5, h: 15, minH: 20 },
-      { i: "Polydice", x: 0, y: 0, w: 5, h: 15, minH: 20 },
+      { i: "Game Map", x: 0, y: 0, w: 5, h: 15, minH: 15 },
+      { i: "Polydice", x: 0, y: 0, w: 5, h: 15, minH: 15 },
     ],
   },
   reducers: {

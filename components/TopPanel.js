@@ -169,8 +169,6 @@ export default function TopPanel() {
   }, [serverMessage]);
 
   function handleDMConnection(DMMail, DMName) {
-    console.log("here?");
-    console.log("DMName, DMMail " + DMName + " " + DMMail);
     switch (connectionState) {
       case 1:
         //sending message with new gameId
@@ -185,10 +183,7 @@ export default function TopPanel() {
         messageForServer["sectionName"] = "choosemaster";
         messageForServer["gameId"] = DMMail;
         messageForServer["DMName"] = DMName;
-        console.log("here? 2");
-        console.log(messageForServer);
         let JSONMessage = JSON.stringify(messageForServer);
-        console.log("here? 3");
         dispatch(
           manageWebsocket(
             "send",
