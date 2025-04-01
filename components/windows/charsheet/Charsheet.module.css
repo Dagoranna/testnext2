@@ -60,9 +60,25 @@
 @media only screen and (max-width: 414px) {
   .bookmarkBlock {
     flex-direction: column;
+    order: 2;
   }
 
   .bookmark {
-    writing-mode: vertical-lr;
+    writing-mode: vertical-rl;
+    border-top-right-radius: 10px;
+    border-top-left-radius: 0;
+    border-bottom-right-radius: 10px;
+    border-bottom-left-radius: 0;
+    box-shadow: -0.2em 0 0.3em #d7c6b3 inset;
+    border-bottom: 2px ridge #caa67e;
+    border-left: none;
+  }
+
+  .mainBlock {
+    flex-direction: row;
+  }
+
+  .sectionsBlock {
+    order: 1;
   }
 }
