@@ -92,11 +92,14 @@ export default function TopPanel() {
 
   useEffect(() => {
     ///{"sectionName":"games","list":{"icywizard1@gmail.com":"IcyWizard"}}
-    console.log("TopPanel hook");
     if (!serverMessage) return;
+    console.log("serverMessage:");
     console.log(serverMessage);
     const messageJSON = parseJSON(serverMessage);
-    if (messageJSON === null) return;
+    if (messageJSON === null) {
+      if (serverMessage === "connected") setConnectionTitle("Connected");
+      return;
+    }
 
     console.log("messageJSON.sectionName" + messageJSON.sectionName);
     if (
@@ -149,11 +152,8 @@ export default function TopPanel() {
       }
     } else if (messageJSON.sectionName === "choosemaster") {
       messageJSON.gameId;
-      console.log("here? 3");
       let DMName = messageJSON.DMName;
       let DMMail = messageJSON.gameId;
-      console.log(messageJSON);
-      console.log("DMName, DMMail " + DMName + " " + DMMail);
       dispatch(websocketActions.setGameId(DMMail));
       dispatch(websocketActions.setDMName(DMName));
       setConnectionTitle("Connected");
@@ -227,7 +227,7 @@ export default function TopPanel() {
               y: 0,
               w: 5,
               h: 15,
-              minH: 20,
+              minH: 15,
             });
           }
         } else {
@@ -237,7 +237,7 @@ export default function TopPanel() {
             y: 0,
             w: 5,
             h: 15,
-            minH: 20,
+            minH: 15,
           });
         }
       }
