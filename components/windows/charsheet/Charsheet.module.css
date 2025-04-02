@@ -25,6 +25,7 @@
 .bookmarkBlock {
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
 }
 
 .bookmark {
@@ -55,6 +56,24 @@
   width: 100%;
   height: 100%;
   border: 2px ridge #caa67e;
+}
+
+.paramLine {
+  display: flex;
+  flex: 0 1;
+}
+
+.paramTitle {
+  margin-left: 3px;
+  margin-right: 5px;
+  overflow-wrap: break-word;
+  max-width: 60%;
+}
+
+.paramInput {
+  width: 100%;
+  flex: 1 1;
+  min-width: 2rem;
 }
 
 @media only screen and (max-width: 414px) {
