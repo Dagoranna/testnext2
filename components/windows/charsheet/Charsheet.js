@@ -4,6 +4,7 @@ import styles from "./Charsheet.module.css";
 import { useRef, useEffect, useState, useMemo, cloneElement } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import * as charsheetSlice from "../../../app/store/slices/charsheetSlice";
+import { manageWebsocket } from "../../../app/store/slices/websocketSlice";
 
 export default function Charsheet() {
   const activeBookmark = useSelector((state) => state.charsheet.activeBookmark);
@@ -51,11 +52,53 @@ function Bookmark({ name }) {
   );
 }
 
-function ParamLine({ section, dispFunction, title, field }) {
+function ParamLine({ section, dispFunction, title, field, isButton = false }) {
   const dispatch = useDispatch();
+  const connectionState = useSelector(
+    (state) => state.websocket.connectionState
+  );
+  const userRole = useSelector((state) => state.main.userRole);
+  const userName = useSelector((state) => state.main.userName);
+  const userColor = useSelector((state) => state.main.userColor);
+  const gameId = useSelector((state) => state.websocket.gameId);
+
+  function makeRoll(modifier, fieldName) {
+    if (connectionState === 1) {
+      const messageForServer = {
+        gameId: gameId,
+        user: {
+          userRole: userRole,
+          userName: userName,
+          userColor: userColor,
+        },
+      };
+
+      messageForServer["sectionName"] = "polydice";
+      messageForServer["sectionInfo"] = {
+        source: "charsheet",
+        diceModifier: modifier,
+        fieldName: fieldName,
+      };
+
+      dispatch(
+        manageWebsocket(
+          "send",
+          process.env.NEXT_PUBLIC_SERVER_URL,
+          JSON.stringify(messageForServer)
+        )
+      );
+    }
+  }
+
   return (
     <div className={styles.paramLine}>
-      <div className={styles.paramTitle}>{`${title}:`}</div>
+      {!isButton && <div className={styles.paramTitle}>{`${title}:`}</div>}
+      {isButton && (
+        <button
+          className={`${styles.paramTitle} ${styles.chButton}`}
+          onClick={(e) => makeRoll(section, title)}
+        >{`${title}:`}</button>
+      )}
       <input
         className={styles.paramInput}
         onChange={(e) => {
@@ -112,6 +155,7 @@ function CharSectionMain() {
         dispFunction={charsheetSlice.setMainPart}
         title="Attack"
         field="att"
+        isButton={true}
       />
       <ParamLine
         section={main.dam}
@@ -136,35 +180,11 @@ function CharSectionMain() {
         dispFunction={charsheetSlice.setMainPart}
         title="Initiative"
         field="init"
+        isButton={true}
       />
     </div>
   );
 }
-
-/*  return (
-    <div className={styles.charSection}>
-      <div className={styles.paramLine}>
-        <div className={styles.paramTitle}>Name:</div>
-        <input
-          className={styles.paramInput}
-          onChange={(e) => {
-            dispatch(charsheetSlice.setMainPart(["name", e.target.value]));
-          }}
-          value={main.name || ""}
-        />
-      </div>
-      <div className={styles.paramLine}>
-        <div className={styles.paramTitle}>Classes & lvls:</div>
-        <input
-          className={styles.paramInput}
-          onChange={(e) => {
-            dispatch(charsheetSlice.setMainPart(["classlvl", e.target.value]));
-          }}
-          value={main.classlvl || ""}
-        />
-      </div>
-    </div>
-  ); */
 
 function CharSectionDescr() {
   return <div className={styles.charSection}>Description</div>;

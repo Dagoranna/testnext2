@@ -123,22 +123,36 @@ export default function Polydice() {
     let userName = messageJSON.user.userName;
     let userColor = messageJSON.user.userColor;
 
-    if (messageJSON?.rollResults) {
-      currentLog = `<b style="color: ${userColor}"}>${userName}:</b> `;
-      let dice = messageJSON.sectionInfo.dice;
-      let rollResults = messageJSON.rollResults;
-      currentLog += `<span class=${styles.rollResultText}>${rollResults.join(
-        ", "
-      )}</span> on <b style="color: ${userColor}"}>d${dice}</b>`;
+    if (messageJSON.sectionInfo.source === "polydice") {
+      if (messageJSON?.rollResults) {
+        currentLog = `<b style="color: ${userColor}"}>${userName}:</b> `;
+        let dice = messageJSON.sectionInfo.dice;
+        let rollResults = messageJSON.rollResults;
+        currentLog += `<span class=${styles.rollResultText}>${rollResults.join(
+          ", "
+        )}</span> on <b style="color: ${userColor}"}>d${dice}</b>`;
 
-      if (Number(messageJSON.sectionInfo.rollNumbers) > 1) {
-        currentLog += ` (a total of <b>${messageJSON.rollResults.reduce(
-          (item, sum) => sum + item
-        )}</b>)`;
+        if (Number(messageJSON.sectionInfo.rollNumbers) > 1) {
+          currentLog += ` (a total of <b>${messageJSON.rollResults.reduce(
+            (item, sum) => sum + item
+          )}</b>)`;
+        }
+      } else if (messageJSON.sectionName === "chat") {
+        currentLog = `<b style="color: ${userColor}"}>${userName} says:</b> `;
+        currentLog += messageJSON.sectionInfo.chatMessage;
       }
-    } else if (messageJSON.sectionName === "chat") {
-      currentLog = `<b style="color: ${userColor}"}>${userName} says:</b> `;
-      currentLog += messageJSON.sectionInfo.chatMessage;
+    } else if (messageJSON.sectionInfo.source === "charsheet") {
+      //{"gameId":"aaaa@aaaa.com","user":{"userRole":"Gamer","userName":"IcyWizard","userColor":"Aqua"},
+      // "sectionName":"polydice",
+      // "sectionInfo":{"source":"charsheet","diceModifier":"10","fieldName":"Attack"},
+      // "rollResults":[28]}
+      currentLog = `<b style="color: ${userColor}"}>${userName}:</b> `;
+      let rollResult = messageJSON.rollResults[0];
+      let diceModifier = parseInt(messageJSON.sectionInfo.diceModifier);
+      let clearRoll = parseInt(rollResult) - diceModifier;
+      currentLog += `<span class=${styles.rollResultText}>${rollResult}</span>`;
+      currentLog += `<span class=${styles.rollResultText}> (${clearRoll} on d20 + ${diceModifier})</span>`;
+      currentLog += ` on <b style="color: ${userColor}"}>${messageJSON.sectionInfo.fieldName}</b>`;
     }
 
     polydiceLogs.current.innerHTML =

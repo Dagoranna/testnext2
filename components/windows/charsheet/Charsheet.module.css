@@ -43,7 +43,25 @@
   border-top-left-radius: 10px;
   right: -3px;
   cursor: pointer;
+}
+
+.chButton {
   user-select: none;
+  color: #8e5a1f;
+  padding: 0.2rem;
+  background: #a9855d;
+  border: 2px ridge #caa67e;
+  border-bottom: none;
+  font-size: 0.8rem;
+  border-radius: 5px;
+  cursor: pointer;
+  width: fit-content;
+  color: white;
+  box-shadow: 0.2em 0.2em 0.3em #d7c6b3 inset, 0.1em 0.1em 0.2em #4d3a25;
+}
+
+.chButton:active {
+  box-shadow: 0.2em 0.2em 0.3em #d7c6b3 inset, 0 0 0.3rem 0.1rem white;
 }
 
 .isActive {
@@ -83,7 +101,7 @@
   }
 
   .bookmark {
-    writing-mode: vertical-rl;
+    writing-mode: vertical-lr;
     border-top-right-radius: 10px;
     border-top-left-radius: 0;
     border-bottom-right-radius: 10px;
