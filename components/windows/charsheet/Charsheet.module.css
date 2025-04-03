@@ -15,6 +15,7 @@
 .sectionsBlock {
   width: 100%;
   flex: 1 1;
+  overflow-y: auto;
 }
 
 .buttonBlock {
@@ -50,8 +51,7 @@
   color: #8e5a1f;
   padding: 0.2rem;
   background: #a9855d;
-  border: 2px ridge #caa67e;
-  border-bottom: none;
+  border: 1px solid black;
   font-size: 0.8rem;
   border-radius: 5px;
   cursor: pointer;
@@ -72,13 +72,34 @@
 
 .charSection {
   width: 100%;
-  height: 100%;
   border: 2px ridge #caa67e;
 }
 
+.statsBlock {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.savesBlock {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.oneSaveBlock {
+  display: flex;
+}
+
+.savePart {
+  display: flex;
+  flex-direction: column;
+  margin: 2px;
+}
+
 .paramLine {
+  margin: 1px;
   display: flex;
   flex: 0 1;
+  text-align: center;
 }
 
 .paramTitle {

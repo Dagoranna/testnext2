@@ -9,7 +9,7 @@ const charsheetSlice = createSlice({
       dex: 10,
       con: 10,
       int: 10,
-      wis: 10,
+      wis: 12,
       cha: 10,
     },
     main: {
@@ -39,22 +39,25 @@ const charsheetSlice = createSlice({
     },
     saves: {
       fort: {
+        res: 0,
         base: 0,
         stat: "con",
         magic: 0,
         other: 0,
       },
       ref: {
+        res: 0,
         base: 0,
         stat: "dex",
         magic: 0,
         other: 0,
       },
       will: {
-        base: 0,
+        res: 8,
+        base: 2,
         stat: "wis",
-        magic: 0,
-        other: 0,
+        magic: 1,
+        other: 4,
       },
     },
     skillRanks: {
@@ -154,6 +157,33 @@ const charsheetSlice = createSlice({
       //action.payload = ["wis", 15]
       state.stats = { ...state.stats, [action.payload[0]]: action.payload[1] };
     },
+    setSavesPart: (state, action) => {
+      /*  state.saves: {
+      fort: {
+        res: 0,
+        base: 5,
+        stat: "con",
+        magic: 2,
+        other: 1, 
+      */
+      //action.payload = ["fort", 5, "con", 2 , 1]
+      console.log("setSavesPart");
+      console.log(action.payload);
+      console.log("-------");
+      const resSave =
+        parseInt(action.payload[1]) +
+        Math.floor((state.stats[action.payload[2]] - 10) / 2) +
+        parseInt(action.payload[3]) +
+        parseInt(action.payload[4]);
+      const saveObj = {
+        res: resSave,
+        base: action.payload[1],
+        stat: action.payload[2],
+        magic: action.payload[3],
+        other: action.payload[4],
+      };
+      state.saves = { ...state.saves, [action.payload[0]]: saveObj };
+    },
     setMainPart: (state, action) => {
       state.main = { ...state.main, [action.payload[0]]: action.payload[1] };
     },
@@ -163,7 +193,12 @@ const charsheetSlice = createSlice({
   },
 });
 
-export const { setActiveBookmark, setStatPart, setMainPart, setDescrPart } =
-  charsheetSlice.actions;
+export const {
+  setActiveBookmark,
+  setStatPart,
+  setSavesPart,
+  setMainPart,
+  setDescrPart,
+} = charsheetSlice.actions;
 
 export default charsheetSlice.reducer;

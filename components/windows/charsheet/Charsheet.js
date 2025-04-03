@@ -110,6 +110,175 @@ function ParamLine({ section, dispFunction, title, field, isButton = false }) {
   );
 }
 
+function ParamLineSaves({ section, dispFunction, title }) {
+  console.log("section:");
+  console.log(section);
+  console.log("title = " + title);
+  /*
+section: 
+Object { res: 0, base: 0, stat: "wis", magic: 0, other: 0 }
+title = Will 
+*/
+
+  /*
+        <ParamLineSaves
+          section={saves.will}
+          dispFunction={charsheetSlice.setSavesPart}
+          title="Will"
+          isButton={true}
+        />
+*/
+  //action.payload = ["fort", 5, "con", 2 , 1]
+
+  const dispatch = useDispatch();
+  const connectionState = useSelector(
+    (state) => state.websocket.connectionState
+  );
+  const userRole = useSelector((state) => state.main.userRole);
+  const userName = useSelector((state) => state.main.userName);
+  const userColor = useSelector((state) => state.main.userColor);
+  const gameId = useSelector((state) => state.websocket.gameId);
+  const field = title.toLowerCase();
+  const statInfo = useSelector((state) => state.charsheet.stats[section.stat]);
+  const statMod = Math.floor((parseInt(statInfo) - 10) / 2);
+
+  /*  state.saves: {
+      fort: {
+        res: 0,
+        base: 5,
+        stat: "con",
+        magic: 2,
+        other: 1, 
+      */
+  //action.payload = ["fort", 5, "con", 2 , 1]
+
+  function makeRoll(modifier, fieldName) {
+    if (connectionState === 1) {
+      const messageForServer = {
+        gameId: gameId,
+        user: {
+          userRole: userRole,
+          userName: userName,
+          userColor: userColor,
+        },
+      };
+
+      messageForServer["sectionName"] = "polydice";
+      messageForServer["sectionInfo"] = {
+        source: "charsheet",
+        diceModifier: modifier,
+        fieldName: fieldName,
+      };
+
+      dispatch(
+        manageWebsocket(
+          "send",
+          process.env.NEXT_PUBLIC_SERVER_URL,
+          JSON.stringify(messageForServer)
+        )
+      );
+    }
+  }
+
+  useEffect(() => {
+    dispatch(
+      dispFunction([
+        field,
+        section.base,
+        section.stat,
+        section.magic,
+        section.other,
+      ])
+    );
+  }, [statInfo]);
+
+  return (
+    <div className={styles.paramLine}>
+      <button
+        className={`${styles.paramTitle} ${styles.chButton}`}
+        onClick={(e) => makeRoll(section.res, title)}
+      >{`${title}:`}</button>
+      <div className={styles.oneSaveBlock}>
+        <div className={styles.savePart}>
+          <div className={styles.saveResFiled}>Result</div>
+          <input
+            className={styles.paramInput}
+            value={section.res || 0}
+            readOnly
+            type="number"
+          />
+        </div>
+        <div className={styles.savePart}>
+          <div className={styles.saveResFiled}>Base</div>
+          <input
+            className={styles.paramInput}
+            onChange={(e) => {
+              dispatch(
+                dispFunction([
+                  field,
+                  e.target.value,
+                  section.stat,
+                  section.magic,
+                  section.other,
+                ])
+              );
+            }}
+            value={section.base || 0}
+            type="number"
+          />
+        </div>
+        <div className={styles.savePart}>
+          <div className={styles.saveResFiled}>Ab.Mod.</div>
+          <input
+            className={styles.paramInput}
+            value={statMod || 0}
+            readOnly
+            type="number"
+          />
+        </div>
+        <div className={styles.savePart}>
+          <div className={styles.saveResFiled}>Magic</div>
+          <input
+            className={styles.paramInput}
+            onChange={(e) => {
+              dispatch(
+                dispFunction([
+                  field,
+                  section.base,
+                  section.stat,
+                  e.target.value,
+                  section.other,
+                ])
+              );
+            }}
+            value={section.magic || 0}
+            type="number"
+          />
+        </div>
+        <div className={styles.savePart}>
+          <div className={styles.saveResFiled}>Other</div>
+          <input
+            className={styles.paramInput}
+            onChange={(e) => {
+              dispatch(
+                dispFunction([
+                  field,
+                  section.base,
+                  section.stat,
+                  section.magic,
+                  e.target.value,
+                ])
+              );
+            }}
+            value={section.other || 0}
+            type="number"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function CharSectionMain() {
   const dispatch = useDispatch();
   const stats = useSelector((state) => state.charsheet.stats);
@@ -150,6 +319,53 @@ function CharSectionMain() {
         title="Speed"
         field="speed"
       />
+      <div className={styles.statsBlock}>
+        <div style={{ width: "100%", marginLeft: "3px" }}>Abilities:</div>
+        <ParamLine
+          section={stats.str}
+          dispFunction={charsheetSlice.setStatPart}
+          title="Str"
+          field="str"
+        />
+        <ParamLine
+          section={stats.dex}
+          dispFunction={charsheetSlice.setStatPart}
+          title="Dex"
+          field="dex"
+        />
+        <ParamLine
+          section={stats.con}
+          dispFunction={charsheetSlice.setStatPart}
+          title="Con"
+          field="con"
+        />
+        <div style={{ width: "100%" }}></div>
+        <ParamLine
+          section={stats.int}
+          dispFunction={charsheetSlice.setStatPart}
+          title="Int"
+          field="int"
+        />
+        <ParamLine
+          section={stats.wis}
+          dispFunction={charsheetSlice.setStatPart}
+          title="Wis"
+          field="wis"
+        />
+        <ParamLine
+          section={stats.cha}
+          dispFunction={charsheetSlice.setStatPart}
+          title="Cha"
+          field="cha"
+        />
+      </div>
+      <ParamLine
+        section={main.init}
+        dispFunction={charsheetSlice.setMainPart}
+        title="Initiative"
+        field="init"
+        isButton={true}
+      />
       <ParamLine
         section={main.att}
         dispFunction={charsheetSlice.setMainPart}
@@ -157,6 +373,27 @@ function CharSectionMain() {
         field="att"
         isButton={true}
       />
+      <div className={styles.savesBlock}>
+        <div style={{ width: "100%", marginLeft: "3px" }}>Saves:</div>
+        <ParamLineSaves
+          section={saves.fort}
+          dispFunction={charsheetSlice.setSavesPart}
+          title="Fort"
+          isButton={true}
+        />
+        <ParamLineSaves
+          section={saves.ref}
+          dispFunction={charsheetSlice.setSavesPart}
+          title="Ref"
+          isButton={true}
+        />
+        <ParamLineSaves
+          section={saves.will}
+          dispFunction={charsheetSlice.setSavesPart}
+          title="Will"
+          isButton={true}
+        />
+      </div>
       <ParamLine
         section={main.dam}
         dispFunction={charsheetSlice.setMainPart}
@@ -174,13 +411,6 @@ function CharSectionMain() {
         dispFunction={charsheetSlice.setMainPart}
         title="HP"
         field="hp"
-      />
-      <ParamLine
-        section={main.init}
-        dispFunction={charsheetSlice.setMainPart}
-        title="Initiative"
-        field="init"
-        isButton={true}
       />
     </div>
   );
