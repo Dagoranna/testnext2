@@ -1,6 +1,7 @@
 "use client";
 
 import styles from "./Charsheet.module.css";
+import React from "react";
 import { useRef, useEffect, useState, useMemo, cloneElement } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import * as charsheetSlice from "../../../app/store/slices/charsheetSlice";
@@ -111,25 +112,6 @@ function ParamLine({ section, dispFunction, title, field, isButton = false }) {
 }
 
 function ParamLineSaves({ section, dispFunction, title }) {
-  console.log("section:");
-  console.log(section);
-  console.log("title = " + title);
-  /*
-section: 
-Object { res: 0, base: 0, stat: "wis", magic: 0, other: 0 }
-title = Will 
-*/
-
-  /*
-        <ParamLineSaves
-          section={saves.will}
-          dispFunction={charsheetSlice.setSavesPart}
-          title="Will"
-          isButton={true}
-        />
-*/
-  //action.payload = ["fort", 5, "con", 2 , 1]
-
   const dispatch = useDispatch();
   const connectionState = useSelector(
     (state) => state.websocket.connectionState
@@ -141,16 +123,6 @@ title = Will
   const field = title.toLowerCase();
   const statInfo = useSelector((state) => state.charsheet.stats[section.stat]);
   const statMod = Math.floor((parseInt(statInfo) - 10) / 2);
-
-  /*  state.saves: {
-      fort: {
-        res: 0,
-        base: 5,
-        stat: "con",
-        magic: 2,
-        other: 1, 
-      */
-  //action.payload = ["fort", 5, "con", 2 , 1]
 
   function makeRoll(modifier, fieldName) {
     if (connectionState === 1) {
@@ -202,7 +174,7 @@ title = Will
         <div className={styles.savePart}>
           <div className={styles.saveResFiled}>Result</div>
           <input
-            className={styles.paramInput}
+            className={`${styles.paramInput} ${styles.paramInputResult}`}
             value={section.res || 0}
             readOnly
             type="number"
@@ -230,7 +202,7 @@ title = Will
         <div className={styles.savePart}>
           <div className={styles.saveResFiled}>Ab.Mod.</div>
           <input
-            className={styles.paramInput}
+            className={`${styles.paramInput} ${styles.paramInputReadonly}`}
             value={statMod || 0}
             readOnly
             type="number"
@@ -280,19 +252,10 @@ title = Will
 }
 
 function CharSectionMain() {
-  const dispatch = useDispatch();
   const stats = useSelector((state) => state.charsheet.stats);
   const main = useSelector((state) => state.charsheet.main);
   const saves = useSelector((state) => state.charsheet.saves);
-  /*      name: "Character Name",
-      classlvl: "Classes & lvls",
-      exp: 0,
-      speed: 30,
-      att: 0,
-      dam: "",
-      ac: 0,
-      hp: 0,
-      init: 0, */
+
   return (
     <div className={styles.charSection}>
       <ParamLine
@@ -417,10 +380,227 @@ function CharSectionMain() {
 }
 
 function CharSectionDescr() {
-  return <div className={styles.charSection}>Description</div>;
+  const descr = useSelector((state) => state.charsheet.descr);
+
+  const descrArray = [];
+  for (var key in descr) {
+    descrArray.push(
+      <ParamLine
+        key={key}
+        section={descr[key]}
+        dispFunction={charsheetSlice.setDescrPart}
+        title={key[0].toLocaleUpperCase() + key.slice(1)}
+        field={key}
+      />
+    );
+  }
+
+  return <div className={styles.charSection}>{descrArray}</div>;
 }
+
+/*
+    skills: {
+      ...
+      Diplomacy: {
+        res: 0,
+        rank: 0,
+        other: 0,
+        isUntrained: true,
+        statDependsOn: "Cha",
+      },
+*/
+/*
+      <ParamLineSkills
+        key={key}
+        section={skills[key]}
+        dispFunction={charsheetSlice.setSkillPart}
+        title={key}
+      />
+*/
+
+const ParamLineSkills = React.memo(function ParamLineSkills({
+  section,
+  dispFunction,
+  title,
+}) {
+  const dispatch = useDispatch();
+  const connectionState = useSelector(
+    (state) => state.websocket.connectionState
+  );
+  const userRole = useSelector((state) => state.main.userRole);
+  const userName = useSelector((state) => state.main.userName);
+  const userColor = useSelector((state) => state.main.userColor);
+  const gameId = useSelector((state) => state.websocket.gameId);
+  const skillInfo = useSelector((state) => state.charsheet.skills[title]);
+  const stat = useSelector(
+    (state) => state.charsheet.stats[section.statDependsOn.toLowerCase()]
+  );
+
+  const statMod = Math.floor((parseInt(stat) - 10) / 2);
+
+  function makeRoll(modifier, fieldName) {
+    if (connectionState === 1) {
+      const messageForServer = {
+        gameId: gameId,
+        user: {
+          userRole: userRole,
+          userName: userName,
+          userColor: userColor,
+        },
+      };
+
+      messageForServer["sectionName"] = "polydice";
+      messageForServer["sectionInfo"] = {
+        source: "charsheet",
+        diceModifier: modifier,
+        fieldName: fieldName,
+      };
+
+      dispatch(
+        manageWebsocket(
+          "send",
+          process.env.NEXT_PUBLIC_SERVER_URL,
+          JSON.stringify(messageForServer)
+        )
+      );
+    }
+  }
+
+  useEffect(() => {
+    dispatch(
+      dispFunction({
+        skillName: title,
+        rank: skillInfo.rank,
+        other: skillInfo.other,
+      })
+    );
+  }, [stat]);
+
+  return (
+    <div className={styles.paramLine}>
+      <button
+        className={`${styles.paramTitleSkill} ${
+          (skillInfo.isUntrained || skillInfo.rank > 0) && styles.chButton
+        }`}
+        onClick={(e) => makeRoll(section.res, title)}
+      >{`${title}`}</button>
+      <div className={styles.oneSkillBlock}>
+        <div className={styles.skillPart}>
+          <div className={styles.saveResFiled}>Result</div>
+          <input
+            className={`${styles.paramInput} ${styles.paramInputResult}`}
+            value={section.res || 0}
+            readOnly
+            type="number"
+          />
+        </div>
+        <div className={styles.skillPart}>
+          <div className={styles.saveResFiled}>Ranks</div>
+          <input
+            className={styles.paramInput}
+            onChange={(e) => {
+              dispatch(
+                dispFunction({
+                  skillName: title,
+                  rank: e.target.value,
+                  other: skillInfo.other,
+                })
+              );
+            }}
+            value={section.rank || 0}
+            type="number"
+          />
+        </div>
+        <div className={styles.skillPart}>
+          <div className={styles.saveResFiled}>Ab.Mod.</div>
+          <input
+            className={`${styles.paramInput} ${styles.paramInputReadonly}`}
+            value={statMod || 0}
+            readOnly
+            type="number"
+          />
+        </div>
+        <div className={styles.skillPart}>
+          <div className={styles.saveResFiled}>Other</div>
+          <input
+            className={styles.paramInput}
+            onChange={(e) => {
+              dispatch(
+                dispFunction({
+                  skillName: title,
+                  rank: skillInfo.rank,
+                  other: e.target.value,
+                })
+              );
+            }}
+            value={section.other || 0}
+            type="number"
+          />
+        </div>
+      </div>
+    </div>
+  );
+});
+
 function CharSectionSkills() {
-  return <div className={styles.charSection}>Skills</div>;
+  const dispatch = useDispatch();
+  const skills = useSelector((state) => state.charsheet.skills);
+  const skillsArray = [];
+
+  for (var key in skills) {
+    skillsArray.push(
+      <ParamLineSkills
+        key={key}
+        section={skills[key]}
+        dispFunction={charsheetSlice.setSkillPart}
+        title={key}
+      />
+    );
+  }
+
+  const [skillName, setSkillName] = useState("");
+  const [skillAbility, setSkillAbility] = useState("str");
+
+  function addSkill(skillName, skillAbility) {
+    dispatch(
+      charsheetSlice.addSkill({
+        skillName: skillName,
+        skillAbility: skillAbility,
+      })
+    );
+  }
+
+  const addSkillLine = (
+    <div key="addskill">
+      <button
+        className={`${styles.paramTitle} ${styles.chButton}`}
+        onClick={(e) => addSkill(skillName, skillAbility)}
+      >
+        Add New Skill
+      </button>
+      <input
+        value={skillName}
+        onChange={(e) => setSkillName(e.target.value)}
+        placeholder="Skill name"
+      />
+      <select
+        name="abils"
+        value={skillAbility}
+        onChange={(e) => setSkillAbility(e.target.value)}
+      >
+        <option value="str">Str</option>
+        <option value="dex">Dex</option>
+        <option value="con">Con</option>
+        <option value="int">Int</option>
+        <option value="wis">Wis</option>
+        <option value="cha">Cha</option>
+      </select>
+    </div>
+  );
+
+  skillsArray.push(addSkillLine);
+
+  return <div className={styles.charSection}>{skillsArray}</div>;
 }
 function CharSectionFeats() {
   return <div className={styles.charSection}>Feats</div>;

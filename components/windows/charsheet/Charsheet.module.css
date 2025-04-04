@@ -58,6 +58,7 @@
   width: fit-content;
   color: white;
   box-shadow: 0.2em 0.2em 0.3em #d7c6b3 inset, 0.1em 0.1em 0.2em #4d3a25;
+  min-width: 40px;
 }
 
 .chButton:active {
@@ -95,6 +96,21 @@
   margin: 2px;
 }
 
+.skillsBlock {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.oneSkillBlock {
+  display: flex;
+}
+
+.skillPart {
+  display: flex;
+  flex-direction: column;
+  margin: 2px;
+}
+
 .paramLine {
   margin: 1px;
   display: flex;
@@ -109,10 +125,26 @@
   max-width: 60%;
 }
 
+.paramTitleSkill {
+  margin-left: 3px;
+  margin-right: 5px;
+  min-width: 90px;
+}
+
 .paramInput {
   width: 100%;
   flex: 1 1;
-  min-width: 2rem;
+  min-width: 3rem;
+}
+
+.paramInputResult {
+  background: lightskyblue;
+  text-align: center;
+}
+
+.paramInputReadonly {
+  background: lightgray;
+  text-align: center;
 }
 
 @media only screen and (max-width: 414px) {
