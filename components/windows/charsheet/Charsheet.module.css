@@ -111,41 +111,42 @@
   margin: 2px;
 }
 
-.oneFeatBlock {
+.oneUnitedBlock {
   display: flex;
   text-align: left;
   border-bottom: 1px solid #a9855d;
   position: relative;
+  width: 100%;
 }
 
-.oneFeatSummaryBox {
+.oneUnitedBlockSummaryBox {
   display: flex;
 }
 
-.featName {
+.unitedBlockName {
   display: inline-block;
   font-weight: bold;
   margin-right: 3px;
   width: fit-content;
 }
 
-.featSummaryText {
+.unitedBlockSummaryText {
   display: inline-block;
   width: fit-content;
 }
 
-.featDescr {
+.unitedBlockDescr {
   display: inline-block;
   width: fit-content;
 }
 
-.addFeatPart {
+.addUnitedBlockPart {
   display: flex;
   flex-direction: column;
   margin-top: 10px;
 }
 
-.deleteFeatButton {
+.deleteUnitedBlockButton {
   position: absolute;
   right: 0;
   top: 0;
@@ -170,7 +171,7 @@
   text-align: center;
 }
 
-.paramLineFeat {
+.paramLineUnitedBlock {
   position: relative;
   margin: 1px;
   display: flex;

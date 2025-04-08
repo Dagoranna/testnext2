@@ -603,29 +603,56 @@ function CharSectionSkills() {
   return <div className={styles.charSection}>{skillsArray}</div>;
 }
 
-const ParamLineFeats = React.memo(function ParamLineFeats({
-  featInfo,
+const ParamLineUnitedBlock = React.memo(function ParamLineUnitedBlock({
+  blockType,
+  unitedBlockInfo,
   dispFunction,
   title,
 }) {
+  const dispatch = useDispatch();
   return (
-    <div className={styles.paramLineFeat}>
-      <details className={styles.oneFeatBlock}>
+    <div className={styles.paramLineUnitedBlock}>
+      <details className={styles.oneUnitedBlock}>
         <summary>
-          <div className={styles.featName}>{title}:</div>
-          <div className={styles.featSummaryText}>{featInfo.summary}</div>
+          <div className={styles.unitedBlockName}>{title}:</div>
+          <div className={styles.unitedBlockSummaryText}>
+            {unitedBlockInfo.summary}
+          </div>
         </summary>
-        <div className={styles.featDescr}>{featInfo.descr}</div>
+        <div className={styles.unitedBlockDescr}>{unitedBlockInfo.descr}</div>
       </details>
       <button
-        className={styles.deleteFeatButton}
-        onClick={() => dispFunction(title)}
+        className={styles.deleteUnitedBlockButton}
+        onClick={() => dispFunction(blockType, title, dispatch)}
       >
         ✖
       </button>
     </div>
   );
 });
+
+function addUnitedBlock(
+  blockType,
+  blockName,
+  blockSummary,
+  blockDescr,
+  dispatch
+) {
+  dispatch(
+    charsheetSlice.addUnitedBlock({
+      blockType: blockType,
+      name: blockName,
+      summary: blockSummary,
+      descr: blockDescr,
+    })
+  );
+}
+
+function removeUnitedBlock(blockType, blockName, dispatch) {
+  dispatch(
+    charsheetSlice.removeUnitedBlock({ blockType: blockType, name: blockName })
+  );
+}
 
 function CharSectionFeats() {
   const dispatch = useDispatch();
@@ -635,35 +662,20 @@ function CharSectionFeats() {
   const [featSummary, setFeatSummary] = useState("");
   const [featDescr, setFeatDescr] = useState("");
 
-  function addFeat(featName, featSummary, featDescr) {
-    dispatch(
-      charsheetSlice.addFeat({
-        name: featName,
-        summary: featSummary,
-        descr: featDescr,
-      })
-    );
-  }
-
-  function removeFeat(featName) {
-    dispatch(charsheetSlice.removeFeat(featName));
-  }
-
   for (var key in feats) {
-    console.log(key);
-    console.log(feats[key]);
     featsArray.push(
-      <ParamLineFeats
+      <ParamLineUnitedBlock
         key={key}
-        featInfo={feats[key]}
-        dispFunction={removeFeat}
+        blockType="feats"
+        unitedBlockInfo={feats[key]}
+        dispFunction={removeUnitedBlock}
         title={key}
       />
     );
   }
 
   const addFeatLine = (
-    <div key="addfeat" className={styles.addFeatPart}>
+    <div key="addfeat" className={styles.addUnitedBlockPart}>
       <div>
         <b>New feat:</b>
       </div>
@@ -684,7 +696,9 @@ function CharSectionFeats() {
       />
       <button
         className={`${styles.paramTitle} ${styles.chButton}`}
-        onClick={(e) => addFeat(featName, featSummary, featDescr)}
+        onClick={(e) =>
+          addUnitedBlock("feats", featName, featSummary, featDescr, dispatch)
+        }
       >
         Add New Feat
       </button>
@@ -696,11 +710,174 @@ function CharSectionFeats() {
   return <div className={styles.charSection}>{featsArray}</div>;
 }
 function CharSectionSpells() {
-  return <div className={styles.charSection}>Spells</div>;
+  const dispatch = useDispatch();
+  const spells = useSelector((state) => state.charsheet.spells);
+  const spellsArray = [];
+  const [spellName, setSpellName] = useState("");
+  const [spellSummary, setSpellSummary] = useState("");
+  const [spellDescr, setSpellDescr] = useState("");
+
+  for (var key in spells) {
+    spellsArray.push(
+      <ParamLineUnitedBlock
+        key={key}
+        blockType="spells"
+        unitedBlockInfo={spells[key]}
+        dispFunction={removeUnitedBlock}
+        title={key}
+      />
+    );
+  }
+
+  const addSpellLine = (
+    <div key="addspell" className={styles.addUnitedBlockPart}>
+      <div>
+        <b>New spell block:</b>
+      </div>
+      <input
+        value={spellName}
+        onChange={(e) => setSpellName(e.target.value)}
+        placeholder="Spell block name"
+      />
+      <textarea
+        value={spellSummary}
+        onChange={(e) => setSpellSummary(e.target.value)}
+        placeholder="Spell block summary"
+      />
+      <textarea
+        value={spellDescr}
+        onChange={(e) => setSpellDescr(e.target.value)}
+        placeholder="Spell block full description (optional)"
+      />
+      <button
+        className={`${styles.paramTitle} ${styles.chButton}`}
+        onClick={(e) =>
+          addUnitedBlock(
+            "spells",
+            spellName,
+            spellSummary,
+            spellDescr,
+            dispatch
+          )
+        }
+      >
+        Add New Spell Block
+      </button>
+    </div>
+  );
+
+  spellsArray.push(addSpellLine);
+
+  return <div className={styles.charSection}>{spellsArray}</div>;
 }
 function CharSectionGear() {
-  return <div className={styles.charSection}>Gear</div>;
+  const dispatch = useDispatch();
+  const gear = useSelector((state) => state.charsheet.gear);
+  const gearArray = [];
+  const [gearName, setGearName] = useState("");
+  const [gearSummary, setGearSummary] = useState("");
+  const [gearDescr, setGearDescr] = useState("");
+
+  for (var key in gear) {
+    gearArray.push(
+      <ParamLineUnitedBlock
+        key={key}
+        blockType="gear"
+        unitedBlockInfo={gear[key]}
+        dispFunction={removeUnitedBlock}
+        title={key}
+      />
+    );
+  }
+
+  const addGearLine = (
+    <div key="addgear" className={styles.addUnitedBlockPart}>
+      <div>
+        <b>New gear block:</b>
+      </div>
+      <input
+        value={gearName}
+        onChange={(e) => setGearName(e.target.value)}
+        placeholder="Gear block name"
+      />
+      <textarea
+        value={gearSummary}
+        onChange={(e) => setGearSummary(e.target.value)}
+        placeholder="Gear block summary"
+      />
+      <textarea
+        value={gearDescr}
+        onChange={(e) => setGearDescr(e.target.value)}
+        placeholder="Gear block full description (optional)"
+      />
+      <button
+        className={`${styles.paramTitle} ${styles.chButton}`}
+        onClick={(e) =>
+          addUnitedBlock("gear", gearName, gearSummary, gearDescr, dispatch)
+        }
+      >
+        Add New Gear Block
+      </button>
+    </div>
+  );
+
+  gearArray.push(addGearLine);
+
+  return <div className={styles.charSection}>{gearArray}</div>;
 }
+
 function CharSectionNotes() {
-  return <div className={styles.charSection}>Notes</div>;
+  const dispatch = useDispatch();
+  const notes = useSelector((state) => state.charsheet.notes);
+  const notesArray = [];
+  const [noteName, setNoteName] = useState("");
+  const [noteSummary, setNoteSummary] = useState("");
+  const [noteDescr, setNoteDescr] = useState("");
+
+  for (var key in notes) {
+    notesArray.push(
+      <ParamLineUnitedBlock
+        key={key}
+        blockType="notes"
+        unitedBlockInfo={notes[key]}
+        dispFunction={removeUnitedBlock}
+        title={key}
+      />
+    );
+  }
+
+  const addNoteLine = (
+    <div key="addnote" className={styles.addUnitedBlockPart}>
+      <div>
+        <b>New note block:</b>
+      </div>
+      <input
+        value={noteName}
+        onChange={(e) => setNoteName(e.target.value)}
+        placeholder="Note block name"
+      />
+      <textarea
+        value={noteSummary}
+        onChange={(e) => setNoteSummary(e.target.value)}
+        placeholder="Note block summary"
+      />
+      <textarea
+        value={noteDescr}
+        onChange={(e) => setNoteDescr(e.target.value)}
+        placeholder="Note block full description (optional)"
+      />
+      <button
+        className={`${styles.paramTitle} ${styles.chButton}`}
+        onClick={(e) =>
+          addUnitedBlock("notes", noteName, noteSummary, noteDescr, dispatch)
+        }
+      >
+        Add New Note Block
+      </button>
+    </div>
+  );
+
+  notesArray.push(addNoteLine);
+
+  return <div className={styles.charSection}>{notesArray}</div>;
 }

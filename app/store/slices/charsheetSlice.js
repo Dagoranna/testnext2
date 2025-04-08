@@ -428,21 +428,22 @@ const charsheetSlice = createSlice({
         [skillName]: newSkillObj,
       };
     },
-    addFeat: (state, action) => {
-      const featName = action.payload.name.trim();
-      const featSummary = action.payload.summary.trim();
-      const featDescr = action.payload.descr.trim() || null;
-      state.feats = {
-        ...state.feats,
-        [featName]: { summary: featSummary, descr: featDescr },
+    addUnitedBlock: (state, action) => {
+      const blockType = action.payload.blockType;
+      const blockName = action.payload.name.trim();
+      const blockSummary = action.payload.summary.trim();
+      const blockDescr = action.payload.descr.trim() || null;
+      state[blockType] = {
+        ...state[blockType],
+        [blockName]: { summary: blockSummary, descr: blockDescr },
       };
-      console.log(state.feats);
     },
-    removeFeat: (state, action) => {
-      const featName = action.payload.trim();
-      const tempFeats = { ...state.feats };
-      delete tempFeats[featName];
-      state.feats = tempFeats;
+    removeUnitedBlock: (state, action) => {
+      const blockName = action.payload.name.trim();
+      const blockType = action.payload.blockType;
+      const tempBlock = { ...state[blockType] };
+      delete tempBlock[blockName];
+      state[blockType] = tempBlock;
     },
   },
 });
@@ -455,8 +456,8 @@ export const {
   setDescrPart,
   setSkillPart,
   addSkill,
-  addFeat,
-  removeFeat,
+  addUnitedBlock,
+  removeUnitedBlock,
 } = charsheetSlice.actions;
 
 export default charsheetSlice.reducer;
