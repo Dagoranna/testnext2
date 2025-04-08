@@ -168,6 +168,10 @@
   padding: 0.3rem;
 }
 
+.mobileBreak {
+  display: none;
+}
+
 .paramLine {
   margin: 1px;
   display: flex;
@@ -237,5 +241,11 @@
 
   .sectionsBlock {
     order: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .mobileBreak {
+    display: block;
   }
 }

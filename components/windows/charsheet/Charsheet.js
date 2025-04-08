@@ -619,6 +619,7 @@ const ParamLineUnitedBlock = React.memo(function ParamLineUnitedBlock({
             {unitedBlockInfo.summary}
           </div>
         </summary>
+        <br className={styles.mobileBreak} />
         <div className={styles.unitedBlockDescr}>{unitedBlockInfo.descr}</div>
       </details>
       <button
