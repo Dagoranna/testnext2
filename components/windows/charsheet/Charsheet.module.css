@@ -132,12 +132,16 @@
 
 .unitedBlockSummaryText {
   display: inline-block;
-  width: fit-content;
 }
 
 .unitedBlockDescr {
   display: block;
   width: fit-content;
+}
+
+.oneUnitedBlock summary {
+  display: block;
+  cursor: pointer;
 }
 
 .addUnitedBlockPart {
