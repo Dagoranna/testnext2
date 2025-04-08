@@ -136,7 +136,7 @@
 }
 
 .unitedBlockDescr {
-  display: inline-block;
+  display: block;
   width: fit-content;
 }
 
