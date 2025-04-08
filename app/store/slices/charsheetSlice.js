@@ -428,6 +428,22 @@ const charsheetSlice = createSlice({
         [skillName]: newSkillObj,
       };
     },
+    addFeat: (state, action) => {
+      const featName = action.payload.name.trim();
+      const featSummary = action.payload.summary.trim();
+      const featDescr = action.payload.descr.trim() || null;
+      state.feats = {
+        ...state.feats,
+        [featName]: { summary: featSummary, descr: featDescr },
+      };
+      console.log(state.feats);
+    },
+    removeFeat: (state, action) => {
+      const featName = action.payload.trim();
+      const tempFeats = { ...state.feats };
+      delete tempFeats[featName];
+      state.feats = tempFeats;
+    },
   },
 });
 
@@ -439,6 +455,8 @@ export const {
   setDescrPart,
   setSkillPart,
   addSkill,
+  addFeat,
+  removeFeat,
 } = charsheetSlice.actions;
 
 export default charsheetSlice.reducer;

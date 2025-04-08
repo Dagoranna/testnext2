@@ -602,8 +602,98 @@ function CharSectionSkills() {
 
   return <div className={styles.charSection}>{skillsArray}</div>;
 }
+
+const ParamLineFeats = React.memo(function ParamLineFeats({
+  featInfo,
+  dispFunction,
+  title,
+}) {
+  return (
+    <div className={styles.paramLineFeat}>
+      <details className={styles.oneFeatBlock}>
+        <summary>
+          <div className={styles.featName}>{title}:</div>
+          <div className={styles.featSummaryText}>{featInfo.summary}</div>
+        </summary>
+        <div className={styles.featDescr}>{featInfo.descr}</div>
+      </details>
+      <button
+        className={styles.deleteFeatButton}
+        onClick={() => dispFunction(title)}
+      >
+        ✖
+      </button>
+    </div>
+  );
+});
+
 function CharSectionFeats() {
-  return <div className={styles.charSection}>Feats</div>;
+  const dispatch = useDispatch();
+  const feats = useSelector((state) => state.charsheet.feats);
+  const featsArray = [];
+  const [featName, setFeatName] = useState("");
+  const [featSummary, setFeatSummary] = useState("");
+  const [featDescr, setFeatDescr] = useState("");
+
+  function addFeat(featName, featSummary, featDescr) {
+    dispatch(
+      charsheetSlice.addFeat({
+        name: featName,
+        summary: featSummary,
+        descr: featDescr,
+      })
+    );
+  }
+
+  function removeFeat(featName) {
+    dispatch(charsheetSlice.removeFeat(featName));
+  }
+
+  for (var key in feats) {
+    console.log(key);
+    console.log(feats[key]);
+    featsArray.push(
+      <ParamLineFeats
+        key={key}
+        featInfo={feats[key]}
+        dispFunction={removeFeat}
+        title={key}
+      />
+    );
+  }
+
+  const addFeatLine = (
+    <div key="addfeat" className={styles.addFeatPart}>
+      <div>
+        <b>New feat:</b>
+      </div>
+      <input
+        value={featName}
+        onChange={(e) => setFeatName(e.target.value)}
+        placeholder="Feat name"
+      />
+      <textarea
+        value={featSummary}
+        onChange={(e) => setFeatSummary(e.target.value)}
+        placeholder="Feat summary"
+      />
+      <textarea
+        value={featDescr}
+        onChange={(e) => setFeatDescr(e.target.value)}
+        placeholder="Feat full description (optional)"
+      />
+      <button
+        className={`${styles.paramTitle} ${styles.chButton}`}
+        onClick={(e) => addFeat(featName, featSummary, featDescr)}
+      >
+        Add New Feat
+      </button>
+    </div>
+  );
+
+  featsArray.push(addFeatLine);
+
+  return <div className={styles.charSection}>{featsArray}</div>;
 }
 function CharSectionSpells() {
   return <div className={styles.charSection}>Spells</div>;

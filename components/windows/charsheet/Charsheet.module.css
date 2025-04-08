@@ -27,6 +27,7 @@
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
+  border-bottom: 2px ridge #caa67e;
 }
 
 .bookmark {
@@ -73,7 +74,6 @@
 
 .charSection {
   width: 100%;
-  border: 2px ridge #caa67e;
 }
 
 .statsBlock {
@@ -111,7 +111,67 @@
   margin: 2px;
 }
 
+.oneFeatBlock {
+  display: flex;
+  text-align: left;
+  border-bottom: 1px solid #a9855d;
+  position: relative;
+}
+
+.oneFeatSummaryBox {
+  display: flex;
+}
+
+.featName {
+  display: inline-block;
+  font-weight: bold;
+  margin-right: 3px;
+  width: fit-content;
+}
+
+.featSummaryText {
+  display: inline-block;
+  width: fit-content;
+}
+
+.featDescr {
+  display: inline-block;
+  width: fit-content;
+}
+
+.addFeatPart {
+  display: flex;
+  flex-direction: column;
+  margin-top: 10px;
+}
+
+.deleteFeatButton {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 1.3rem;
+  height: 1.3rem;
+  color: black;
+  background-color: transparent;
+  text-shadow: 2px 2px 2px white;
+  border-bottom-left-radius: 0.3em;
+  border: 1px solid #a9855d;
+  line-height: 0.5em;
+  border-top: none;
+  border-right: none;
+  cursor: pointer;
+  padding: 0.3rem;
+}
+
 .paramLine {
+  margin: 1px;
+  display: flex;
+  flex: 0 1;
+  text-align: center;
+}
+
+.paramLineFeat {
+  position: relative;
   margin: 1px;
   display: flex;
   flex: 0 1;
@@ -151,6 +211,8 @@
   .bookmarkBlock {
     flex-direction: column;
     order: 2;
+    border-bottom: none;
+    border-left: 2px ridge #caa67e;
   }
 
   .bookmark {
