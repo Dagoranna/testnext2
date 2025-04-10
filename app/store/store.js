@@ -4,6 +4,7 @@ import polydiceReducer from "./slices/polydiceSlice";
 import websocketReducer from "./slices/websocketSlice";
 import mapReducer from "./slices/mapSlice";
 import charsheetReducer from "./slices/charsheetSlice";
+import gameTableReducer from "./slices/gameTableSlice";
 
 export const store = configureStore({
   reducer: {
@@ -12,5 +13,6 @@ export const store = configureStore({
     polydice: polydiceReducer,
     map: mapReducer,
     charsheet: charsheetReducer,
+    gameTable: gameTableReducer,
   },
 });

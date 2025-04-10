@@ -36,9 +36,9 @@ export default function TopPanel() {
       itemHandling: async (e) => await handleChangeName(),
     },
     {
-      itemName: "Create charsheet",
+      itemName: "Save charsheet",
       itemType: "button",
-      itemHandling: (e) => console.log("Create charsheet"),
+      itemHandling: (e) => console.log("Save charsheet"),
     },
     {
       itemName: "Load charsheet",
@@ -59,9 +59,9 @@ export default function TopPanel() {
       itemHandling: async (e) => await handleChangeName(),
     },
     {
-      itemName: "Create map",
+      itemName: "Save map",
       itemType: "button",
-      itemHandling: (e) => console.log("Create map"),
+      itemHandling: (e) => console.log("Save map"),
     },
     {
       itemName: "Load map",
@@ -69,7 +69,12 @@ export default function TopPanel() {
       itemHandling: (e) => console.log("Load map"),
     },
     {
-      itemName: "Save map",
+      itemName: "Save game",
+      itemType: "button",
+      itemHandling: (e) => console.log("Save map"),
+    },
+    {
+      itemName: "Load game",
       itemType: "button",
       itemHandling: (e) => console.log("Save map"),
     },
