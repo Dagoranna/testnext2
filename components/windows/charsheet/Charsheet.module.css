@@ -155,17 +155,13 @@
   right: 0;
   top: 0;
   width: 1.3rem;
-  height: 1.3rem;
+  height: 100%;
   color: black;
   background-color: transparent;
   text-shadow: 2px 2px 2px white;
-  border-bottom-left-radius: 0.3em;
-  border: 1px solid #a9855d;
-  line-height: 0.5em;
-  border-top: none;
-  border-right: none;
+  border: none;
+  border-left: 1px solid #a9855d;
   cursor: pointer;
-  padding: 0.3rem;
 }
 
 .mobileBreak {
@@ -177,6 +173,7 @@
   display: flex;
   flex: 0 1;
   text-align: center;
+  min-height: 1.3rem;
 }
 
 .paramLineUnitedBlock {
