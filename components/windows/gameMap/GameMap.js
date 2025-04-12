@@ -18,24 +18,24 @@ const CELL_SIZE = 20;
 const MARKER_RADIUS = 5;
 const radToDeg = (rad) => rad * (180 / Math.PI);
 const mainBGColor = "rgb(227, 214, 199)";
-const colorsObj = {
-  black: "white",
-  gray: "black",
-  silver: "black",
-  white: "black",
-  brown: "white",
-  red: "white",
-  purple: "white",
-  fuchsia: "white",
-  olive: "white",
-  green: "white",
-  lime: "black",
-  yellow: "black",
-  navy: "white",
-  blue: "white",
-  teal: "white",
-  aqua: "black",
-};
+const colorsObj = [
+  "black",
+  "gray",
+  "silver",
+  "white",
+  "brown",
+  "red",
+  "purple",
+  "fuchsia",
+  "olive",
+  "green",
+  "lime",
+  "yellow",
+  "navy",
+  "blue",
+  "teal",
+  "aqua",
+];
 
 export default function GameMap() {
   //console.log("🔄 GameMap re-rendered");
@@ -55,9 +55,6 @@ function MapField() {
   const dispatch = useDispatch();
   const activeColor = useSelector(
     (state) => state.map.activePaletteStyle.color
-  );
-  const activeTextColor = useSelector(
-    (state) => state.map.activePaletteStyle.textColor
   );
   const activeForm = useSelector((state) => state.map.activePaletteStyle.form);
   const activeAction = useSelector((state) => state.map.activePaletteAction);
@@ -366,7 +363,6 @@ function MapField() {
         formClone.style.position = "absolute";
         formClone.style.outline = "none";
         formClone.setAttribute("name", "mapElem");
-        //    setElemFromLib(null);
       } else {
         formClone = document.getElementById(activeForm).cloneNode(true);
         formClone.id = `mapElem_${copyID++}`;
@@ -379,12 +375,7 @@ function MapField() {
         formClone.setAttribute("name", "mapElem");
       }
 
-      /*      console.log("--------------formClone-------------");
-      console.log(formClone);*/
-
       if (activeColor == mainBGColor) {
-        //   console.log("main color");
-
         formClone.style.backgroundColor = mainBGColor;
         formClone.style.backgroundImage = `
             linear-gradient( transparent ${CELL_SIZE - 1}px, gray ${
@@ -462,6 +453,7 @@ function MapField() {
 
         for (let elem of tempObj.children) {
           if (elem.getAttribute("name") === "elemResizer") continue;
+          if (elem.getAttribute("name") === "textField") continue;
 
           let elemWidth = parseInt(elem.style?.width)
             ? parseInt(elem.style?.width)
@@ -693,23 +685,18 @@ function PaletteColorElem({
   elemClass = styles.paletteColorItem,
   elemText = "*",
   backgroundColor,
-  textColor,
 }) {
   //console.log(`🔄 PaletteColorElem ${backgroundColor} re-rendered`);
   const dispatch = useDispatch();
   const selectedObjects = useSelector((state) => state.map.selectedObjectsId);
-  // const mapContent = useSelector((state) => state.map.mapContent);
 
   function chooseColor(e) {
-    let newColor = e.target.style.color;
     let newBGColor = e.target.style.backgroundColor;
     dispatch(mapSlice.setActivePaletteColor(newBGColor));
-    dispatch(mapSlice.setActivePaletteTextColor(newColor));
     if (selectedObjects.length > 0) {
       selectedObjects.map((itemId) => {
         let elem = document.getElementById(itemId);
         elem.style.backgroundColor = newBGColor;
-        elem.style.color = newColor;
         dispatch(mapSlice.changeElemOnMap(elem.outerHTML));
       });
     }
@@ -733,7 +720,6 @@ function PaletteColorElem({
       className={currentClass}
       style={{
         backgroundColor: backgroundColor,
-        color: textColor,
         gridColumn: gridColumn,
       }}
       onClick={(e) => chooseColor(e, dispatch)}
@@ -744,17 +730,13 @@ function PaletteColorElem({
 }
 
 function PaletteColors() {
-  //console.log(`🔄 PaletteColors re-rendered`);
+  console.log(`🔄 PaletteColors re-rendered`);
 
-  const elemsArray = useMemo(() => {
-    return Object.keys(colorsObj).map((bgColor) => (
-      <PaletteColorElem
-        key={bgColor}
-        backgroundColor={bgColor}
-        textColor={colorsObj[bgColor]}
-      />
-    ));
-  }, []);
+  const elemsArray = useMemo(() =>
+    colorsObj.map((bgColor) => (
+      <PaletteColorElem key={bgColor} backgroundColor={bgColor} />
+    ))
+  );
 
   return (
     <div className={styles.paletteColors}>
@@ -762,14 +744,9 @@ function PaletteColors() {
         elemClass={styles.paletteColorTransparent}
         elemText="transparent"
         backgroundColor="transparent"
-        textColor="black"
       />
       {elemsArray}
-      <PaletteColorElem
-        elemText="grid"
-        backgroundColor={mainBGColor}
-        textColor="black"
-      />
+      <PaletteColorElem elemText="grid" backgroundColor={mainBGColor} />
     </div>
   );
 }
@@ -888,7 +865,8 @@ function PaletteFormsButtons() {
   const [libraryContent, setLibraryContent] = useState(
     "<div style='gridColumn: span 15; textAlign: center;'></div>"
   );
-  // const elemFromLib = useSelector((state) => state.map.elemFromLib);
+  const elemFromLib = useSelector((state) => state.map.elemFromLib);
+  const [isLocalOpened, setIsLocalOpened] = useState(false);
 
   const addButtonStyle = {
     minWidth: "1rem",
@@ -920,7 +898,6 @@ function PaletteFormsButtons() {
         Select a single object
       </div>
     );
-
     if (selectedObjectsId.length === 1) {
       let selectedObj = document.getElementById(selectedObjectsId[0]);
       if (selectedObj) {
@@ -941,7 +918,7 @@ function PaletteFormsButtons() {
             ) +
             " " +
             styles.savingElem,
-          id: undefined,
+          id: Date.now().toString(),
         });
       }
       setElemForSaving(ReactDOMServer.renderToStaticMarkup(windowContent));
@@ -949,6 +926,7 @@ function PaletteFormsButtons() {
   }
   //activeElem
   async function saveElem() {
+    console.log(elemForSaving);
     let elem = ReactDOMServer.renderToStaticMarkup(elemForSaving);
     if (!elem) return;
     if (!elem.includes("GameMap_savingElem")) return;
@@ -1003,7 +981,6 @@ function PaletteFormsButtons() {
       //let library;
       if (baseResponse.loadState) {
         let parsedElems = JSON.parse(baseResponse.message);
-
         parsedElems = parsedElems.map((item) => {
           return parse(item);
         });
@@ -1018,13 +995,19 @@ function PaletteFormsButtons() {
             className: (newItem.props.className || "")
               .replace(/\bGameMap_savingElem\S*\b/g, "")
               .trim(),
-            id: undefined,
           });
           let stringItem = ReactDOMServer.renderToStaticMarkup(newItem);
           return res + stringItem;
         }, "");
 
-        setLibraryContent(elemsHeap);
+        setIsLocalOpened(true);
+        if (parsedElems.length == 0) {
+          setLibraryContent(
+            "<div style='gridColumn: span 15; textAlign: center;'>Library is empty</div>"
+          );
+        } else {
+          setLibraryContent(elemsHeap);
+        }
       } else {
         console.log(baseResponse.message);
       }
@@ -1070,7 +1053,6 @@ function PaletteFormsButtons() {
             className: (newItem.props.className || "")
               .replace(/\bGameMap_savingElem\S*\b/g, "")
               .trim(),
-            id: undefined,
           });
           let stringItem = ReactDOMServer.renderToStaticMarkup(newItem);
           return res + stringItem;
@@ -1084,6 +1066,31 @@ function PaletteFormsButtons() {
       //throw new Error("error in database response");
       console.log("empty library");
     }
+  }
+
+  async function deleteElemFromLibrary(e) {
+    if (!elemFromLib) return;
+    const regex = /id="([^"]*)"/;
+    let elemID = elemFromLib.match(regex) ? elemFromLib.match(regex)[1] : "0";
+    let response = await fetch("/api/gamedata/gamemap/deleteelem", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        callbackUrl: "/",
+        email: userEmail,
+        elemID: elemID,
+      }),
+    });
+    const oldLib = libraryContent;
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(oldLib, "text/html");
+    const elem = doc.getElementById(elemID);
+    if (elem) elem.remove();
+    const newLib = doc.body.innerHTML;
+    dispatch(mapSlice.setElemFromLib(null));
+    setLibraryContent(newLib);
   }
 
   function selectElement(e) {
@@ -1108,6 +1115,7 @@ function PaletteFormsButtons() {
     setLibraryContent(
       "<div style='gridColumn: span 15; textAlign: center;'></div>"
     );
+    setIsLocalOpened(false);
   }
 
   function clearElemSaving() {
@@ -1150,6 +1158,14 @@ function PaletteFormsButtons() {
         addOnClose={clearElem}
       >
         <div className={styles.libraryGrid} onClick={(e) => selectElement(e)}>
+          {isLocalOpened && (
+            <button
+              className={styles.paletteButtonDel}
+              onClick={async (e) => deleteElemFromLibrary(e)}
+            >
+              Delete element
+            </button>
+          )}
           {parse(libraryContent)}
         </div>
         <div className={styles.libButtonBlock}>
@@ -1179,10 +1195,6 @@ function PaletteElem({ id }) {
   const activeColor = useSelector(
     (state) => state.map.activePaletteStyle.color
   );
-  const activeTextColor = useSelector(
-    (state) => state.map.activePaletteStyle.textColor
-  );
-
   const dispatch = useDispatch();
 
   let elemClass =
@@ -1192,7 +1204,6 @@ function PaletteElem({ id }) {
   let elemStyle = {
     ...mapSlice.FORMS_LIST[id],
     backgroundColor: activeColor,
-    color: activeTextColor,
   };
 
   function chooseForm(e, dispatch) {
@@ -1224,13 +1235,6 @@ function PaletteActions() {
     } else {
       dispatch(mapSlice.setActivePaletteAction(act));
     }
-
-    /*    if (activeAction === "text" && activeAction !== act) {
-      writtenTextElem.remove();
-      setIsWriting(false);
-      setWrittenObject(null);
-      setWrittenTextElem(null);
-    }*/
   }
 
   function mergeItems() {

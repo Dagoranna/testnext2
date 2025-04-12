@@ -18,15 +18,15 @@ const FORMS_LIST = {
   },
   elemForm_3: {
     borderRadius: "0",
-    boxShadow: "2px 2px 3px aliceblue inset, -2px -2px 3px black inset",
+    boxShadow: "aliceblue 1px 1px 2px inset, black -1px -1px 2px inset",
   },
   elemForm_4: {
     borderRadius: "15%",
-    boxShadow: "2px 2px 3px aliceblue inset, -2px -2px 3px black inset",
+    boxShadow: "aliceblue 1px 1px 2px inset, black -1px -1px 2px inset",
   },
   elemForm_5: {
     borderRadius: "50%",
-    boxShadow: "2px 2px 3px aliceblue inset, -2px -2px 3px black inset",
+    boxShadow: "aliceblue 1px 1px 2px inset, black -1px -1px 2px inset",
   },
   elemForm_6: {
     borderRadius: "0",
@@ -163,9 +163,6 @@ const mapSlice = createSlice({
     },
     setActivePaletteColor: (state, action) => {
       state.activePaletteStyle.color = action.payload;
-    },
-    setActivePaletteTextColor: (state, action) => {
-      state.activePaletteStyle.textColor = action.payload;
     },
     setActivePaletteLayer: (state, action) => {
       state.activePaletteStyle.layer = action.payload;

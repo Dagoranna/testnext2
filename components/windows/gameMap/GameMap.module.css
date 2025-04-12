@@ -57,6 +57,25 @@
   flex-direction: column;
 }
 
+.paletteButtonDel {
+  position: absolute;
+  top: 0;
+  height: 1.3rem;
+  font-size: 0.8rem;
+  padding: 1px;
+  background: linear-gradient(#dac1a5, #a9855d);
+  cursor: pointer;
+  text-align: center;
+  user-select: none;
+  text-decoration: none;
+  text-shadow: 0 -1px 1px #777;
+  color: #fff;
+  outline: none;
+  box-shadow: 0.2em 0.2em 0.3em #d7c6b3 inset, 0.2em 0.2em 0.2em #4d3a25;
+  border: 2px ridge #caa67e;
+  border-radius: 5px;
+}
+
 .paletteColors {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr;
@@ -149,6 +168,11 @@
   font-size: 0.8rem;
   z-index: 25;
   position: relative;
+  text-shadow: 1px 1px 2px white;
+  font-weight: bold;
+  background: radial-gradient(ellipse 50% 50%, white 0%, transparent 100%);
+  border-radius: 50%;
+  font-family: arial;
 }
 
 .activeElem {
