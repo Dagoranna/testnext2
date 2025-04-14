@@ -445,6 +445,9 @@ const charsheetSlice = createSlice({
       delete tempBlock[blockName];
       state[blockType] = tempBlock;
     },
+    loadCharsheet: (state, action) => {
+      return JSON.parse(action.payload);
+    },
   },
 });
 
@@ -458,6 +461,7 @@ export const {
   addSkill,
   addUnitedBlock,
   removeUnitedBlock,
+  loadCharsheet,
 } = charsheetSlice.actions;
 
 export default charsheetSlice.reducer;

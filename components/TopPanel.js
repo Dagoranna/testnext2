@@ -10,6 +10,9 @@ import { useSelector, useDispatch } from "react-redux";
 import * as actions from "../app/store/slices/mainSlice";
 import * as websocketActions from "../app/store/slices/websocketSlice";
 import { manageWebsocket } from "../app/store/slices/websocketSlice";
+import * as charsheetActions from "../app/store/slices/charsheetSlice";
+import * as gameMapActions from "../app/store/slices/mapSlice";
+import * as gameTableActions from "../app/store/slices/gameTableSlice";
 
 export default function TopPanel() {
   const dispatch = useDispatch();
@@ -29,6 +32,8 @@ export default function TopPanel() {
   const connectionTitle = useSelector((state) => state.main.connectionTitle);
   const gameId = useSelector((state) => state.websocket.gameId);
 
+  const charsheetState = useSelector((state) => state.charsheet);
+
   const itemsListGamer = [
     {
       itemName: "Change name",
@@ -38,12 +43,12 @@ export default function TopPanel() {
     {
       itemName: "Save charsheet",
       itemType: "button",
-      itemHandling: (e) => console.log("Save charsheet"),
+      itemHandling: async (e) => await handleSaveCharsheet(),
     },
     {
       itemName: "Load charsheet",
       itemType: "button",
-      itemHandling: (e) => console.log("Load charsheet"),
+      itemHandling: async (e) => await handleLoadCharsheet(),
     },
     {
       itemName: "Logout",
@@ -61,22 +66,22 @@ export default function TopPanel() {
     {
       itemName: "Save map",
       itemType: "button",
-      itemHandling: (e) => console.log("Save map"),
+      itemHandling: async (e) => await handleSaveMap(),
     },
     {
       itemName: "Load map",
       itemType: "button",
-      itemHandling: (e) => console.log("Load map"),
+      itemHandling: async (e) => await handleLoadMap(),
     },
     {
       itemName: "Save game",
       itemType: "button",
-      itemHandling: (e) => console.log("Save map"),
+      itemHandling: async (e) => await handleSaveGame(),
     },
     {
       itemName: "Load game",
       itemType: "button",
-      itemHandling: (e) => console.log("Save map"),
+      itemHandling: async (e) => await handleLoadGame(),
     },
     {
       itemName: "Logout",
@@ -268,6 +273,105 @@ export default function TopPanel() {
     }
     dispatch(actions.setLayout(windowsList));
     localStorage.setItem("layout", JSON.stringify(windowsList));
+  }
+
+  async function handleSaveCharsheet() {
+    setAddComps(
+      <FormWrapperFree formName="Save charsheet" clearForm={setAddComps}>
+        <div className="tableTitle">Enter charsheet title</div>
+        <form
+          onSubmit={async (e) =>
+            await saveCharsheet(e.target.elements.charsheetName.value, e)
+          }
+        >
+          <input
+            id="charsheetName"
+            type="text"
+            defaultValue={charsheetState.main.name}
+            className="mainInput"
+          />
+          <button id="chasheetName" className="mainButton" type="submit">
+            Save charsheet
+          </button>
+        </form>
+      </FormWrapperFree>
+    );
+  }
+
+  async function saveCharsheet(charsheetName, e) {
+    e.preventDefault();
+    let response = await fetch("/api/gamedata/saveCharsheet", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: userEmail,
+        title: charsheetName,
+        chardata: JSON.stringify(charsheetState),
+      }),
+    });
+
+    let baseResponse = await response.json();
+    if (!response.ok) {
+      console.log(baseResponse.message);
+      //throw new Error("error in database response");
+    }
+    setAddComps();
+  }
+
+  async function handleLoadCharsheet() {
+    let response = await fetch("/api/gamedata/getCharsheets", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: userEmail,
+      }),
+    });
+
+    let baseResponse = await response.json();
+    if (!response.ok) {
+      console.log(baseResponse.message);
+      return;
+      //throw new Error("error in database response");
+    }
+
+    let charsheets = <option>...</option>;
+    const charsheetsTitles = Object.keys(baseResponse.message);
+    if (charsheetsTitles.length > 0) {
+      charsheets = charsheetsTitles.map((item) => (
+        <option key={item} name={item}>
+          {item}
+        </option>
+      ));
+    }
+
+    function loadCharsheet(title, e) {
+      e.preventDefault();
+      const charsheet = baseResponse.message[title];
+      dispatch(charsheetActions.loadCharsheet(charsheet));
+      setAddComps();
+    }
+
+    setAddComps(
+      <FormWrapperFree formName="Load charsheet" clearForm={setAddComps}>
+        <div className="tableTitle">Choose charsheet</div>
+        <form
+          onSubmit={(e) =>
+            loadCharsheet(e.target.elements.charsheetName.value, e)
+          }
+        >
+          <select id="charsheetName" className="mainInput">
+            {charsheets}
+          </select>
+          <button id="chasheetName" className="mainButton" type="submit">
+            Load charsheet
+          </button>
+        </form>
+      </FormWrapperFree>
+    );
   }
 
   async function handleChangeName() {
