@@ -4,6 +4,7 @@ const gameTableSlice = createSlice({
   name: "gameTable",
   initialState: {
     combatants: [],
+    mobId: 0,
   },
   reducers: {
     addCombatant: (state, action) => {
@@ -22,13 +23,19 @@ const gameTableSlice = createSlice({
       //action.payload = id
       const id = action.payload;
       const index = state.combatants.findIndex((item) => item.id == id);
-      state.combatants = state.combatants.splice(index, 1);
+      state.combatants.splice(index, 1);
     },
     sortCombatants: (state, action) => {
       state.combatants.sort((a, b) => parseInt(b.init) - parseInt(a.init));
     },
-    setCombatants: (state, action) => {
-      state.combatants = structuredClone(action.payload);
+    loadCombatants: (state, action) => {
+      return JSON.parse(action.payload);
+    },
+    setMobId: (state, action) => {
+      state.mobId = action.payload;
+    },
+    incMobId: (state, action) => {
+      state.mobId = state.mobId + 1;
     },
   },
 });
@@ -38,7 +45,9 @@ export const {
   changeCombatant,
   removeCombatant,
   sortCombatants,
-  setCombatants,
+  loadCombatants,
+  setMobId,
+  incMobId,
 } = gameTableSlice.actions;
 
 export default gameTableSlice.reducer;

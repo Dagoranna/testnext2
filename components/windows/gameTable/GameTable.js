@@ -10,6 +10,7 @@ const Combatant = React.memo(function Combatant({ mob }) {
   //mob = {id: ***, name: ***, hp: ***, dam: ***, init: ***}
   const dispatch = useDispatch();
   const [form, setForm] = useState({
+    id: mob.id || 0,
     name: mob.name || "",
     hp: mob.hp || 0,
     dam: mob.dam || 0,
@@ -57,7 +58,7 @@ const Combatant = React.memo(function Combatant({ mob }) {
 
 export default function GameTable() {
   const dispatch = useDispatch();
-  const [mobId, setMobId] = useState(0);
+  const mobId = useSelector((state) => state.gameTable.mobId);
   const combatants = useSelector((state) => state.gameTable.combatants);
 
   const combatantsGrid = combatants.map((item) => {
@@ -65,10 +66,17 @@ export default function GameTable() {
   });
 
   useEffect(() => {
-    setMobId(combatants.length);
-  }, []);
+    setForm({
+      id: mobId,
+      name: `Mob ${mobId}`,
+      hp: 0,
+      dam: 0,
+      init: 0,
+    });
+  }, [mobId]);
 
   const [form, setForm] = useState({
+    id: mobId,
     name: `Mob ${mobId}`,
     hp: 0,
     dam: 0,
@@ -83,15 +91,17 @@ export default function GameTable() {
 
   function addButton() {
     const newMob = { ...form };
-    newMob["id"] = mobId;
-    setMobId((prevMobId) => prevMobId + 1);
+
     setForm({
-      name: `Mob ${newMob["id"] + 1}`,
+      id: mobId + 1,
+      name: `Mob ${mobId + 1}`,
       hp: 0,
       dam: 0,
       init: 0,
     });
+
     dispatch(gameTableSlice.addCombatant(newMob));
+    dispatch(gameTableSlice.incMobId());
   }
 
   function sortList() {

@@ -93,7 +93,6 @@ export default function Polydice() {
   }
 
   useEffect(() => {
-    console.log(serverMessage);
     if (!clientUtils.isValidJSON(serverMessage)) return;
 
     let messageJSON = JSON.parse(serverMessage);
@@ -171,9 +170,12 @@ export default function Polydice() {
 
     messageForServer["sectionName"] = "chat";
     messageForServer["sectionInfo"] = {
+      source: "polydice",
       chatMessage: chatString.current.innerHTML,
     };
 
+    //console.log("wwwww");
+    //console.log(messageForServer);
     dispatch(
       manageWebsocket(
         "send",

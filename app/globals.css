@@ -4,12 +4,17 @@
   box-sizing: border-box;
 }
 
-body{
-  background-color: #7d7a7a;
+body {
+  /* background-color: #7d7a7a;*/
   color: #533a1e;
+  background: url("/images/mr3.jpg");
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  height: 100svh;
+  border: 5px ridge #caa67e;
 }
 
-.mainButton{
+.mainButton {
   background: linear-gradient(#dac1a5, #a9855d);
   cursor: pointer;
   text-align: center;
@@ -19,63 +24,63 @@ body{
   color: #fff;
   outline: none;
 
-  padding: .4em;
-  border-radius: .5em;
-  margin: .2em;
+  padding: 0.4em;
+  border-radius: 0.5em;
+  margin: 0.2em;
   min-width: 5rem;
 
-  border: .1em solid #4d3a25;
-  box-shadow: .2em .2em .3em #d7c6b3 inset,.1em .1em .2em #4d3a25;  
+  border: 0.1em solid #4d3a25;
+  box-shadow: 0.2em 0.2em 0.3em #d7c6b3 inset, 0.1em 0.1em 0.2em #4d3a25;
 }
 
-.mainButton:hover{
-  box-shadow: .2em .2em .3em #d7c6b3 inset, 0 0 .3rem .1rem white;  
+.mainButton:hover {
+  box-shadow: 0.2em 0.2em 0.3em #d7c6b3 inset, 0 0 0.3rem 0.1rem white;
 }
 
-.mainButton:active{
-  box-shadow: .2em .2em .3em #d7c6b3 inset;  
+.mainButton:active {
+  box-shadow: 0.2em 0.2em 0.3em #d7c6b3 inset;
 }
 
-.mainInput{
+.mainInput {
   border-color: silver;
-  margin: .1em;
+  margin: 0.1em;
 }
 
-#authInputFields{
+#authInputFields {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-#authSwitchers{
+#authSwitchers {
   display: flex;
   flex-direction: column;
 }
 
-#LoginButton{
+#LoginButton {
   position: absolute;
   z-index: 1001;
 }
 
-#logoutButton{
+#logoutButton {
   position: absolute;
 }
 
-.switcher{
-  margin: .1em;
+.switcher {
+  margin: 0.1em;
   text-decoration: underline;
   cursor: pointer;
 }
 
-.tableTitle{
+.tableTitle {
   font-size: 1.5rem;
 }
 
-.verticalForm{
+.verticalForm {
   display: flex;
   flex-direction: column;
 }
 
-ul{
+ul {
   list-style-type: none;
 }

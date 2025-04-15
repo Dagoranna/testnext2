@@ -33,6 +33,7 @@ export default function TopPanel() {
   const gameId = useSelector((state) => state.websocket.gameId);
 
   const charsheetState = useSelector((state) => state.charsheet);
+  const gameState = useSelector((state) => state.gameTable);
 
   const itemsListGamer = [
     {
@@ -101,10 +102,7 @@ export default function TopPanel() {
   }, []);
 
   useEffect(() => {
-    ///{"sectionName":"games","list":{"icywizard1@gmail.com":"IcyWizard"}}
     if (!serverMessage) return;
-    console.log("serverMessage:");
-    console.log(serverMessage);
     const messageJSON = parseJSON(serverMessage);
     if (messageJSON === null) {
       if (serverMessage === "connected")
@@ -112,7 +110,6 @@ export default function TopPanel() {
       return;
     }
 
-    console.log("messageJSON.sectionName" + messageJSON.sectionName);
     if (
       messageJSON.sectionName !== "games" &&
       messageJSON.sectionName !== "choosemaster"
@@ -290,7 +287,7 @@ export default function TopPanel() {
             defaultValue={charsheetState.main.name}
             className="mainInput"
           />
-          <button id="chasheetName" className="mainButton" type="submit">
+          <button className="mainButton" type="submit">
             Save charsheet
           </button>
         </form>
@@ -366,13 +363,105 @@ export default function TopPanel() {
           <select id="charsheetName" className="mainInput">
             {charsheets}
           </select>
-          <button id="chasheetName" className="mainButton" type="submit">
+          <button className="mainButton" type="submit">
             Load charsheet
           </button>
         </form>
       </FormWrapperFree>
     );
   }
+
+  /** start */
+  async function handleSaveGame() {
+    setAddComps(
+      <FormWrapperFree formName="Save game" clearForm={setAddComps}>
+        <div className="tableTitle">Enter game title</div>
+        <form
+          onSubmit={async (e) =>
+            await saveGame(e.target.elements.gameName.value, e)
+          }
+        >
+          <input id="gameName" type="text" className="mainInput" />
+          <button className="mainButton" type="submit">
+            Save game
+          </button>
+        </form>
+      </FormWrapperFree>
+    );
+  }
+
+  async function saveGame(gameName, e) {
+    e.preventDefault();
+    let response = await fetch("/api/gamedata/saveGame", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: userEmail,
+        title: gameName,
+        gamedata: JSON.stringify(gameState),
+      }),
+    });
+
+    let baseResponse = await response.json();
+    if (!response.ok) {
+      console.log(baseResponse.message);
+      //throw new Error("error in database response");
+    }
+    setAddComps();
+  }
+
+  async function handleLoadGame() {
+    let response = await fetch("/api/gamedata/loadGame", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: userEmail,
+      }),
+    });
+
+    let baseResponse = await response.json();
+    if (!response.ok) {
+      console.log(baseResponse.message);
+      return;
+      //throw new Error("error in database response");
+    }
+
+    let games = <option>...</option>;
+    const gamesTitles = Object.keys(baseResponse.message);
+    if (gamesTitles.length > 0) {
+      games = gamesTitles.map((item) => (
+        <option key={item} name={item}>
+          {item}
+        </option>
+      ));
+    }
+
+    function loadGame(title, e) {
+      e.preventDefault();
+      const game = baseResponse.message[title];
+      dispatch(gameTableActions.loadCombatants(game));
+      setAddComps();
+    }
+
+    setAddComps(
+      <FormWrapperFree formName="Load game" clearForm={setAddComps}>
+        <div className="tableTitle">Choose game</div>
+        <form onSubmit={(e) => loadGame(e.target.elements.gameName.value, e)}>
+          <select id="gameName" className="mainInput">
+            {games}
+          </select>
+          <button className="mainButton" type="submit">
+            Load game
+          </button>
+        </form>
+      </FormWrapperFree>
+    );
+  }
+  /** end */
 
   async function handleChangeName() {
     setAddComps(
