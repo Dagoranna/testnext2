@@ -34,6 +34,7 @@ export default function TopPanel() {
 
   const charsheetState = useSelector((state) => state.charsheet);
   const gameState = useSelector((state) => state.gameTable);
+  const mapState = useSelector((state) => state.map.mapContent);
 
   const itemsListGamer = [
     {
@@ -372,6 +373,99 @@ export default function TopPanel() {
   }
 
   /** start */
+  async function handleSaveMap() {
+    setAddComps(
+      <FormWrapperFree formName="Save nap" clearForm={setAddComps}>
+        <div className="tableTitle">Enter map title</div>
+        <form
+          onSubmit={async (e) =>
+            await saveMap(e.target.elements.mapName.value, e)
+          }
+        >
+          <input id="mapName" type="text" className="mainInput" />
+          <button className="mainButton" type="submit">
+            Save map
+          </button>
+        </form>
+      </FormWrapperFree>
+    );
+  }
+
+  async function saveMap(mapName, e) {
+    e.preventDefault();
+    let response = await fetch("/api/gamedata/saveMap", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: userEmail,
+        title: mapName,
+        mapdata: JSON.stringify(mapState),
+      }),
+    });
+
+    let baseResponse = await response.json();
+    if (!response.ok) {
+      console.log(baseResponse.message);
+      //throw new Error("error in database response");
+    }
+    setAddComps();
+  }
+
+  async function handleLoadMap() {
+    let response = await fetch("/api/gamedata/loadMap", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: userEmail,
+      }),
+    });
+
+    let baseResponse = await response.json();
+    if (!response.ok) {
+      console.log(baseResponse.message);
+      return;
+      //throw new Error("error in database response");
+    }
+
+    let maps = <option>...</option>;
+    const mapsTitles = Object.keys(baseResponse.message);
+    if (mapsTitles.length > 0) {
+      maps = mapsTitles.map((item) => (
+        <option key={item} name={item}>
+          {item}
+        </option>
+      ));
+    }
+
+    function loadMap(title, e) {
+      e.preventDefault();
+      const map = baseResponse.message[title];
+      console.log(map);
+      dispatch(gameMapActions.loadMapContent(map));
+      setAddComps();
+    }
+
+    setAddComps(
+      <FormWrapperFree formName="Load map" clearForm={setAddComps}>
+        <div className="tableTitle">Choose map</div>
+        <form onSubmit={(e) => loadMap(e.target.elements.mapName.value, e)}>
+          <select id="mapName" className="mainInput">
+            {maps}
+          </select>
+          <button className="mainButton" type="submit">
+            Load map
+          </button>
+        </form>
+      </FormWrapperFree>
+    );
+  }
+
+  /** end */
+
   async function handleSaveGame() {
     setAddComps(
       <FormWrapperFree formName="Save game" clearForm={setAddComps}>
@@ -461,7 +555,6 @@ export default function TopPanel() {
       </FormWrapperFree>
     );
   }
-  /** end */
 
   async function handleChangeName() {
     setAddComps(

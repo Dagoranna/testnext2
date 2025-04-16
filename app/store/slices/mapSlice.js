@@ -180,6 +180,9 @@ const mapSlice = createSlice({
     setElemFromLib: (state, action) => {
       state.elemFromLib = action.payload;
     },
+    loadMapContent: (state, action) => {
+      state.mapContent = JSON.parse(action.payload);
+    },
   },
 });
 
@@ -200,6 +203,7 @@ export const {
   switchGridBinding,
   setSelectedObjectsId,
   setElemFromLib,
+  loadMapContent,
 } = mapSlice.actions;
 
 export { FORMS_LIST };
