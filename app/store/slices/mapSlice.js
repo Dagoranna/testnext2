@@ -60,39 +60,39 @@ const FORMS_LIST = {
   elemForm_12: {
     borderWidth: "2px",
     borderColor: "#404040",
-    borderLeft: "none",
-    borderRight: "none",
+    borderLeftWidth: 0,
+    borderRightWidth: 0,
   },
   elemForm_13: {
     borderWidth: "2px",
     borderColor: "#404040",
-    borderTop: "none",
-    borderBottom: "none",
+    borderTopWidth: 0,
+    borderBottomWidth: 0,
   },
 
   elemForm_14: {
     borderWidth: "2px",
     borderColor: "#404040",
-    borderTop: "none",
-    borderLeft: "none",
+    borderTopWidth: 0,
+    borderLeftWidth: 0,
   },
   elemForm_15: {
     borderWidth: "2px",
     borderColor: "#404040",
-    borderTop: "none",
-    borderRight: "none",
+    borderTopWidth: 0,
+    borderRightWidth: 0,
   },
   elemForm_16: {
     borderWidth: "2px",
     borderColor: "#404040",
-    borderLeft: "none",
-    borderBottom: "none",
+    borderLeftWidth: 0,
+    borderBottomWidth: 0,
   },
   elemForm_17: {
     borderWidth: "2px",
     borderColor: "#404040",
-    borderRight: "none",
-    borderBottom: "none",
+    borderRightLeftWidth: 0,
+    borderBottomWidth: 0,
   },
 };
 
