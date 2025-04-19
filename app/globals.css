@@ -10,7 +10,8 @@ body {
   background: url("/images/mr3.jpg");
   background-repeat: no-repeat;
   background-size: 100% 100%;
-  height: 100svh;
+  height: auto;
+  min-height: 100svh;
   border: 5px ridge #caa67e;
 }
 

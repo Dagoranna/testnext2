@@ -46,7 +46,7 @@ export default function MainBlock() {
       layouts={{ lg: layout }}
       breakpoints={breakpoints}
       cols={cols}
-      rowHeight={10}
+      rowHeight={3}
       margin={[10, 20]}
       onResizeStop={(newLayout, oldItem, newItem) => {
         dispatch(actions.setLayout(newLayout));
