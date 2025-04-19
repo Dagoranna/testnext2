@@ -42,3 +42,6 @@ next-env.d.ts
 #hints for me
 MYHINTS.txt
 schemes.*
+
+#js files transfered to ts
+*.bak

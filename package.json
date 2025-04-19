@@ -22,9 +22,12 @@
     "react-dom": "^19.0.0",
     "react-grid-layout": "^1.5.0",
     "react-redux": "^9.2.0",
-    "sass": "^1.82.0"
+    "sass": "^1.82.0",
+    "typescript": "^5.8.3"
   },
   "devDependencies": {
+    "@types/nodemailer": "^6.4.17",
+    "@types/react": "19.1.2",
     "eslint-config-prettier": "^9.1.0",
     "postcss": "^8",
     "prettier": "^3.4.2",

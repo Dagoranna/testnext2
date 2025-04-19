@@ -1,4 +1,4 @@
-import { makeHash } from "../../../../utils/generalUtils.js";
+import { makeHash } from "../../../../utils/generalUtils";
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
@@ -7,7 +7,7 @@ const supabase = createClient(
   process.env.SUPABASE_ANON_KEY
 );
 
-export async function POST(req) {
+export async function POST(req: Request) {
   const body = await req.json();
   const { email, password } = body;
 
@@ -59,7 +59,7 @@ export async function POST(req) {
   }
 }
 
-async function saveUserToBase(email, password, token) {
+async function saveUserToBase(email: string, password: string, token: string) {
   const { error } = await supabase
     .from("advancedauth")
     .insert([{ email: email, passwordhash: password, authtoken: token }]);
@@ -72,7 +72,7 @@ async function saveUserToBase(email, password, token) {
   }
 }
 
-async function getUser(email) {
+async function getUser(email: string) {
   const { data, error } = await supabase
     .from("advancedauth")
     .select("*")

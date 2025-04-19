@@ -30,11 +30,15 @@ body {
   min-width: 5rem;
 
   border: 0.1em solid #4d3a25;
-  box-shadow: 0.2em 0.2em 0.3em #d7c6b3 inset, 0.1em 0.1em 0.2em #4d3a25;
+  box-shadow:
+    0.2em 0.2em 0.3em #d7c6b3 inset,
+    0.1em 0.1em 0.2em #4d3a25;
 }
 
 .mainButton:hover {
-  box-shadow: 0.2em 0.2em 0.3em #d7c6b3 inset, 0 0 0.3rem 0.1rem white;
+  box-shadow:
+    0.2em 0.2em 0.3em #d7c6b3 inset,
+    0 0 0.3rem 0.1rem white;
 }
 
 .mainButton:active {
@@ -83,4 +87,12 @@ body {
 
 ul {
   list-style-type: none;
+}
+
+@media only screen and (max-width: 414px) {
+  .react-resizable-handle {
+    width: 60px !important;
+    height: 60px !important;
+    border: 2px solid red;
+  }
 }

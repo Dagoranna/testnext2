@@ -7,7 +7,7 @@ const supabase = createClient(
   process.env.SUPABASE_ANON_KEY
 );
 
-export async function POST(req) {
+export async function POST() {
   const cookieStore = await cookies();
   const authToken = cookieStore.get('token')?.value;   
 
@@ -28,7 +28,7 @@ export async function POST(req) {
   }
 }
 
-async function getEmailForToken(token) {
+async function getEmailForToken(token: string) {
   const { data, error } = await supabase
     .from('advancedauth')
     .select('email')
