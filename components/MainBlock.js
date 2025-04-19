@@ -47,6 +47,7 @@ export default function MainBlock() {
       breakpoints={breakpoints}
       cols={cols}
       rowHeight={10}
+      margin={[10, 20]}
       onResizeStop={(newLayout, oldItem, newItem) => {
         dispatch(actions.setLayout(newLayout));
       }}

@@ -93,6 +93,5 @@ ul {
   .react-resizable-handle {
     width: 60px !important;
     height: 60px !important;
-    border: 2px solid red;
   }
 }
