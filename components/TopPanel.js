@@ -129,6 +129,7 @@ export default function TopPanel() {
           itemType: "button",
           itemHandling: async (e) => handleServerConnection(),
         });
+        dispatch(actions.setConnectionTitle("Connect"));
         dispatch(
           manageWebsocket("disconnect", process.env.NEXT_PUBLIC_SERVER_URL)
         );
