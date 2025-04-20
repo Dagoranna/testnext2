@@ -91,7 +91,7 @@ const FORMS_LIST = {
   elemForm_17: {
     borderWidth: "2px",
     borderColor: "#404040",
-    borderRightLeftWidth: 0,
+    borderRightWidth: 0,
     borderBottomWidth: 0,
   },
 };
