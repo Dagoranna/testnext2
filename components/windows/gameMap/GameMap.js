@@ -379,11 +379,11 @@ function MapField() {
         formClone.style.backgroundColor = mainBGColor;
         formClone.style.backgroundImage = `
             linear-gradient( transparent ${CELL_SIZE - 1}px, gray ${
-          CELL_SIZE - 1
-        }px),
+              CELL_SIZE - 1
+            }px),
             linear-gradient(90deg, transparent ${CELL_SIZE - 1}px, gray ${
-          CELL_SIZE - 1
-        }px)
+              CELL_SIZE - 1
+            }px)
           `;
         formClone.style.backgroundSize = `${CELL_SIZE}px ${CELL_SIZE}px`;
         formClone.style.backgroundPosition = `0 0, 0 0`;
@@ -1083,6 +1083,7 @@ function PaletteFormsButtons() {
         elemID: elemID,
       }),
     });
+    //TODO: error handling (delState = false)
     const oldLib = libraryContent;
     const parser = new DOMParser();
     const doc = parser.parseFromString(oldLib, "text/html");

@@ -2,22 +2,28 @@ import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
 const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
+  process.env.SUPABASE_URL as string,
+  process.env.SUPABASE_ANON_KEY as string
 );
 
-export async function POST(req) {
-  const body = await req.json();
-  const { email, elemID } = body;
+interface bodyRequest {
+  email: string;
+  elem: string;
+}
+
+export async function POST(req: Request) {
+  const body: bodyRequest = await req.json();
+  const { email, elem } = body;
 
   const elemStore = await getElemStore(email);
   const elems = elemStore[0].elem_store;
-  let parsedStore = [];
+  let parsedStore: string[] = [];
 
   if (elems) {
     parsedStore = JSON.parse(elems);
   }
-  parsedStore = parsedStore.filter((item) => !item.includes(elemID));
+
+  parsedStore.push(elem);
 
   const newStore = JSON.stringify(parsedStore);
   let resSaving = await setElemStore(email, newStore);
@@ -35,7 +41,7 @@ export async function POST(req) {
   }
 }
 
-async function setElemStore(email, store) {
+async function setElemStore(email: string, store: string) {
   const { data, error } = await supabase
     .from("players")
     .update({ elem_store: store })
@@ -49,7 +55,7 @@ async function setElemStore(email, store) {
   }
 }
 
-async function getElemStore(email) {
+async function getElemStore(email: string) {
   const { data, error } = await supabase
     .from("players")
     .select("elem_store")

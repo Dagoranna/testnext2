@@ -2,18 +2,22 @@ import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from 'next/server';
 
 const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
+  process.env.SUPABASE_URL as string,
+  process.env.SUPABASE_ANON_KEY as string
 );
 
-export async function POST(req) {
-  const body = await req.json();
+interface bodyRequest {
+  email: string;
+}
+
+export async function POST(req: Request) {
+  const body: bodyRequest = await req.json();
   const { email } = body;
 
-  const baseData = await getName (email);
+  const baseData = await getName(email);
   
   if (baseData === null){
-    return NextResponse.json({ message: 'database error',userState: false }, { status: 500 });  
+    return NextResponse.json({ message: 'database error', userState: false }, { status: 500 });  
   }
 
   if (baseData.length === 0){
@@ -23,7 +27,7 @@ export async function POST(req) {
   }
 }
 
-async function getName(email) {
+async function getName(email: string) {
   const { data, error } = await supabase
     .from('players')
     .select('gamer_name')  

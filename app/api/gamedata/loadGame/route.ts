@@ -2,21 +2,26 @@ import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
 const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
+  process.env.SUPABASE_URL as string,
+  process.env.SUPABASE_ANON_KEY as string
 );
 
-export async function POST(req) {
-  const body = await req.json();
+interface bodyRequest {
+  email: string;
+}
+export async function POST(req: Request) {
+  const body: bodyRequest = await req.json();
   const { email } = body;
 
   const store = await getGamesList(email);
-  let parsedStore;
-  try {
+  let parsedStore: Record<string, string> = {};
+
+  if (store !== null){
     parsedStore = JSON.parse(store);
-  } catch {
+  } else {
     parsedStore = {};
   }
+
   if (parsedStore) {
     return NextResponse.json(
       { message: parsedStore, getState: true },
@@ -30,7 +35,7 @@ export async function POST(req) {
   }
 }
 
-async function getGamesList(email) {
+async function getGamesList(email: string): Promise<string | null> {
   const { data, error } = await supabase
     .from("players")
     .select("master_game")
@@ -38,9 +43,8 @@ async function getGamesList(email) {
 
   if (error) {
     console.error("Error:", error);
-    return false;
+    return null;
   }
 
-  if (!data || !data[0]) return {};
-  return data[0].master_game ?? {};
+  return data[0].master_game ?? null;
 }

@@ -2,21 +2,27 @@ import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
 const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
+  process.env.SUPABASE_URL as string,
+  process.env.SUPABASE_ANON_KEY as string
 );
 
-export async function POST(req) {
-  const body = await req.json();
+interface bodyRequest {
+  email: string;
+}
+
+export async function POST(req: Request) {
+  const body: bodyRequest = await req.json();
   const { email } = body;
 
   const store = await getMapsList(email);
-  let parsedStore;
+  let parsedStore: Record<string, string> = {};
+
   try {
     parsedStore = JSON.parse(store);
   } catch {
     parsedStore = {};
   }
+
   if (parsedStore) {
     return NextResponse.json(
       { message: parsedStore, getState: true },
@@ -30,7 +36,7 @@ export async function POST(req) {
   }
 }
 
-async function getMapsList(email) {
+async function getMapsList(email: string) {
   const { data, error } = await supabase
     .from("players")
     .select("master_map")

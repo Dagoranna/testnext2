@@ -2,21 +2,29 @@ import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
 const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
+  process.env.SUPABASE_URL as string,
+  process.env.SUPABASE_ANON_KEY as string
 );
 
-export async function POST(req) {
-  const body = await req.json();
+interface bodyRequest {
+  email: string;
+  title: string;
+  chardata: string;
+}
+
+export async function POST(req: Request) {
+  const body: bodyRequest = await req.json();
   const { email, title, chardata } = body;
 
   const store = await getCharsheetsList(email);
-  let parsedStore;
+  let parsedStore: Record<string, string> = {};
+
   try {
     parsedStore = JSON.parse(store);
   } catch {
     parsedStore = {};
   }
+
   parsedStore[title] = chardata;
   const newStore = JSON.stringify(parsedStore);
   let resSaving = await setCharsheetsList(email, newStore);
@@ -34,7 +42,7 @@ export async function POST(req) {
   }
 }
 
-async function setCharsheetsList(email, newStore) {
+async function setCharsheetsList(email: string, newStore: string) {
   const { data, error } = await supabase
     .from("players")
     .update({ gamer_charsheet: newStore })
@@ -48,7 +56,7 @@ async function setCharsheetsList(email, newStore) {
   }
 }
 
-async function getCharsheetsList(email) {
+async function getCharsheetsList(email: string) {
   const { data, error } = await supabase
     .from("players")
     .select("gamer_charsheet")
@@ -63,7 +71,3 @@ async function getCharsheetsList(email) {
   return data[0].gamer_charsheet ?? {};
 }
 
-/* return new Response(JSON.stringify({ message: 'catch', data: baseData}), {
-   status: 200,
-   headers: { 'Content-Type': 'application/json' },
- });*/

@@ -2,12 +2,17 @@ import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from 'next/server';
 
 const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
+  process.env.SUPABASE_URL as string,
+  process.env.SUPABASE_ANON_KEY as string
 );
 
-export async function POST(req) {
-  const body = await req.json();
+interface bodyRequest {
+  email: string;
+  name: string;
+}
+
+export async function POST(req: Request) {
+  const body: bodyRequest = await req.json();
   const { email, name } = body;
 
   const baseData = await getName(email);
@@ -33,7 +38,7 @@ export async function POST(req) {
   }
 }
 
-async function createUser(email,name) {
+async function createUser(email: string, name: string) {
   const { error } = await supabase
     .from('players')
     .insert([
@@ -48,7 +53,7 @@ async function createUser(email,name) {
   }
 }
 
-async function updateUserName(email,name) {
+async function updateUserName(email: string, name: string) {
   const { data, error } = await supabase
     .from('players')
     .update({ gamer_name: name })    
@@ -62,7 +67,7 @@ async function updateUserName(email,name) {
   }
 }
 
-async function getName(email) {
+async function getName(email: string) {
   const { data, error } = await supabase
     .from('players')
     .select('gamer_name')  

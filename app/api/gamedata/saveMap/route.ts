@@ -2,40 +2,35 @@ import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
 const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
+  process.env.SUPABASE_URL as string,
+  process.env.SUPABASE_ANON_KEY as string
 );
 
-export async function POST(req) {
-  const body = await req.json();
-  const { email } = body;
+interface bodyRequest {
+  email: string;
+  title: string;
+  mapdata: string;
+}
 
-  const store = await getCharsheetsList(email);
-  let parsedStore;
+export async function POST(req: Request) {
+  const body: bodyRequest = await req.json();
+  const { email, title, mapdata } = body;
+
+  const store = await getMapsList(email);
+  let parsedStore: Record<string, string> = {};
+
   try {
     parsedStore = JSON.parse(store);
   } catch {
     parsedStore = {};
   }
-  if (parsedStore) {
-    return NextResponse.json(
-      { message: parsedStore, getState: true },
-      { status: 200 }
-    );
-  } else {
-    return NextResponse.json(
-      { message: "loading failed", getState: false },
-      { status: 500 }
-    );
-  }
-  /*
-  parsedStore[title] = chardata;
+  parsedStore[title] = mapdata;
   const newStore = JSON.stringify(parsedStore);
-  let resSaving = await setCharsheetsList(email, newStore);
+  let resSaving = await setMapsList(email, newStore);
 
   if (resSaving) {
     return NextResponse.json(
-      { message: "charsheet saved successfully", saveState: true },
+      { message: "map saved successfully", saveState: true },
       { status: 200 }
     );
   } else {
@@ -43,13 +38,13 @@ export async function POST(req) {
       { message: "saving failed", saveState: false },
       { status: 500 }
     );
-  }*/
+  }
 }
 
-/*async function setCharsheetsList(email, newStore) {
+async function setMapsList(email: string, newStore: string) {
   const { data, error } = await supabase
     .from("players")
-    .update({ gamer_charsheet: newStore })
+    .update({ master_map: newStore })
     .eq("gamer_mail", email);
 
   if (error) {
@@ -58,12 +53,12 @@ export async function POST(req) {
   } else {
     return true;
   }
-}*/
+}
 
-async function getCharsheetsList(email) {
+async function getMapsList(email: string) {
   const { data, error } = await supabase
     .from("players")
-    .select("gamer_charsheet")
+    .select("master_map")
     .eq("gamer_mail", email);
 
   if (error) {
@@ -72,5 +67,5 @@ async function getCharsheetsList(email) {
   }
 
   if (!data || !data[0]) return {};
-  return data[0].gamer_charsheet ?? {};
+  return data[0].master_map ?? {};
 }

@@ -2,12 +2,17 @@ import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
 const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
+  process.env.SUPABASE_URL as string,
+  process.env.SUPABASE_ANON_KEY as string
 );
 
-export async function POST(req) {
-  const email = "global@global.com";
+interface bodyRequest {
+  email: string;
+}
+
+export async function POST(req: Request) {
+  const body: bodyRequest = await req.json();
+  const { email } = body;
 
   const elemStore = await getElemStore(email);
   const elems = elemStore[0].elem_store;
@@ -25,7 +30,7 @@ export async function POST(req) {
   }
 }
 
-async function getElemStore(email) {
+async function getElemStore(email: string) {
   const { data, error } = await supabase
     .from("players")
     .select("elem_store")
