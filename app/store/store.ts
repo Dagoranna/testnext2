@@ -16,3 +16,7 @@ export const store = configureStore({
     gameTable: gameTableReducer,
   },
 });
+
+// `RootState` and `AppDispatch` types
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;

@@ -5,29 +5,32 @@ import { useSelector, useDispatch } from "react-redux";
 import * as actions from "../app/store/slices/mainSlice";
 import { manageWebsocket } from "../app/store/slices/websocketSlice";
 import * as websocketActions from "../app/store/slices/websocketSlice";
+import type { RootState, AppDispatch } from "../app/store/store";
+import { UserRole, LayoutLine } from "../app/store/slices/mainSlice";
 
 export default function RoleSwitcher() {
-  const dispatch = useDispatch();
-  const userRole = useSelector((state) => state.main.userRole);
-  const userEmail = useSelector((state) => state.main.userEmail);
-  const winList = useSelector((state) => state.main.winList);
-  const connectionTitle = useSelector((state) => state.main.connectionTitle);
+  const dispatch: AppDispatch = useDispatch();
+  const userRole = useSelector((state: RootState) => state.main.userRole);
+  const userEmail = useSelector((state: RootState) => state.main.userEmail);
+  const winList = useSelector((state: RootState) => state.main.winList);
 
-  function switchRole(role) {
+  function switchRole(role: UserRole) {
     if (userRole !== role) {
       dispatch(actions.setUserRole(role));
       const activeWins = JSON.parse(
-        localStorage.getItem(`activeWinList${userRole}`)
+        localStorage.getItem(`activeWinList${userRole}`) || "[]"
       );
-      const hiddenLayout = JSON.parse(localStorage.getItem("hiddenLayout"));
-      const newLayout = [];
+      const hiddenLayout = JSON.parse(
+        localStorage.getItem("hiddenLayout") || "[]"
+      );
+      const newLayout: LayoutLine[] = [];
 
-      activeWins.map((item) => {
+      activeWins.forEach((item: string) => {
         //item = Polydice, etc
         if (winList[role].includes(item)) {
-          let layItem = hiddenLayout.find((l) => l.i === item);
+          let layItem = hiddenLayout.find((l: LayoutLine) => l.i === item);
           if (layItem) {
-            newLayout.push(hiddenLayout.find((l) => l.i === item));
+            newLayout.push(hiddenLayout.find((l: LayoutLine) => l.i === item));
           } else {
             newLayout.push({ i: item, x: 0, y: 0, w: 5, h: 15 });
           }
@@ -35,7 +38,7 @@ export default function RoleSwitcher() {
       });
       dispatch(actions.setLayout(newLayout));
       if (role === "Gamer") {
-        dispatch(websocketActions.setGameId(0));
+        dispatch(websocketActions.setGameId(null));
       } else if (role === "Master") {
         dispatch(websocketActions.setGameId(userEmail));
       }

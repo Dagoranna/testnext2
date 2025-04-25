@@ -1,61 +1,75 @@
 "use client";
+
+import React from "react";
 import styles from "./TopPanel.module.css";
 import DropDownMenu from "./DropDownMenu";
+import { MenuItemProps } from "./DropDownMenu";
 import RoleSwitcher from "./RoleSwitcher";
 import { useState, useEffect } from "react";
 import FormWrapperFree from "./forms/FormWrapperFree";
 import { serverMessageHandling } from "../utils/generalUtils";
-import { parseJSON } from "../utils/clientUtils";
+import { parseJSON, isValidJSON } from "../utils/clientUtils";
 import { useSelector, useDispatch } from "react-redux";
 import * as actions from "../app/store/slices/mainSlice";
+import { LayoutLine } from "../app/store/slices/mainSlice";
 import * as websocketActions from "../app/store/slices/websocketSlice";
 import { manageWebsocket } from "../app/store/slices/websocketSlice";
+import type {
+  SectionName,
+  MessageForServer,
+} from "../app/store/slices/websocketSlice";
 import * as charsheetActions from "../app/store/slices/charsheetSlice";
 import * as gameMapActions from "../app/store/slices/mapSlice";
 import * as gameTableActions from "../app/store/slices/gameTableSlice";
 
+import type { RootState, AppDispatch } from "../app/store/store";
+
 export default function TopPanel() {
-  const dispatch = useDispatch();
+  const dispatch: AppDispatch = useDispatch();
 
-  const loginState = useSelector((state) => state.main.loginState);
-  const userEmail = useSelector((state) => state.main.userEmail);
-  const userName = useSelector((state) => state.main.userName);
-  const userColor = useSelector((state) => state.main.userColor);
-  const userRole = useSelector((state) => state.main.userRole);
-  const layout = useSelector((state) => state.main.layout);
-  const winList = useSelector((state) => state.main.winList);
+  const loginState = useSelector((state: RootState) => state.main.loginState);
+  const userEmail = useSelector((state: RootState) => state.main.userEmail);
+  const userName = useSelector((state: RootState) => state.main.userName);
+  const userColor = useSelector((state: RootState) => state.main.userColor);
+  const userRole = useSelector((state: RootState) => state.main.userRole);
+  const layout = useSelector((state: RootState) => state.main.layout);
+  const winList = useSelector((state: RootState) => state.main.winList);
 
-  const serverMessage = useSelector((state) => state.websocket.serverMessage);
-  const connectionState = useSelector(
-    (state) => state.websocket.connectionState
+  const serverMessage = useSelector(
+    (state: RootState) => state.websocket.serverMessage
   );
-  const connectionTitle = useSelector((state) => state.main.connectionTitle);
-  const gameId = useSelector((state) => state.websocket.gameId);
+  const connectionState = useSelector(
+    (state: RootState) => state.websocket.connectionState
+  );
+  const connectionTitle = useSelector(
+    (state: RootState) => state.main.connectionTitle
+  );
+  const gameId = useSelector((state: RootState) => state.websocket.gameId);
 
-  const charsheetState = useSelector((state) => state.charsheet);
-  const gameState = useSelector((state) => state.gameTable);
-  const mapState = useSelector((state) => state.map.mapContent);
+  const charsheetState = useSelector((state: RootState) => state.charsheet);
+  const gameState = useSelector((state: RootState) => state.gameTable);
+  const mapState = useSelector((state: RootState) => state.map.mapContent);
 
   const itemsListGamer = [
     {
       itemName: "Change name",
       itemType: "button",
-      itemHandling: async (e) => await handleChangeName(),
+      itemHandling: async () => await handleChangeName(),
     },
     {
       itemName: "Save charsheet",
       itemType: "button",
-      itemHandling: async (e) => await handleSaveCharsheet(),
+      itemHandling: async () => await handleSaveCharsheet(),
     },
     {
       itemName: "Load charsheet",
       itemType: "button",
-      itemHandling: async (e) => await handleLoadCharsheet(),
+      itemHandling: async () => await handleLoadCharsheet(),
     },
     {
       itemName: "Logout",
       itemType: "button",
-      itemHandling: async (e) => await handleLogout(),
+      itemHandling: async () => await handleLogout(),
     },
   ];
 
@@ -63,37 +77,37 @@ export default function TopPanel() {
     {
       itemName: "Change name",
       itemType: "button",
-      itemHandling: async (e) => await handleChangeName(),
+      itemHandling: async () => await handleChangeName(),
     },
     {
       itemName: "Save map",
       itemType: "button",
-      itemHandling: async (e) => await handleSaveMap(),
+      itemHandling: async () => await handleSaveMap(),
     },
     {
       itemName: "Load map",
       itemType: "button",
-      itemHandling: async (e) => await handleLoadMap(),
+      itemHandling: async () => await handleLoadMap(),
     },
     {
       itemName: "Save game",
       itemType: "button",
-      itemHandling: async (e) => await handleSaveGame(),
+      itemHandling: async () => await handleSaveGame(),
     },
     {
       itemName: "Load game",
       itemType: "button",
-      itemHandling: async (e) => await handleLoadGame(),
+      itemHandling: async () => await handleLoadGame(),
     },
     {
       itemName: "Logout",
       itemType: "button",
-      itemHandling: async (e) => await handleLogout(),
+      itemHandling: async () => await handleLogout(),
     },
   ];
 
-  const [colorsSet, setColorsSet] = useState(null);
-  const [addComps, setAddComps] = useState(null);
+  const [colorsSet, setColorsSet] = useState<React.ReactNode>(null);
+  const [addComps, setAddComps] = useState<React.ReactNode>(null);
   const [menuStyle, setMenuStyle] = useState("");
   const [serverList, setServerList] = useState([]);
 
@@ -102,14 +116,22 @@ export default function TopPanel() {
     if (gamerColor) dispatch(actions.setUserColor(gamerColor));
   }, []);
 
+  type MessageFromServer = MessageForServer & {
+    rollResults?: number[];
+    list?: Record<string, string>;
+    DMName?: string;
+  };
+
   useEffect(() => {
     if (!serverMessage) return;
-    const messageJSON = parseJSON(serverMessage);
-    if (messageJSON === null) {
-      if (serverMessage === "connected")
-        dispatch(actions.setConnectionTitle("Connected"));
+
+    if (serverMessage === "connected") {
+      dispatch(actions.setConnectionTitle("Connected"));
       return;
     }
+
+    if (!isValidJSON(serverMessage)) return;
+    const messageJSON = parseJSON(serverMessage) as MessageFromServer;
 
     if (
       messageJSON.sectionName !== "games" &&
@@ -117,7 +139,7 @@ export default function TopPanel() {
     )
       return;
 
-    let tempServerList = [];
+    let tempServerList: MenuItemProps[] = [];
     if (messageJSON.sectionName === "games") {
       if (Object.keys(messageJSON.list).length === 0) {
         //no DMs
@@ -161,7 +183,7 @@ export default function TopPanel() {
         }
       }
     } else if (messageJSON.sectionName === "choosemaster") {
-      messageJSON.gameId;
+      //messageJSON.gameId;
       let DMName = messageJSON.DMName;
       let DMMail = messageJSON.gameId;
       dispatch(websocketActions.setGameId(DMMail));
@@ -182,23 +204,23 @@ export default function TopPanel() {
     switch (connectionState) {
       case 1:
         //sending message with new gameId
-        let messageForServer = {
+        const messageForServer: MessageFromServer = {
           user: {
             userRole: userRole,
             userName: userName,
             userColor: userColor,
             userEmail: userEmail,
           },
+          sectionName: "choosemaster",
+          gameId: DMMail,
+          DMName: DMName,
         };
-        messageForServer["sectionName"] = "choosemaster";
-        messageForServer["gameId"] = DMMail;
-        messageForServer["DMName"] = DMName;
-        let JSONMessage = JSON.stringify(messageForServer);
+
         dispatch(
           manageWebsocket(
             "send",
             process.env.NEXT_PUBLIC_SERVER_URL,
-            JSONMessage
+            messageForServer
           )
         );
         break;
@@ -209,7 +231,7 @@ export default function TopPanel() {
   }
 
   function toggleWindow(item) {
-    let currentWindowInfo = false;
+    let currentWindowInfo: LayoutLine | null;
     const windowsList = layout.filter((window) => window.i !== item);
 
     if (layout.length == windowsList.length) {
@@ -218,7 +240,7 @@ export default function TopPanel() {
 
       if (storedLayout) {
         const parsedLayout = JSON.parse(storedLayout);
-        currentWindowInfo = parsedLayout.find((l) => l.i === item);
+        currentWindowInfo = parsedLayout.find((l: LayoutLine) => l.i === item);
       }
 
       if (currentWindowInfo) {
@@ -227,7 +249,9 @@ export default function TopPanel() {
         const hiddenLayout = localStorage.getItem("hiddenLayout");
         if (hiddenLayout) {
           const parsedHiddenLayout = JSON.parse(hiddenLayout);
-          currentWindowInfo = parsedHiddenLayout.find((l) => l.i === item);
+          currentWindowInfo = parsedHiddenLayout.find(
+            (l: LayoutLine) => l.i === item
+          );
           if (currentWindowInfo) {
             windowsList.push(currentWindowInfo);
           } else {
@@ -278,11 +302,7 @@ export default function TopPanel() {
     setAddComps(
       <FormWrapperFree formName="Save charsheet" clearForm={setAddComps}>
         <div className="tableTitle">Enter charsheet title</div>
-        <form
-          onSubmit={async (e) =>
-            await saveCharsheet(e.target.elements.charsheetName.value, e)
-          }
-        >
+        <form onSubmit={async (e) => await saveCharsheet(e)}>
           <input
             id="charsheetName"
             type="text"
@@ -297,8 +317,14 @@ export default function TopPanel() {
     );
   }
 
-  async function saveCharsheet(charsheetName, e) {
+  async function saveCharsheet(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const form = e.target as HTMLFormElement;
+    const formInput = form.elements.namedItem(
+      "charsheetName"
+    ) as HTMLInputElement;
+    const charsheetName = formInput.value;
+
     let response = await fetch("/api/gamedata/saveCharsheet", {
       method: "POST",
       headers: {
@@ -316,7 +342,7 @@ export default function TopPanel() {
       console.log(baseResponse.message);
       //throw new Error("error in database response");
     }
-    setAddComps();
+    setAddComps(null);
   }
 
   async function handleLoadCharsheet() {
@@ -337,31 +363,33 @@ export default function TopPanel() {
       //throw new Error("error in database response");
     }
 
-    let charsheets = <option>...</option>;
+    let charsheets: React.ReactNode = <option>...</option>;
     const charsheetsTitles = Object.keys(baseResponse.message);
     if (charsheetsTitles.length > 0) {
       charsheets = charsheetsTitles.map((item) => (
-        <option key={item} name={item}>
+        <option key={item} value={item}>
           {item}
         </option>
       ));
     }
 
-    function loadCharsheet(title, e) {
+    function loadCharsheet(e: React.FormEvent<HTMLFormElement>) {
       e.preventDefault();
-      const charsheet = baseResponse.message[title];
+      const form = e.target as HTMLFormElement;
+      const formInput = form.elements.namedItem(
+        "charsheetName"
+      ) as HTMLInputElement;
+      const charsheetName = formInput.value;
+
+      const charsheet = baseResponse.message[charsheetName];
       dispatch(charsheetActions.loadCharsheet(charsheet));
-      setAddComps();
+      setAddComps(null);
     }
 
     setAddComps(
       <FormWrapperFree formName="Load charsheet" clearForm={setAddComps}>
         <div className="tableTitle">Choose charsheet</div>
-        <form
-          onSubmit={(e) =>
-            loadCharsheet(e.target.elements.charsheetName.value, e)
-          }
-        >
+        <form onSubmit={(e) => loadCharsheet(e)}>
           <select id="charsheetName" className="mainInput">
             {charsheets}
           </select>
@@ -378,11 +406,7 @@ export default function TopPanel() {
     setAddComps(
       <FormWrapperFree formName="Save nap" clearForm={setAddComps}>
         <div className="tableTitle">Enter map title</div>
-        <form
-          onSubmit={async (e) =>
-            await saveMap(e.target.elements.mapName.value, e)
-          }
-        >
+        <form onSubmit={async (e) => await saveMap(e)}>
           <input id="mapName" type="text" className="mainInput" />
           <button className="mainButton" type="submit">
             Save map
@@ -392,8 +416,12 @@ export default function TopPanel() {
     );
   }
 
-  async function saveMap(mapName, e) {
+  async function saveMap(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const form = e.target as HTMLFormElement;
+    const formInput = form.elements.namedItem("mapName") as HTMLInputElement;
+    const mapName = formInput.value;
+
     let response = await fetch("/api/gamedata/saveMap", {
       method: "POST",
       headers: {
@@ -402,7 +430,7 @@ export default function TopPanel() {
       body: JSON.stringify({
         email: userEmail,
         title: mapName,
-        mapdata: JSON.stringify(mapState),
+        mapdata: mapState,
       }),
     });
 
@@ -411,7 +439,7 @@ export default function TopPanel() {
       console.log(baseResponse.message);
       //throw new Error("error in database response");
     }
-    setAddComps();
+    setAddComps(null);
   }
 
   async function handleLoadMap() {
@@ -432,28 +460,30 @@ export default function TopPanel() {
       //throw new Error("error in database response");
     }
 
-    let maps = <option>...</option>;
+    let maps: React.ReactNode = <option>...</option>;
     const mapsTitles = Object.keys(baseResponse.message);
     if (mapsTitles.length > 0) {
       maps = mapsTitles.map((item) => (
-        <option key={item} name={item}>
+        <option key={item} value={item}>
           {item}
         </option>
       ));
     }
 
-    function loadMap(title, e) {
+    function loadMap(e: React.FormEvent<HTMLFormElement>) {
       e.preventDefault();
-      const map = baseResponse.message[title];
-      console.log(map);
+      const form = e.target as HTMLFormElement;
+      const formInput = form.elements.namedItem("mapName") as HTMLInputElement;
+      const mapName = formInput.value;
+      const map = baseResponse.message[mapName];
       dispatch(gameMapActions.loadMapContent(map));
-      setAddComps();
+      setAddComps(null);
     }
 
     setAddComps(
       <FormWrapperFree formName="Load map" clearForm={setAddComps}>
         <div className="tableTitle">Choose map</div>
-        <form onSubmit={(e) => loadMap(e.target.elements.mapName.value, e)}>
+        <form onSubmit={(e) => loadMap(e)}>
           <select id="mapName" className="mainInput">
             {maps}
           </select>
@@ -471,11 +501,7 @@ export default function TopPanel() {
     setAddComps(
       <FormWrapperFree formName="Save game" clearForm={setAddComps}>
         <div className="tableTitle">Enter game title</div>
-        <form
-          onSubmit={async (e) =>
-            await saveGame(e.target.elements.gameName.value, e)
-          }
-        >
+        <form onSubmit={async (e) => await saveGame(e)}>
           <input id="gameName" type="text" className="mainInput" />
           <button className="mainButton" type="submit">
             Save game
@@ -485,8 +511,12 @@ export default function TopPanel() {
     );
   }
 
-  async function saveGame(gameName, e) {
+  async function saveGame(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const form = e.target as HTMLFormElement;
+    const formInput = form.elements.namedItem("gameName") as HTMLInputElement;
+    const gameName = formInput.value;
+
     let response = await fetch("/api/gamedata/saveGame", {
       method: "POST",
       headers: {
@@ -504,7 +534,7 @@ export default function TopPanel() {
       console.log(baseResponse.message);
       //throw new Error("error in database response");
     }
-    setAddComps();
+    setAddComps(null);
   }
 
   async function handleLoadGame() {
@@ -525,27 +555,30 @@ export default function TopPanel() {
       //throw new Error("error in database response");
     }
 
-    let games = <option>...</option>;
+    let games: React.ReactNode = <option>...</option>;
     const gamesTitles = Object.keys(baseResponse.message);
     if (gamesTitles.length > 0) {
       games = gamesTitles.map((item) => (
-        <option key={item} name={item}>
+        <option key={item} value={item}>
           {item}
         </option>
       ));
     }
 
-    function loadGame(title, e) {
+    function loadGame(e: React.FormEvent<HTMLFormElement>) {
       e.preventDefault();
-      const game = baseResponse.message[title];
+      const form = e.target as HTMLFormElement;
+      const formInput = form.elements.namedItem("gameName") as HTMLInputElement;
+      const gameName = formInput.value;
+      const game = baseResponse.message[gameName];
       dispatch(gameTableActions.loadCombatants(game));
-      setAddComps();
+      setAddComps(null);
     }
 
     setAddComps(
       <FormWrapperFree formName="Load game" clearForm={setAddComps}>
         <div className="tableTitle">Choose game</div>
-        <form onSubmit={(e) => loadGame(e.target.elements.gameName.value, e)}>
+        <form onSubmit={(e) => loadGame(e)}>
           <select id="gameName" className="mainInput">
             {games}
           </select>
@@ -561,11 +594,7 @@ export default function TopPanel() {
     setAddComps(
       <FormWrapperFree formName="Enter new name" clearForm={setAddComps}>
         <div className="tableTitle">Enter new name</div>
-        <form
-          onSubmit={async (e) =>
-            await setNewUserName(e.target.elements.newName.value, e)
-          }
-        >
+        <form onSubmit={async (e) => await setNewUserName(e)}>
           <input
             id="newName"
             type="text"
@@ -581,10 +610,13 @@ export default function TopPanel() {
     );
   }
 
-  async function setNewUserName(newName, e) {
+  async function setNewUserName(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const form = e.target as HTMLFormElement;
+    const formInput = form.elements.namedItem("newName") as HTMLInputElement;
+    const newName = formInput.value;
     dispatch(actions.setUserName(newName));
-    //localStorage.setItem('userName', newName);
+
     let response = await fetch("/api/gamedata/setname", {
       method: "POST",
       headers: {
@@ -597,7 +629,7 @@ export default function TopPanel() {
     });
 
     //TODO: add error handling
-    setAddComps();
+    setAddComps(null);
   }
 
   function chooseGamerColor() {
@@ -643,22 +675,23 @@ export default function TopPanel() {
       </ul>
     );
 
-    function setColor(e) {
-      const myColor = e.target.innerText;
+    function setColor(e: React.MouseEvent | React.PointerEvent) {
+      const eventTarget = e.target as HTMLElement;
+      const myColor = eventTarget.innerText;
       dispatch(actions.setUserColor(myColor));
       localStorage.setItem("userColor", myColor);
       setColorsSet(null);
     }
   }
 
-  const windowsList = winList[userRole].map((item) => {
+  const windowsList: MenuItemProps[] = winList[userRole].map((item) => {
     return {
       itemName: item,
       itemType: "switcher",
       itemHandling: () => {
         toggleWindow(item);
       },
-      startState: layout.find((l) => l.i === item),
+      startState: !!layout.find((l) => l.i === item),
     };
   });
 
@@ -677,7 +710,7 @@ export default function TopPanel() {
         tempServerList.push({
           itemName: connectTitle,
           itemType: "button",
-          itemHandling: async (e) => handleServerConnection(),
+          itemHandling: async () => handleServerConnection(),
         });
         break;
       case 2:
@@ -693,7 +726,7 @@ export default function TopPanel() {
         tempServerList.push({
           itemName: connectTitle,
           itemType: "button",
-          itemHandling: async (e) => handleServerConnection(),
+          itemHandling: async () => handleServerConnection(),
         });
         break;
       case 0:
@@ -713,22 +746,22 @@ export default function TopPanel() {
     switch (connectionState) {
       case 3:
         //checking and opening connection
-        let messageForServer = {
+        const messageForServer: MessageForServer = {
           user: {
             userRole: userRole,
             userName: userName,
             userColor: userColor,
             userEmail: userEmail,
           },
+          sectionName: "connection",
+          gameId: gameId,
         };
-        messageForServer["sectionName"] = "connection";
-        messageForServer["gameId"] = gameId;
 
         dispatch(
           manageWebsocket(
             "connect",
             process.env.NEXT_PUBLIC_SERVER_URL,
-            JSON.stringify(messageForServer)
+            messageForServer
           )
         );
         break;
@@ -737,7 +770,7 @@ export default function TopPanel() {
         dispatch(
           manageWebsocket("disconnect", process.env.NEXT_PUBLIC_SERVER_URL)
         );
-        if (userRole === "Gamer") dispatch(websocketActions.setGameId(0));
+        if (userRole === "Gamer") dispatch(websocketActions.setGameId(null));
         dispatch(actions.setConnectionTitle("Connect"));
         break;
     }

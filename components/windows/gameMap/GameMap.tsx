@@ -3,20 +3,26 @@
 import styles from "./GameMap.module.css";
 import ReactDOM from "react-dom";
 import ReactDOMServer from "react-dom/server";
-import React from "react";
+import React, { ReactElement } from "react";
 import { useRef, useEffect, useState, useMemo, cloneElement } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import * as mapSlice from "../../../app/store/slices/mapSlice";
 import { manageWebsocket } from "../../../app/store/slices/websocketSlice";
 import * as clientUtils from "../../../utils/clientUtils";
 import FormWrapper from "../../forms/FormWrapper";
-import FormWrapper_2 from "../../forms/FormWrapper_2";
-//import { GoTrueClient } from "@supabase/supabase-js";
 import parse from "html-react-parser";
+
+import type {
+  SectionName,
+  MessageForServer,
+} from "../../../app/store/slices/websocketSlice";
+import type { RootState, AppDispatch } from "../../../app/store/store";
+import type { PayloadAction } from "@reduxjs/toolkit";
+import type { Layer } from "../../../app/store/slices/mapSlice";
 
 const CELL_SIZE = 20;
 const MARKER_RADIUS = 5;
-const radToDeg = (rad) => rad * (180 / Math.PI);
+const radToDeg = (rad: number) => rad * (180 / Math.PI);
 const mainBGColor = "rgb(227, 214, 199)";
 const colorsObj = [
   "black",
@@ -37,9 +43,14 @@ const colorsObj = [
   "aqua",
 ];
 
-export default function GameMap() {
-  //console.log("🔄 GameMap re-rendered");
+interface StartPoint {
+  x: number;
+  y: number;
+  elemLeft?: number;
+  elemTop?: number;
+}
 
+export default function GameMap() {
   return (
     <div className={styles.gameMapWrapper}>
       <MapField />
@@ -49,60 +60,73 @@ export default function GameMap() {
 }
 
 function MapField() {
-  //console.log("🔄 MapField re-rendered");
-  const mapRef = useRef(null);
-  const mapOuter = useRef(null);
-  const dispatch = useDispatch();
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapOuter = useRef<HTMLDivElement>(null);
+  const dispatch: AppDispatch = useDispatch();
   const activeColor = useSelector(
-    (state) => state.map.activePaletteStyle.color
+    (state: RootState) => state.map.activePaletteStyle.color
   );
-  const activeForm = useSelector((state) => state.map.activePaletteStyle.form);
-  const activeAction = useSelector((state) => state.map.activePaletteAction);
+  const activeForm = useSelector(
+    (state: RootState) => state.map.activePaletteStyle.form
+  );
+  const activeAction = useSelector(
+    (state: RootState) => state.map.activePaletteAction
+  );
   const activeLayer = useSelector(
-    (state) => state.map.activePaletteStyle.layer
+    (state: RootState) => state.map.activePaletteStyle.layer
   );
   const gridBinding = useSelector(
-    (state) => state.map.activePaletteStyle.bindToGrid
+    (state: RootState) => state.map.activePaletteStyle.bindToGrid
   );
-  const mapContent = useSelector((state) => state.map.mapContent);
-  const mapElemsCounter = useSelector((state) => state.map.mapElemsCounter);
+  const mapContent = useSelector((state: RootState) => state.map.mapContent);
+  const mapElemsCounter = useSelector(
+    (state: RootState) => state.map.mapElemsCounter
+  );
 
-  const userEmail = useSelector((state) => state.main.userEmail);
-  const userRole = useSelector((state) => state.main.userRole);
-  const userName = useSelector((state) => state.main.userName);
-  const userColor = useSelector((state) => state.main.userColor);
+  const userRole = useSelector((state: RootState) => state.main.userRole);
+  const userName = useSelector((state: RootState) => state.main.userName);
+  const userColor = useSelector((state: RootState) => state.main.userColor);
 
   const connectionState = useSelector(
-    (state) => state.websocket.connectionState
+    (state: RootState) => state.websocket.connectionState
   );
-  const serverMessage = useSelector((state) => state.websocket.serverMessage);
-  const gameId = useSelector((state) => state.websocket.gameId);
+  const serverMessage = useSelector(
+    (state: RootState) => state.websocket.serverMessage
+  );
+  const gameId = useSelector((state: RootState) => state.websocket.gameId);
+  const elemFromLib = useSelector((state: RootState) => state.map.elemFromLib);
 
   const [isDragging, setIsDragging] = useState(false);
-  const [draggingObject, setDraggingObject] = useState({});
-  const [startPoint, setStartPoint] = useState({});
+  const [draggingObject, setDraggingObject] = useState<HTMLDivElement | null>(
+    null
+  );
+  const [startPoint, setStartPoint] = useState<StartPoint | null>(null);
   const [isResizing, setIsResizing] = useState(false);
-  const [resizingObject, setResizingObject] = useState({});
+  const [resizingObject, setResizingObject] = useState<HTMLDivElement | null>(
+    null
+  );
   const [isRotating, setIsRotating] = useState(false);
-  const [rotatingObject, setRotatingObject] = useState(null);
+  const [rotatingObject, setRotatingObject] = useState<HTMLDivElement | null>(
+    null
+  );
   const [isSelecting, setIsSelecting] = useState(false);
-  const [screenSize, setScreenSize] = useState([0, 0]);
+  const [screenSize, setScreenSize] = useState<[number, number]>([0, 0]);
   const [isWriting, setIsWriting] = useState(false);
-  const [writtenObject, setWrittenObject] = useState(null);
-  const [writtenTextElem, setWrittenTextElem] = useState(null);
+  const [writtenObject, setWrittenObject] = useState<HTMLDivElement | null>(
+    null
+  );
+  const [writtenTextElem, setWrittenTextElem] =
+    useState<HTMLInputElement | null>(null);
 
-  const elemFromLib = useSelector((state) => state.map.elemFromLib);
-
-  let tempObj = {};
+  let tempObj: HTMLDivElement | null = null;
   let traceDiameter = 0;
   let handlingStarted = false;
-  let isLibOpen = false;
 
   useEffect(() => {
     setScreenSize([window.innerWidth, window.innerHeight]);
   }, []);
 
-  function mapOnMouseDown(e) {
+  function mapOnMouseDown(e: React.MouseEvent | React.PointerEvent) {
     const gameMap = mapRef.current;
 
     if (activeAction === null) {
@@ -110,22 +134,24 @@ function MapField() {
     } else {
       e.preventDefault();
       e.stopPropagation();
-      if (e.pointerType === "touch") {
-        if (!e.isPrimary) return;
+      if ("pointerType" in e) {
+        if (e.pointerType === "touch") {
+          if (!e.isPrimary) return;
+        }
       }
     }
+
+    const eventTarget = e.target as HTMLElement;
 
     if (activeAction === "brush") {
       //all actions on mouseUp
     } else if (activeAction === "arrow") {
-      const eventTargetName = e.target.getAttribute("name");
-      //console.log(eventTargetName);
-      //console.log("id = " + e.target.getAttribute("id"));
+      const eventTargetName = eventTarget.getAttribute("data-name");
       if (eventTargetName === "elemResizer") {
         //resizing
         setIsResizing(true);
-        setResizingObject(e.target.parentElement);
-        let rect = e.target.parentElement.getBoundingClientRect();
+        setResizingObject(eventTarget.parentElement as HTMLDivElement);
+        let rect = eventTarget.parentElement.getBoundingClientRect();
 
         let traceItem = document.createElement("div");
         traceItem.className = styles.paletteTraceElem;
@@ -138,10 +164,9 @@ function MapField() {
       } else if (eventTargetName === "mapElem") {
         //dragging
         setIsDragging(true);
-        setDraggingObject(e.target);
-        // console.log("setDraggingObject = " + draggingObject);
+        setDraggingObject(eventTarget as HTMLDivElement);
 
-        let rect = e.target.getBoundingClientRect();
+        let rect = eventTarget.getBoundingClientRect();
 
         let traceItem = document.createElement("div");
         traceItem.className = styles.paletteTraceElem;
@@ -179,7 +204,9 @@ function MapField() {
     } else if (activeAction === "rotate") {
       if (isRotating) return;
       if (handlingStarted) return;
-      let rectObject = e.target.closest('[name="mapElem"]');
+      let rectObject: HTMLDivElement = eventTarget.closest(
+        '[data-name="mapElem"]'
+      );
       if (!rectObject) return;
       setIsRotating(true);
       setRotatingObject(rectObject);
@@ -242,7 +269,7 @@ function MapField() {
     }
   }
 
-  function mapOnMouseMove(e) {
+  function mapOnMouseMove(e: React.MouseEvent) {
     const gameMap = mapRef.current;
 
     if (activeAction === null) {
@@ -252,20 +279,20 @@ function MapField() {
       e.stopPropagation();
     }
 
-    let mouseX, mouseY;
+    let mouseX: number, mouseY: number;
 
     mouseX = e.pageX;
     mouseY = e.pageY;
 
     if (isResizing) {
-      tempObj = document.getElementById("traceItem");
+      tempObj = document.getElementById("traceItem") as HTMLDivElement;
 
       const newWidth = mouseX - parseInt(tempObj.style.left);
       const newHeight = mouseY - parseInt(tempObj.style.top);
       tempObj.style.width = newWidth > 0 ? newWidth + "px" : "2px";
       tempObj.style.height = newHeight > 0 ? newHeight + "px" : "2px";
     } else if (isDragging) {
-      tempObj = document.getElementById("traceItem");
+      tempObj = document.getElementById("traceItem") as HTMLDivElement;
 
       const newLeft = startPoint.elemLeft + (e.pageX - startPoint.x);
       const newTop = startPoint.elemTop + (e.pageY - startPoint.y);
@@ -296,9 +323,10 @@ function MapField() {
     }
   }
 
-  function mapOnMouseUp(e) {
+  function mapOnMouseUp(e: React.MouseEvent | React.PointerEvent) {
     const gameMap = mapRef.current;
     const gameMapRect = gameMap.getBoundingClientRect();
+    const eventTarget = e.target as HTMLElement;
 
     if (activeAction === null) {
       return;
@@ -312,7 +340,7 @@ function MapField() {
     }
 
     if (activeAction === "brush") {
-      let elemX, elemY;
+      let elemX: string | number, elemY: string | number;
 
       if (!gridBinding) {
         elemX =
@@ -320,15 +348,15 @@ function MapField() {
           gameMapRect.left +
           gameMap.scrollLeft -
           window.scrollX -
-          CELL_SIZE / 2 +
-          "px";
+          CELL_SIZE / 2;
         elemY =
           e.pageY -
           gameMapRect.top +
           gameMap.scrollTop -
           window.scrollY -
-          CELL_SIZE / 2 +
-          "px";
+          CELL_SIZE / 2;
+        elemX = elemX + "px";
+        elemY = elemY + "px";
       } else {
         elemX =
           e.pageX -
@@ -348,7 +376,7 @@ function MapField() {
 
       let copyID = mapElemsCounter;
 
-      let formClone;
+      let formClone: HTMLElement;
       const parser = new DOMParser();
       if (elemFromLib) {
         let textElemCopy = elemFromLib.replaceAll(
@@ -356,15 +384,17 @@ function MapField() {
           `id="mapElem_c_${copyID}_`
         );
         const doc = parser.parseFromString(textElemCopy, "text/html");
-        formClone = doc.body.firstElementChild;
+        formClone = doc.body.firstElementChild as HTMLElement;
         formClone.id = `mapElem_${copyID++}`;
         formClone.style.left = elemX;
         formClone.style.top = elemY;
         formClone.style.position = "absolute";
         formClone.style.outline = "none";
-        formClone.setAttribute("name", "mapElem");
+        formClone.setAttribute("data-name", "mapElem");
       } else {
-        formClone = document.getElementById(activeForm).cloneNode(true);
+        formClone = document
+          .getElementById(activeForm)
+          .cloneNode(true) as HTMLElement;
         formClone.id = `mapElem_${copyID++}`;
         formClone.style.left = elemX;
         formClone.style.top = elemY;
@@ -372,7 +402,7 @@ function MapField() {
         formClone.style.height = CELL_SIZE + "px";
         formClone.style.position = "absolute";
         formClone.style.outline = "none";
-        formClone.setAttribute("name", "mapElem");
+        formClone.setAttribute("data-name", "mapElem");
       }
 
       if (activeColor == mainBGColor) {
@@ -417,15 +447,15 @@ function MapField() {
       }
 
       formCloneResizer.className = styles.mapElemResizer;
-      formCloneResizer.setAttribute("name", "elemResizer");
+      formCloneResizer.setAttribute("data-name", "elemResizer");
       formClone.appendChild(formCloneResizer);
 
       dispatch(mapSlice.setMapElemsCounter(copyID));
       dispatch(mapSlice.addElemToMap(formClone.outerHTML));
     } else if (activeAction === "arrow") {
       if (isResizing) {
-        tempObj = resizingObject.cloneNode(true);
-        let mouseX, mouseY;
+        tempObj = resizingObject.cloneNode(true) as HTMLDivElement;
+        let mouseX: number, mouseY: number;
 
         if (!gridBinding) {
           mouseX =
@@ -441,19 +471,19 @@ function MapField() {
           mouseY = Math.round(mouseY / CELL_SIZE) * CELL_SIZE;
         }
 
-        const oldWidth = tempObj.style.width;
-        const oldHeight = tempObj.style.height;
+        const oldWidth: string = tempObj.style.width;
+        const oldHeight: string = tempObj.style.height;
         const newWidth = mouseX - parseInt(tempObj.style.left);
         const newHeight = mouseY - parseInt(tempObj.style.top);
         tempObj.style.width = newWidth > 0 ? newWidth + "px" : "2px";
         tempObj.style.height = newHeight > 0 ? newHeight + "px" : "2px";
 
-        const coefX = parseInt(newWidth) / parseInt(oldWidth);
-        const coefY = parseInt(newHeight) / parseInt(oldHeight);
+        const coefX = newWidth / parseInt(oldWidth);
+        const coefY = newHeight / parseInt(oldHeight);
 
-        for (let elem of tempObj.children) {
-          if (elem.getAttribute("name") === "elemResizer") continue;
-          if (elem.getAttribute("name") === "textField") continue;
+        for (let elem of tempObj.children as HTMLCollectionOf<HTMLElement>) {
+          if (elem.getAttribute("data-name") === "elemResizer") continue;
+          if (elem.getAttribute("data-name") === "textField") continue;
 
           let elemWidth = parseInt(elem.style?.width)
             ? parseInt(elem.style?.width)
@@ -470,11 +500,11 @@ function MapField() {
         dispatch(mapSlice.changeElemOnMap(tempObj.outerHTML));
 
         setIsResizing(false);
-        setResizingObject({});
+        setResizingObject(null);
         document.getElementById("traceItem").remove();
-        tempObj = {};
+        tempObj = null;
       } else if (isDragging) {
-        tempObj = draggingObject.cloneNode(true);
+        tempObj = draggingObject.cloneNode(true) as HTMLDivElement;
         let traceItem = document.getElementById("traceItem");
 
         if (!gridBinding) {
@@ -508,19 +538,21 @@ function MapField() {
         }
 
         dispatch(mapSlice.changeElemOnMap(tempObj.outerHTML));
-        setDraggingObject({});
-        setStartPoint({});
+        setDraggingObject(null);
+        setStartPoint(null);
         setIsDragging(false);
         traceItem.remove();
-        tempObj = {};
+        tempObj = null;
       } else if (isSelecting) {
         setIsSelecting(false);
         let endPoint = { x: e.pageX, y: e.pageY };
 
-        const tempSet = new Set();
+        const tempSet = new Set<string>();
 
-        mapContent.map((item) => {
-          item = document.getElementById(parse(item).props.id);
+        mapContent.map((stringItem) => {
+          const parsed = parse(stringItem) as ReactElement<{ id: string }>;
+          const item = document.getElementById(parsed.props.id);
+
           let itemRect = item.getBoundingClientRect();
           if (
             startPoint.y < itemRect.top + window.scrollY &&
@@ -528,38 +560,38 @@ function MapField() {
             itemRect.left + window.scrollX > startPoint.x &&
             itemRect.right + window.scrollX < endPoint.x
           ) {
-            let tempI = item.cloneNode(true);
+            let tempI = item.cloneNode(true) as HTMLElement;
             tempI.style.outline = "3px dashed yellow";
 
             tempSet.add(tempI.id);
 
             dispatch(mapSlice.changeElemOnMap(tempI.outerHTML));
           } else {
-            let tempI = item.cloneNode(true);
+            let tempI = item.cloneNode(true) as HTMLElement;
             tempI.style.outline = "none";
             dispatch(mapSlice.changeElemOnMap(tempI.outerHTML));
           }
         });
-        traceItem.remove();
 
-        let tempArray = Array.from(tempSet);
+        document.getElementById("traceItem").remove();
+        const tempArray = Array.from(tempSet);
         dispatch(mapSlice.setSelectedObjectsId(tempArray));
-        setStartPoint({});
+        setStartPoint({ x: 0, y: 0 });
       }
     } else if (activeAction === "rotate") {
       if (!isRotating) return;
       handlingStarted = true;
       setIsRotating(false);
 
-      tempObj = rotatingObject.cloneNode(true);
-      setStartPoint({});
+      tempObj = rotatingObject.cloneNode(true) as HTMLDivElement;
+      setStartPoint({ x: 0, y: 0 });
 
       let circle = document.getElementById("traceItemCircle");
       //"rotate(88deg)"
       const regex = /rotate\(([^.]*)\./;
       let angle = circle.style.transform.match(regex)
-        ? circle.style.transform.match(regex)[1]
-        : "0";
+        ? parseInt(circle.style.transform.match(regex)[1])
+        : 0;
 
       angle = Math.round(Number(angle) / 5) * 5;
       tempObj.style.transform = "rotate(" + angle + "deg)";
@@ -570,12 +602,12 @@ function MapField() {
       document.getElementById("traceItemMarker3").remove();
 
       dispatch(mapSlice.changeElemOnMap(tempObj.outerHTML));
-      tempObj = {};
+      tempObj = null;
       handlingStarted = false;
     } else if (activeAction === "text") {
       e.preventDefault();
       e.stopPropagation();
-      let elem = e.target.closest('[name="mapElem"]');
+      let elem = eventTarget.closest('[data-name="mapElem"]') as HTMLDivElement;
       if (!elem) return;
 
       setIsWriting(true);
@@ -592,12 +624,12 @@ function MapField() {
           //e.code failed for mobile
           e.preventDefault();
 
-          let elemCopy = elem.cloneNode(true);
+          let elemCopy = elem.cloneNode(true) as HTMLElement;
           let newText = document.createElement("div");
           newText.innerText = textField.value;
-          newText.setAttribute("name", "textField");
+          newText.setAttribute("data-name", "textField");
           newText.setAttribute("class", styles.textField);
-          elemCopy.querySelector("[name = 'textField']")?.remove();
+          elemCopy.querySelector("[data-name = 'textField']")?.remove();
           elemCopy.appendChild(newText);
           dispatch(mapSlice.changeElemOnMap(elemCopy.outerHTML));
 
@@ -621,23 +653,24 @@ function MapField() {
 
   useEffect(() => {
     if (connectionState === 1 && userRole === "Master") {
-      const messageForServer = {
+      const messageForServer: MessageForServer = {
         gameId: gameId,
         user: {
           userRole: userRole,
           userName: userName,
           userColor: userColor,
         },
+        sectionName: "gameMap",
+        sectionInfo: {
+          mapField: JSON.stringify(mapRef.current.innerHTML),
+        },
       };
-      messageForServer["sectionName"] = "gameMap";
-      messageForServer["sectionInfo"] = {
-        mapField: JSON.stringify(mapRef.current.innerHTML),
-      };
+
       dispatch(
         manageWebsocket(
           "send",
           process.env.NEXT_PUBLIC_SERVER_URL,
-          JSON.stringify(messageForServer)
+          messageForServer
         )
       );
     }
@@ -651,13 +684,6 @@ function MapField() {
     }
   }, [activeAction]);
 
-  function touchBlock(e) {
-    if (activeAction !== null) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  }
-
   return (
     <div
       className={styles.mapFieldWrapper}
@@ -667,7 +693,7 @@ function MapField() {
       <div
         className={styles.mapField}
         ref={mapRef}
-        name="mapField"
+        data-name="mapField"
         onPointerUp={(e) => mapOnMouseUp(e)}
         onPointerDown={(e) => mapOnMouseDown(e)}
         onPointerMove={(e) => mapOnMouseMove(e)}
@@ -686,12 +712,14 @@ function PaletteColorElem({
   elemText = "*",
   backgroundColor,
 }) {
-  //console.log(`🔄 PaletteColorElem ${backgroundColor} re-rendered`);
-  const dispatch = useDispatch();
-  const selectedObjects = useSelector((state) => state.map.selectedObjectsId);
+  const dispatch: AppDispatch = useDispatch();
+  const selectedObjects = useSelector(
+    (state: RootState) => state.map.selectedObjectsId
+  );
 
-  function chooseColor(e) {
-    let newBGColor = e.target.style.backgroundColor;
+  function chooseColor(e: React.MouseEvent) {
+    const EventTarget = e.target as HTMLElement;
+    let newBGColor = EventTarget.style.backgroundColor;
     dispatch(mapSlice.setActivePaletteColor(newBGColor));
     if (selectedObjects.length > 0) {
       selectedObjects.map((itemId) => {
@@ -703,7 +731,7 @@ function PaletteColorElem({
   }
 
   const activeColor = useSelector(
-    (state) => state.map.activePaletteStyle.color
+    (state: RootState) => state.map.activePaletteStyle.color
   );
   let currentClass = "";
   let gridColumn = "";
@@ -722,7 +750,7 @@ function PaletteColorElem({
         backgroundColor: backgroundColor,
         gridColumn: gridColumn,
       }}
-      onClick={(e) => chooseColor(e, dispatch)}
+      onClick={(e) => chooseColor(e)}
     >
       {elemText}
     </div>
@@ -730,12 +758,12 @@ function PaletteColorElem({
 }
 
 function PaletteColors() {
-  console.log(`🔄 PaletteColors re-rendered`);
-
-  const elemsArray = useMemo(() =>
-    colorsObj.map((bgColor) => (
-      <PaletteColorElem key={bgColor} backgroundColor={bgColor} />
-    ))
+  const elemsArray = useMemo<React.ReactElement[]>(
+    () =>
+      colorsObj.map((bgColor) => (
+        <PaletteColorElem key={bgColor} backgroundColor={bgColor} />
+      )),
+    [colorsObj]
   );
 
   return (
@@ -752,16 +780,18 @@ function PaletteColors() {
 }
 
 function PaletteLayers() {
-  const dispatch = useDispatch();
+  const dispatch: AppDispatch = useDispatch();
   const activeLayer = useSelector(
-    (state) => state.map.activePaletteStyle.layer
+    (state: RootState) => state.map.activePaletteStyle.layer
   );
-  const selectedObjects = useSelector((state) => state.map.selectedObjectsId);
+  const selectedObjects = useSelector(
+    (state: RootState) => state.map.selectedObjectsId
+  );
   const gridBinding = useSelector(
-    (state) => state.map.activePaletteStyle.bindToGrid
+    (state: RootState) => state.map.activePaletteStyle.bindToGrid
   );
 
-  function changeLayer(layer) {
+  function changeLayer(layer: Layer) {
     dispatch(mapSlice.setActivePaletteLayer(layer));
 
     if (selectedObjects.length > 0) {
@@ -829,7 +859,6 @@ function PaletteLayers() {
 }
 
 function PaletteForms() {
-  //console.log("🔄 PaletteForms re-rendered");
   return (
     <div className={styles.paletteForms}>
       <PaletteFormsSimple />
@@ -839,8 +868,6 @@ function PaletteForms() {
 }
 
 function PaletteFormsSimple() {
-  // console.log("🔄 PaletteFormsSimple re-rendered");
-
   return (
     <div className={styles.paletteFormsSimple}>
       {Array.from({ length: 18 }, (_, i) => (
@@ -851,21 +878,19 @@ function PaletteFormsSimple() {
 }
 
 function PaletteFormsButtons() {
-  /*const [screenSize, setScreenSize] = useState([0, 0]);
-  useEffect(() => {
-    setScreenSize([window.innerWidth, window.innerHeight]);
-  }, []);*/
-  const dispatch = useDispatch();
-  const userEmail = useSelector((state) => state.main.userEmail);
-  const loginState = useSelector((state) => state.main.loginState);
-  const selectedObjectsId = useSelector((state) => state.map.selectedObjectsId);
+  const dispatch: AppDispatch = useDispatch();
+  const userEmail = useSelector((state: RootState) => state.main.userEmail);
+  const loginState = useSelector((state: RootState) => state.main.loginState);
+  const selectedObjectsId = useSelector(
+    (state: RootState) => state.map.selectedObjectsId
+  );
   const [elemForSaving, setElemForSaving] = useState(
     "<div style='gridColumn: span 15; textAlign: center;'>Select a single object</div>"
   );
   const [libraryContent, setLibraryContent] = useState(
     "<div style='gridColumn: span 15; textAlign: center;'></div>"
   );
-  const elemFromLib = useSelector((state) => state.map.elemFromLib);
+  const elemFromLib = useSelector((state: RootState) => state.map.elemFromLib);
   const [isLocalOpened, setIsLocalOpened] = useState(false);
 
   const addButtonStyle = {
@@ -879,8 +904,6 @@ function PaletteFormsButtons() {
   };
 
   const addFormStyle = {
-    /*  width: parseInt(screenSize[0]) / 2 + "px",
-    height: parseInt(screenSize[1]) / 2 + "px",*/
     width: "300px",
     height: "350px",
     top: "0",
@@ -894,14 +917,14 @@ function PaletteFormsButtons() {
       "<div style='gridColumn: span 15; textAlign: center;'></div>"
     );
     let windowContent = (
-      <div style="gridColumn: span 15; textAlign: center;">
+      <div style={{ gridColumn: "span 15", textAlign: "center" }}>
         Select a single object
       </div>
     );
     if (selectedObjectsId.length === 1) {
       let selectedObj = document.getElementById(selectedObjectsId[0]);
       if (selectedObj) {
-        windowContent = parse(selectedObj.outerHTML);
+        windowContent = parse(selectedObj.outerHTML) as React.JSX.Element;
         windowContent.props.style.outline = "2px dotted black";
         windowContent.props.style.left = "auto"; //"28px";
         windowContent.props.style.top = "auto"; //43px";
@@ -926,7 +949,6 @@ function PaletteFormsButtons() {
   }
   //activeElem
   async function saveElem() {
-    console.log(elemForSaving);
     let elem = ReactDOMServer.renderToStaticMarkup(elemForSaving);
     if (!elem) return;
     if (!elem.includes("GameMap_savingElem")) return;
@@ -960,7 +982,7 @@ function PaletteFormsButtons() {
     }
   }
 
-  async function loadLocalLibrary(e) {
+  async function loadLocalLibrary(e: React.MouseEvent | React.PointerEvent) {
     e.stopPropagation();
     setLibraryContent(
       "<div style='gridColumn: span 15; textAlign: center;'>Loading...</div>"
@@ -978,15 +1000,15 @@ function PaletteFormsButtons() {
 
     let baseResponse = await response.json();
     if (response.ok) {
-      //let library;
       if (baseResponse.loadState) {
         let parsedElems = JSON.parse(baseResponse.message);
-        parsedElems = parsedElems.map((item) => {
+
+        parsedElems = parsedElems.map((item: string) => {
           return parse(item);
         });
 
-        let elemsHeap = parsedElems.reduce((res, item, key) => {
-          let newItem = parse(item);
+        let elemsHeap = parsedElems.reduce((res: string, item: string) => {
+          let newItem = parse(item) as ReactElement<any>;
           newItem.props.style.position = "relative";
           newItem.props.style.top = "auto";
           newItem.props.style.left = "auto";
@@ -1018,7 +1040,7 @@ function PaletteFormsButtons() {
     }
   }
 
-  async function loadGlobalLibrary(e) {
+  async function loadGlobalLibrary(e: React.MouseEvent | React.PointerEvent) {
     e.stopPropagation();
     setLibraryContent(
       "<div style='gridColumn: span 15; textAlign: center;'>Loading...</div>"
@@ -1035,16 +1057,15 @@ function PaletteFormsButtons() {
 
     let baseResponse = await response.json();
     if (response.ok) {
-      //let library;
       if (baseResponse.loadState) {
         let parsedElems = JSON.parse(baseResponse.message);
 
-        parsedElems = parsedElems.map((item) => {
+        parsedElems = parsedElems.map((item: string) => {
           return parse(item);
         });
 
-        let elemsHeap = parsedElems.reduce((res, item, key) => {
-          let newItem = parse(item);
+        let elemsHeap = parsedElems.reduce((res: string, item: string) => {
+          let newItem = parse(item) as ReactElement<any>;
           newItem.props.style.position = "relative";
           newItem.props.style.top = "auto";
           newItem.props.style.left = "auto";
@@ -1058,17 +1079,25 @@ function PaletteFormsButtons() {
           return res + stringItem;
         }, "");
 
-        setLibraryContent(elemsHeap);
+        setIsLocalOpened(true);
+        if (parsedElems.length == 0) {
+          setLibraryContent(
+            "<div style='gridColumn: span 15; textAlign: center;'>Library is empty</div>"
+          );
+        } else {
+          setLibraryContent(elemsHeap);
+        }
       } else {
         console.log(baseResponse.message);
       }
     } else {
-      //throw new Error("error in database response");
-      console.log("empty library");
+      setLibraryContent(
+        "<div style='gridColumn: span 15; textAlign: center;'>Library is empty</div>"
+      );
     }
   }
 
-  async function deleteElemFromLibrary(e) {
+  async function deleteElemFromLibrary() {
     if (!elemFromLib) return;
     const regex = /id="([^"]*)"/;
     let elemID = elemFromLib.match(regex) ? elemFromLib.match(regex)[1] : "0";
@@ -1094,16 +1123,17 @@ function PaletteFormsButtons() {
     setLibraryContent(newLib);
   }
 
-  function selectElement(e) {
+  function selectElement(e: React.MouseEvent | React.PointerEvent) {
     e.stopPropagation();
-    let elem = e.target.closest('[name="mapElem"]');
+    const eventTarget = e.target as HTMLElement;
+    let elem = eventTarget.closest('[data-name="mapElem"]') as HTMLElement;
     if (!elem) return;
     if (elem.style.outline == "yellow dotted 5px") {
       elem.style.outline = "black dotted 2px";
       dispatch(mapSlice.setElemFromLib(null));
     } else {
-      [...e.currentTarget.querySelectorAll('[name="mapElem"]')].map(
-        (item) => (item.style.outline = "black dotted 2px")
+      [...e.currentTarget.querySelectorAll('[data-name="mapElem"]')].map(
+        (item: HTMLElement) => (item.style.outline = "black dotted 2px")
       );
 
       elem.style.outline = "yellow dotted 5px";
@@ -1162,7 +1192,7 @@ function PaletteFormsButtons() {
           {isLocalOpened && (
             <button
               className={styles.paletteButtonDel}
-              onClick={async (e) => deleteElemFromLibrary(e)}
+              onClick={async () => deleteElemFromLibrary()}
             >
               Delete element
             </button>
@@ -1191,12 +1221,13 @@ function PaletteFormsButtons() {
 }
 
 function PaletteElem({ id }) {
-  //console.log(`🔄 PaletteElem ${id} re-rendered`);
-  const activeForm = useSelector((state) => state.map.activePaletteStyle.form);
-  const activeColor = useSelector(
-    (state) => state.map.activePaletteStyle.color
+  const activeForm = useSelector(
+    (state: RootState) => state.map.activePaletteStyle.form
   );
-  const dispatch = useDispatch();
+  const activeColor = useSelector(
+    (state: RootState) => state.map.activePaletteStyle.color
+  );
+  const dispatch: AppDispatch = useDispatch();
 
   let elemClass =
     id === activeForm
@@ -1207,8 +1238,9 @@ function PaletteElem({ id }) {
     backgroundColor: activeColor,
   };
 
-  function chooseForm(e, dispatch) {
-    dispatch(mapSlice.setActivePaletteForm(e.target.id));
+  function chooseForm(e: React.MouseEvent | PointerEvent) {
+    const eventTarget = e.target as HTMLElement;
+    dispatch(mapSlice.setActivePaletteForm(eventTarget.id));
   }
 
   return (
@@ -1216,18 +1248,22 @@ function PaletteElem({ id }) {
       id={id}
       className={elemClass}
       style={elemStyle}
-      onClick={(e) => chooseForm(e, dispatch)}
+      onClick={(e) => chooseForm(e)}
     ></div>
   );
 }
 
 function PaletteActions() {
-  const dispatch = useDispatch();
-  const activeAction = useSelector((state) => state.map.activePaletteAction);
-  const mapContent = useSelector((state) => state.map.mapContent);
-  const mapElemsCounter = useSelector((state) => state.map.mapElemsCounter);
+  const dispatch: AppDispatch = useDispatch();
+  const activeAction = useSelector(
+    (state: RootState) => state.map.activePaletteAction
+  );
+  const mapContent = useSelector((state: RootState) => state.map.mapContent);
+  const mapElemsCounter = useSelector(
+    (state: RootState) => state.map.mapElemsCounter
+  );
   const activeLayer = useSelector(
-    (state) => state.map.activePaletteStyle.layer
+    (state: RootState) => state.map.activePaletteStyle.layer
   );
 
   function changePaletteAction(act, dispatch) {
@@ -1248,10 +1284,11 @@ function PaletteActions() {
 
     selectedArray.map((item) => dispatch(mapSlice.removeElemFromMap(item)));
 
-    let sortedArray = selectedArray.map((item) =>
-      item.replaceAll('name="mapElem"', 'name="mapInnerElem"')
+    let itemArray: string[] = selectedArray.map((item) =>
+      item.replaceAll('data-name="mapElem"', 'data-name="mapInnerElem"')
     );
-    sortedArray = sortedArray.map((item) =>
+
+    itemArray = itemArray.map((item) =>
       item.replaceAll(
         "outline: yellow dashed 3px",
         "outline: none; pointer-events: none;"
@@ -1260,11 +1297,12 @@ function PaletteActions() {
 
     dispatch(mapSlice.incMapElemsCounter());
 
-    sortedArray = sortedArray
-      .map((item) => parse(item))
+    let sortedArray = itemArray
+      .map((item) => parse(item) as ReactElement<any>)
       .sort(
         (a, b) => parseInt(a.props.style.left) - parseInt(b.props.style.left)
       );
+
     let startX = sortedArray[0].props.style.left;
     sortedArray = sortedArray.sort(
       (a, b) => parseInt(a.props.style.top) - parseInt(b.props.style.top)
@@ -1313,7 +1351,7 @@ function PaletteActions() {
     formClone.style.position = "absolute";
     formClone.style.outline = "none";
     formClone.style.border = "none";
-    formClone.setAttribute("name", "mapElem");
+    formClone.setAttribute("data-name", "mapElem");
     switch (activeLayer) {
       case "top":
         formClone.style.zIndex = "20";
@@ -1344,7 +1382,7 @@ function PaletteActions() {
     }
 
     formCloneResizer.className = styles.mapElemResizer;
-    formCloneResizer.setAttribute("name", "elemResizer");
+    formCloneResizer.setAttribute("data-name", "elemResizer");
     formClone.appendChild(formCloneResizer);
 
     dispatch(mapSlice.addElemToMap(formClone.outerHTML));
@@ -1358,7 +1396,9 @@ function PaletteActions() {
     );
     if (selectedArray.length === 0) return;
     selectedArray.map((item) => dispatch(mapSlice.removeElemFromMap(item)));
-    let parsedArray = selectedArray.map((item) => parse(item));
+    let parsedArray = selectedArray.map(
+      (item) => parse(item) as ReactElement<any>
+    );
 
     parsedArray.map((pItem, index) => {
       let startX = parsedArray[index]?.props.style?.left ?? "0";
@@ -1369,7 +1409,8 @@ function PaletteActions() {
       if (innerArray.length > 0) {
         innerArray = innerArray.filter(
           (item) =>
-            item.props.name !== "elemResizer" && item.props.name !== "textField"
+            item.props["data-name"] !== "elemResizer" &&
+            item.props["data-name"] !== "textField"
         );
 
         innerArray = innerArray.map((item) => {
@@ -1380,7 +1421,10 @@ function PaletteActions() {
           let itemY =
             parseInt(item.props.style.top) + 1 + parseInt(startY) + "px";
           let tempItem = ReactDOMServer.renderToStaticMarkup(item);
-          tempItem = tempItem.replace('name="mapInnerElem"', 'name="mapElem"');
+          tempItem = tempItem.replace(
+            'data-name="mapInnerElem"',
+            'data-name="mapElem"'
+          );
           tempItem = tempItem.replace(
             "pointer-events:none",
             "pointer-events:auto"
@@ -1419,7 +1463,7 @@ function PaletteActions() {
     let copyID = mapElemsCounter + 1;
 
     selectedArray.map((item) => {
-      let parsedItem = parse(item);
+      let parsedItem = parse(item) as ReactElement<any>;
       let oldX = parsedItem.props.style.left;
       let oldY = parsedItem.props.style.top;
       let newX = parseInt(oldX) + 10 + "px";
@@ -1501,7 +1545,6 @@ function PaletteActions() {
 }
 
 function Palette() {
-  //console.log("🔄 Palette re-rendered");
   return (
     <details>
       <summary style={{ userSelect: "none" }}>Palette &#x1F3A8;</summary>

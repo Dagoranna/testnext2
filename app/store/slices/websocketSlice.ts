@@ -1,38 +1,65 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction, ThunkAction } from "@reduxjs/toolkit";
+import { AnyAction } from "redux";
+import type { AppDispatch, RootState } from "../store";
+
+export type SectionName =
+  | "connection"
+  | "choosemaster"
+  | "games"
+  | "polydice"
+  | "chat"
+  | "gameMap"
+  | "globalMap";
+
+export interface MessageForServer {
+  gameId?: string | null;
+  user: {
+    userRole: "Gamer" | "Master";
+    userName: string;
+    userColor: string;
+    userEmail?: string;
+  };
+  sectionName: SectionName;
+  sectionInfo?: Record<string, string | number>;
+}
 
 const websocketSlice = createSlice({
   name: "websocket",
   initialState: {
-    connectionState: 3, // 0 - CONNECTING, 1 - OPEN, 2 - CLOSING, 3 - CLOSED
+    connectionState: 3 as 0 | 1 | 2 | 3,
     requiredState: false,
     serverMessage: "",
-    gameId: 0,
-    DMName: null,
+    gameId: null,
+    DMName: null as string | null,
   },
   reducers: {
-    setConnectionState: (state, action) => {
+    setConnectionState: (state, action: PayloadAction<0 | 1 | 2 | 3>) => {
       state.connectionState = action.payload;
     },
-    setServerMessage: (state, action) => {
-      state.serverMessage = action.payload;
-    },
-    setRequiredState: (state, action) => {
+    setRequiredState: (state, action: PayloadAction<boolean>) => {
       state.requiredState = action.payload;
     },
-    setGameId: (state, action) => {
+    setServerMessage: (state, action: PayloadAction<string>) => {
+      state.serverMessage = action.payload;
+    },
+    setGameId: (state, action: PayloadAction<string>) => {
       state.gameId = action.payload;
     },
-    setDMName: (state, action) => {
+    setDMName: (state, action: PayloadAction<string | null>) => {
       state.DMName = action.payload;
     },
   },
 });
 
-let socket = null;
+let socket: WebSocket | null = null;
 
 export const manageWebsocket =
-  (actionType, url, message = "") =>
-  (dispatch, getState) => {
+  (
+    actionType: "connect" | "disconnect" | "send",
+    url: string,
+    message?: MessageForServer
+  ): ThunkAction<void, RootState, unknown, AnyAction> =>
+  (dispatch: AppDispatch, getState: () => RootState) => {
     switch (actionType) {
       case "connect":
         dispatch(setRequiredState(true));
@@ -48,14 +75,14 @@ export const manageWebsocket =
           dispatch(setConnectionState(1));
           if (message) {
             console.log("message on open connection");
-            console.log(message);
-            socket.send(message);
+            socket.send(JSON.stringify(message));
           } else {
             console.log("empty message error!");
           }
         };
-        socket.onmessage = (event) => {
-          //console.log("message from server: " + event.data);
+        socket.onmessage = (event: MessageEvent) => {
+          console.log("message obtained");
+          console.log(event.data);
           dispatch(setServerMessage(event.data));
         };
         socket.onclose = () => {
@@ -85,7 +112,9 @@ export const manageWebsocket =
       case "send":
         const currentState = getState().websocket.connectionState;
         if (currentState === 1) {
-          socket.send(message);
+          console.log("message sent");
+          console.log(message);
+          socket.send(JSON.stringify(message));
         } else {
           console.log("socket is not ready. State: " + currentState);
         }

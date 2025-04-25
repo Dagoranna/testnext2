@@ -3,12 +3,19 @@
 import { useState, useMemo } from "react";
 import styles from "./FormWrapper.module.css";
 
+type MyProps = {
+  formName: string;
+  children: React.ReactNode;
+  addButtonStyle?: Record<string, string>;
+  addFormStyle?: Record<string, string>;
+};
+
 export default function FormWrapper_2({
   formName,
   children,
   addButtonStyle = {},
   addFormStyle = {},
-}) {
+}: MyProps) {
   let buttonId = formName.replace(/\s+/g, "") + "Button";
   let closeId = formName.replace(/\s+/g, "") + "FormClose";
   const [isOpen, setIsOpen] = useState(false);

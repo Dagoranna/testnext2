@@ -6,14 +6,16 @@ import AuthForm from "./forms/AuthForm/AuthForm";
 import TopPanel from "./TopPanel";
 import { useSelector, useDispatch } from "react-redux";
 import * as actions from "../app/store/slices/mainSlice";
+import { LayoutLine } from "../app/store/slices/mainSlice";
+import type { RootState } from "../app/store/store";
 
 export default function MainAppWrapper({ children }) {
   const dispatch = useDispatch();
-  const layout = useSelector((state) => state.main.layout);
-  const winList = useSelector((state) => state.main.winList);
-  const userEmail = useSelector((state) => state.main.userEmail);
-  const loginState = useSelector((state) => state.main.loginState);
-  const userRole = useSelector((state) => state.main.userRole);
+  const layout = useSelector((state: RootState) => state.main.layout);
+  const winList = useSelector((state: RootState) => state.main.winList);
+  const userEmail = useSelector((state: RootState) => state.main.userEmail);
+  const loginState = useSelector((state: RootState) => state.main.loginState);
+  const userRole = useSelector((state: RootState) => state.main.userRole);
 
   //auth
   useEffect(() => {
@@ -70,8 +72,8 @@ export default function MainAppWrapper({ children }) {
     const hiddenLayout = JSON.parse(localStorage.getItem("hiddenLayout")) || [];
     const tempLayout = structuredClone(layout);
 
-    hiddenLayout.forEach((item) => {
-      let tempItem = tempLayout.find((l) => l.i === item.i);
+    hiddenLayout.forEach((item: LayoutLine) => {
+      let tempItem = tempLayout.find((l: LayoutLine) => l.i === item.i);
       if (tempItem) {
         item.x = tempItem.x;
         item.y = tempItem.y;
@@ -82,7 +84,7 @@ export default function MainAppWrapper({ children }) {
 
     localStorage.setItem("hiddenLayout", JSON.stringify(hiddenLayout));
 
-    const activeWinList = layout.map((l) => l.i);
+    const activeWinList = layout.map((l: LayoutLine) => l.i);
     localStorage.setItem(
       `activeWinList${userRole}`,
       JSON.stringify(activeWinList)

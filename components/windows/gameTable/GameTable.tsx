@@ -2,13 +2,18 @@
 
 import styles from "./GameTable.module.css";
 import React from "react";
-import { useRef, useEffect, useState, useMemo, cloneElement } from "react";
+import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import * as gameTableSlice from "../../../app/store/slices/gameTableSlice";
+import type { PayloadAction } from "@reduxjs/toolkit";
+import type { RootState, AppDispatch } from "../../../app/store/store";
+import type {
+  Combatant,
+  TableState,
+} from "../../../app/store/slices/gameTableSlice";
 
-const Combatant = React.memo(function Combatant({ mob }) {
-  //mob = {id: ***, name: ***, hp: ***, dam: ***, init: ***}
-  const dispatch = useDispatch();
+const Combatant = React.memo(function Combatant({ mob }: { mob: Combatant }) {
+  const dispatch: AppDispatch = useDispatch();
   const [form, setForm] = useState({
     id: mob.id || 0,
     name: mob.name || "",
@@ -17,8 +22,10 @@ const Combatant = React.memo(function Combatant({ mob }) {
     init: mob.init || 0,
   });
 
-  function handleChange(e, field) {
-    const value = e.target.value;
+  function handleChange(e: React.ChangeEvent, field: keyof Combatant) {
+    const eventTarget = e.target as HTMLInputElement;
+    const value =
+      field === "name" ? eventTarget.value : Number(eventTarget.value);
     const updated = { ...form, [field]: value };
     setForm(updated);
     dispatch(gameTableSlice.changeCombatant({ id: mob.id, ...updated }));
@@ -57,9 +64,11 @@ const Combatant = React.memo(function Combatant({ mob }) {
 });
 
 export default function GameTable() {
-  const dispatch = useDispatch();
-  const mobId = useSelector((state) => state.gameTable.mobId);
-  const combatants = useSelector((state) => state.gameTable.combatants);
+  const dispatch: AppDispatch = useDispatch();
+  const mobId = useSelector((state: RootState) => state.gameTable.mobId);
+  const combatants = useSelector(
+    (state: RootState) => state.gameTable.combatants
+  );
 
   const combatantsGrid = combatants.map((item) => {
     return <Combatant key={item.id} mob={item} />;
@@ -83,8 +92,10 @@ export default function GameTable() {
     init: 0,
   });
 
-  function handleChange(e, field) {
-    const value = e.target.value;
+  function handleChange(e: React.ChangeEvent, field: keyof Combatant) {
+    const eventTarget = e.target as HTMLInputElement;
+    const value =
+      field === "name" ? eventTarget.value : Number(eventTarget.value);
     const updated = { ...form, [field]: value };
     setForm(updated);
   }

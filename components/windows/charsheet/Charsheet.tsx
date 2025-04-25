@@ -6,9 +6,24 @@ import { useRef, useEffect, useState, useMemo, cloneElement } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import * as charsheetSlice from "../../../app/store/slices/charsheetSlice";
 import { manageWebsocket } from "../../../app/store/slices/websocketSlice";
+import type { PayloadAction } from "@reduxjs/toolkit";
+import type { RootState, AppDispatch } from "../../../app/store/store";
+import type {
+  SectionName,
+  MessageForServer,
+} from "../../../app/store/slices/websocketSlice";
+import type {
+  Bookmark,
+  Ability,
+  SaveObj,
+  SkillObj,
+  UnitedBlock,
+} from "../../../app/store/slices/charsheetSlice";
 
 export default function Charsheet() {
-  const activeBookmark = useSelector((state) => state.charsheet.activeBookmark);
+  const activeBookmark = useSelector(
+    (state: RootState) => state.charsheet.activeBookmark
+  );
 
   return (
     <div className={styles.charsheetWrapper}>
@@ -37,9 +52,15 @@ export default function Charsheet() {
   );
 }
 
-function Bookmark({ name }) {
-  const dispatch = useDispatch();
-  const activeBookmark = useSelector((state) => state.charsheet.activeBookmark);
+type BookmarkProps = {
+  name: Bookmark;
+};
+
+function Bookmark({ name }: BookmarkProps) {
+  const dispatch: AppDispatch = useDispatch();
+  const activeBookmark = useSelector(
+    (state: RootState) => state.charsheet.activeBookmark
+  );
 
   return (
     <div
@@ -53,39 +74,54 @@ function Bookmark({ name }) {
   );
 }
 
-function ParamLine({ section, dispFunction, title, field, isButton = false }) {
-  const dispatch = useDispatch();
-  const connectionState = useSelector(
-    (state) => state.websocket.connectionState
-  );
-  const userRole = useSelector((state) => state.main.userRole);
-  const userName = useSelector((state) => state.main.userName);
-  const userColor = useSelector((state) => state.main.userColor);
-  const gameId = useSelector((state) => state.websocket.gameId);
+type ParamLineProps = {
+  section: string | number;
+  dispFunction: (
+    payload: [string, string | number]
+  ) => PayloadAction<[string, string | number]>;
+  title: string;
+  field: string;
+  isButton?: boolean;
+};
 
-  function makeRoll(modifier, fieldName) {
+function ParamLine({
+  section,
+  dispFunction,
+  title,
+  field,
+  isButton = false,
+}: ParamLineProps) {
+  const dispatch: AppDispatch = useDispatch();
+  const connectionState = useSelector(
+    (state: RootState) => state.websocket.connectionState
+  );
+  const userRole = useSelector((state: RootState) => state.main.userRole);
+  const userName = useSelector((state: RootState) => state.main.userName);
+  const userColor = useSelector((state: RootState) => state.main.userColor);
+  const gameId = useSelector((state: RootState) => state.websocket.gameId);
+
+  function makeRoll(modifier: string | number, fieldName: string) {
     if (connectionState === 1) {
-      const messageForServer = {
+      const messageForServer: MessageForServer = {
         gameId: gameId,
         user: {
           userRole: userRole,
           userName: userName,
           userColor: userColor,
         },
-      };
-
-      messageForServer["sectionName"] = "polydice";
-      messageForServer["sectionInfo"] = {
-        source: "charsheet",
-        diceModifier: modifier,
-        fieldName: fieldName,
+        sectionName: "polydice" as SectionName,
+        sectionInfo: {
+          source: "charsheet",
+          diceModifier: modifier,
+          fieldName: fieldName,
+        },
       };
 
       dispatch(
         manageWebsocket(
           "send",
           process.env.NEXT_PUBLIC_SERVER_URL,
-          JSON.stringify(messageForServer)
+          messageForServer
         )
       );
     }
@@ -111,20 +147,42 @@ function ParamLine({ section, dispFunction, title, field, isButton = false }) {
   );
 }
 
-function ParamLineSaves({ section, dispFunction, title }) {
-  const dispatch = useDispatch();
-  const connectionState = useSelector(
-    (state) => state.websocket.connectionState
-  );
-  const userRole = useSelector((state) => state.main.userRole);
-  const userName = useSelector((state) => state.main.userName);
-  const userColor = useSelector((state) => state.main.userColor);
-  const gameId = useSelector((state) => state.websocket.gameId);
-  const field = title.toLowerCase();
-  const statInfo = useSelector((state) => state.charsheet.stats[section.stat]);
-  const statMod = Math.floor((parseInt(statInfo) - 10) / 2);
+type ParamLineSavesProps = {
+  section: SaveObj;
+  dispFunction: (
+    payload: [string, number, Ability, number, number]
+  ) => PayloadAction<[string, number, Ability, number, number]>;
+  title: string;
+  isButton?: boolean;
+};
 
-  function makeRoll(modifier, fieldName) {
+function ParamLineSaves({ section, dispFunction, title }: ParamLineSavesProps) {
+  const dispatch = useDispatch<AppDispatch>();
+  const connectionState = useSelector(
+    (state: RootState) => state.websocket.connectionState
+  );
+  const userRole = useSelector((state: RootState) => state.main.userRole);
+  const userName = useSelector((state: RootState) => state.main.userName);
+  const userColor = useSelector((state: RootState) => state.main.userColor);
+  const gameId = useSelector((state: RootState) => state.websocket.gameId);
+  const field = title.toLowerCase();
+  const statInfo = useSelector(
+    (state: RootState) => state.charsheet.stats[section.stat]
+  );
+  const statMod = Math.floor((statInfo - 10) / 2);
+  const statRes = section.base + section.magic + section.other + statMod;
+  /*
+  saves: {
+    fort: {
+      res: 0,
+      base: 0,
+      stat: "con",
+      magic: 0,
+      other: 0,
+    },
+  */
+
+  function makeRoll(modifier: number, fieldName: string) {
     if (connectionState === 1) {
       const messageForServer = {
         gameId: gameId,
@@ -133,35 +191,34 @@ function ParamLineSaves({ section, dispFunction, title }) {
           userName: userName,
           userColor: userColor,
         },
-      };
-
-      messageForServer["sectionName"] = "polydice";
-      messageForServer["sectionInfo"] = {
-        source: "charsheet",
-        diceModifier: modifier,
-        fieldName: fieldName,
+        sectionName: "polydice" as SectionName,
+        sectionInfo: {
+          source: "charsheet",
+          diceModifier: modifier,
+          fieldName: fieldName,
+        },
       };
 
       dispatch(
         manageWebsocket(
           "send",
           process.env.NEXT_PUBLIC_SERVER_URL,
-          JSON.stringify(messageForServer)
+          messageForServer
         )
       );
     }
   }
 
   useEffect(() => {
-    dispatch(
-      dispFunction([
-        field,
-        section.base,
-        section.stat,
-        section.magic,
-        section.other,
-      ])
-    );
+    console.log("recalc save");
+    console.log("current stat mod = " + statMod);
+    dispFunction([
+      field,
+      section.base,
+      section.stat,
+      section.magic,
+      section.other,
+    ]);
   }, [statInfo]);
 
   return (
@@ -175,7 +232,7 @@ function ParamLineSaves({ section, dispFunction, title }) {
           <div className={styles.saveResFiled}>Result</div>
           <input
             className={`${styles.paramInput} ${styles.paramInputResult}`}
-            value={section.res || 0}
+            value={statRes || 0}
             readOnly
             type="number"
           />
@@ -188,7 +245,7 @@ function ParamLineSaves({ section, dispFunction, title }) {
               dispatch(
                 dispFunction([
                   field,
-                  e.target.value,
+                  parseInt(e.target.value, 10) || 0,
                   section.stat,
                   section.magic,
                   section.other,
@@ -218,7 +275,7 @@ function ParamLineSaves({ section, dispFunction, title }) {
                   field,
                   section.base,
                   section.stat,
-                  e.target.value,
+                  parseInt(e.target.value, 10) || 0,
                   section.other,
                 ])
               );
@@ -238,7 +295,7 @@ function ParamLineSaves({ section, dispFunction, title }) {
                   section.base,
                   section.stat,
                   section.magic,
-                  e.target.value,
+                  parseInt(e.target.value, 10) || 0,
                 ])
               );
             }}
@@ -252,9 +309,9 @@ function ParamLineSaves({ section, dispFunction, title }) {
 }
 
 function CharSectionMain() {
-  const stats = useSelector((state) => state.charsheet.stats);
-  const main = useSelector((state) => state.charsheet.main);
-  const saves = useSelector((state) => state.charsheet.saves);
+  const stats = useSelector((state: RootState) => state.charsheet.stats);
+  const main = useSelector((state: RootState) => state.charsheet.main);
+  const saves = useSelector((state: RootState) => state.charsheet.saves);
 
   return (
     <div className={styles.charSection}>
@@ -380,7 +437,7 @@ function CharSectionMain() {
 }
 
 function CharSectionDescr() {
-  const descr = useSelector((state) => state.charsheet.descr);
+  const descr = useSelector((state: RootState) => state.charsheet.descr);
 
   const descrArray = [];
   for (var key in descr) {
@@ -398,47 +455,40 @@ function CharSectionDescr() {
   return <div className={styles.charSection}>{descrArray}</div>;
 }
 
-/*
-    skills: {
-      ...
-      Diplomacy: {
-        res: 0,
-        rank: 0,
-        other: 0,
-        isUntrained: true,
-        statDependsOn: "Cha",
-      },
-*/
-/*
-      <ParamLineSkills
-        key={key}
-        section={skills[key]}
-        dispFunction={charsheetSlice.setSkillPart}
-        title={key}
-      />
-*/
+type ParamLineSkillsProps = {
+  section: SkillObj;
+  dispFunction: (payload: {
+    skillName: string;
+    rank: number;
+    other: number;
+  }) => PayloadAction<{ skillName: string; rank: number; other: number }>;
+  title: string;
+};
 
 const ParamLineSkills = React.memo(function ParamLineSkills({
   section,
   dispFunction,
   title,
-}) {
-  const dispatch = useDispatch();
+}: ParamLineSkillsProps) {
+  const dispatch: AppDispatch = useDispatch();
   const connectionState = useSelector(
-    (state) => state.websocket.connectionState
+    (state: RootState) => state.websocket.connectionState
   );
-  const userRole = useSelector((state) => state.main.userRole);
-  const userName = useSelector((state) => state.main.userName);
-  const userColor = useSelector((state) => state.main.userColor);
-  const gameId = useSelector((state) => state.websocket.gameId);
-  const skillInfo = useSelector((state) => state.charsheet.skills[title]);
+  const userRole = useSelector((state: RootState) => state.main.userRole);
+  const userName = useSelector((state: RootState) => state.main.userName);
+  const userColor = useSelector((state: RootState) => state.main.userColor);
+  const gameId = useSelector((state: RootState) => state.websocket.gameId);
+  const skillInfo = useSelector(
+    (state: RootState) => state.charsheet.skills[title]
+  );
   const stat = useSelector(
-    (state) => state.charsheet.stats[section.statDependsOn.toLowerCase()]
+    (state: RootState) =>
+      state.charsheet.stats[section.statDependsOn.toLowerCase()]
   );
 
   const statMod = Math.floor((parseInt(stat) - 10) / 2);
 
-  function makeRoll(modifier, fieldName) {
+  function makeRoll(modifier: number, fieldName: string) {
     if (connectionState === 1) {
       const messageForServer = {
         gameId: gameId,
@@ -447,20 +497,19 @@ const ParamLineSkills = React.memo(function ParamLineSkills({
           userName: userName,
           userColor: userColor,
         },
-      };
-
-      messageForServer["sectionName"] = "polydice";
-      messageForServer["sectionInfo"] = {
-        source: "charsheet",
-        diceModifier: modifier,
-        fieldName: fieldName,
+        sectionName: "polydice" as SectionName,
+        sectionInfo: {
+          source: "charsheet",
+          diceModifier: modifier,
+          fieldName: fieldName,
+        },
       };
 
       dispatch(
         manageWebsocket(
           "send",
           process.env.NEXT_PUBLIC_SERVER_URL,
-          JSON.stringify(messageForServer)
+          messageForServer
         )
       );
     }
@@ -502,7 +551,7 @@ const ParamLineSkills = React.memo(function ParamLineSkills({
               dispatch(
                 dispFunction({
                   skillName: title,
-                  rank: e.target.value,
+                  rank: parseInt(e.target.value, 10) || 0,
                   other: skillInfo.other,
                 })
               );
@@ -529,7 +578,7 @@ const ParamLineSkills = React.memo(function ParamLineSkills({
                 dispFunction({
                   skillName: title,
                   rank: skillInfo.rank,
-                  other: e.target.value,
+                  other: parseInt(e.target.value, 10) || 0,
                 })
               );
             }}
@@ -543,8 +592,8 @@ const ParamLineSkills = React.memo(function ParamLineSkills({
 });
 
 function CharSectionSkills() {
-  const dispatch = useDispatch();
-  const skills = useSelector((state) => state.charsheet.skills);
+  const dispatch: AppDispatch = useDispatch();
+  const skills = useSelector((state: RootState) => state.charsheet.skills);
   const skillsArray = [];
 
   for (var key in skills) {
@@ -603,13 +652,19 @@ function CharSectionSkills() {
   return <div className={styles.charSection}>{skillsArray}</div>;
 }
 
+type ParamLineUnitedBlockProps = {
+  blockType: string;
+  unitedBlockInfo: UnitedBlock;
+  title: string;
+};
+
 const ParamLineUnitedBlock = React.memo(function ParamLineUnitedBlock({
   blockType,
   unitedBlockInfo,
-  dispFunction,
   title,
-}) {
-  const dispatch = useDispatch();
+}: ParamLineUnitedBlockProps) {
+  const dispatch: AppDispatch = useDispatch();
+
   return (
     <div className={styles.paramLineUnitedBlock}>
       <details className={styles.oneUnitedBlock}>
@@ -624,7 +679,14 @@ const ParamLineUnitedBlock = React.memo(function ParamLineUnitedBlock({
       </details>
       <button
         className={styles.deleteUnitedBlockButton}
-        onClick={() => dispFunction(blockType, title, dispatch)}
+        onClick={() =>
+          dispatch(
+            charsheetSlice.removeUnitedBlock({
+              blockType: blockType,
+              name: title,
+            })
+          )
+        }
       >
         ✖
       </button>
@@ -633,11 +695,11 @@ const ParamLineUnitedBlock = React.memo(function ParamLineUnitedBlock({
 });
 
 function addUnitedBlock(
-  blockType,
-  blockName,
-  blockSummary,
-  blockDescr,
-  dispatch
+  blockType: string,
+  blockName: string,
+  blockSummary: string,
+  blockDescr: string,
+  dispatch: AppDispatch
 ) {
   dispatch(
     charsheetSlice.addUnitedBlock({
@@ -649,16 +711,10 @@ function addUnitedBlock(
   );
 }
 
-function removeUnitedBlock(blockType, blockName, dispatch) {
-  dispatch(
-    charsheetSlice.removeUnitedBlock({ blockType: blockType, name: blockName })
-  );
-}
-
 function CharSectionFeats() {
-  const dispatch = useDispatch();
-  const feats = useSelector((state) => state.charsheet.feats);
-  const featsArray = [];
+  const dispatch: AppDispatch = useDispatch();
+  const feats = useSelector((state: RootState) => state.charsheet.feats);
+  const featsArray: React.ReactNode[] = [];
   const [featName, setFeatName] = useState("");
   const [featSummary, setFeatSummary] = useState("");
   const [featDescr, setFeatDescr] = useState("");
@@ -669,7 +725,6 @@ function CharSectionFeats() {
         key={key}
         blockType="feats"
         unitedBlockInfo={feats[key]}
-        dispFunction={removeUnitedBlock}
         title={key}
       />
     );
@@ -697,7 +752,7 @@ function CharSectionFeats() {
       />
       <button
         className={`${styles.paramTitle} ${styles.chButton}`}
-        onClick={(e) =>
+        onClick={() =>
           addUnitedBlock("feats", featName, featSummary, featDescr, dispatch)
         }
       >
@@ -711,9 +766,9 @@ function CharSectionFeats() {
   return <div className={styles.charSection}>{featsArray}</div>;
 }
 function CharSectionSpells() {
-  const dispatch = useDispatch();
-  const spells = useSelector((state) => state.charsheet.spells);
-  const spellsArray = [];
+  const dispatch: AppDispatch = useDispatch();
+  const spells = useSelector((state: RootState) => state.charsheet.spells);
+  const spellsArray: React.ReactNode[] = [];
   const [spellName, setSpellName] = useState("");
   const [spellSummary, setSpellSummary] = useState("");
   const [spellDescr, setSpellDescr] = useState("");
@@ -724,7 +779,6 @@ function CharSectionSpells() {
         key={key}
         blockType="spells"
         unitedBlockInfo={spells[key]}
-        dispFunction={removeUnitedBlock}
         title={key}
       />
     );
@@ -752,7 +806,7 @@ function CharSectionSpells() {
       />
       <button
         className={`${styles.paramTitle} ${styles.chButton}`}
-        onClick={(e) =>
+        onClick={() =>
           addUnitedBlock(
             "spells",
             spellName,
@@ -772,9 +826,9 @@ function CharSectionSpells() {
   return <div className={styles.charSection}>{spellsArray}</div>;
 }
 function CharSectionGear() {
-  const dispatch = useDispatch();
-  const gear = useSelector((state) => state.charsheet.gear);
-  const gearArray = [];
+  const dispatch: AppDispatch = useDispatch();
+  const gear = useSelector((state: RootState) => state.charsheet.gear);
+  const gearArray: React.ReactNode[] = [];
   const [gearName, setGearName] = useState("");
   const [gearSummary, setGearSummary] = useState("");
   const [gearDescr, setGearDescr] = useState("");
@@ -785,7 +839,6 @@ function CharSectionGear() {
         key={key}
         blockType="gear"
         unitedBlockInfo={gear[key]}
-        dispFunction={removeUnitedBlock}
         title={key}
       />
     );
@@ -813,7 +866,7 @@ function CharSectionGear() {
       />
       <button
         className={`${styles.paramTitle} ${styles.chButton}`}
-        onClick={(e) =>
+        onClick={() =>
           addUnitedBlock("gear", gearName, gearSummary, gearDescr, dispatch)
         }
       >
@@ -828,9 +881,9 @@ function CharSectionGear() {
 }
 
 function CharSectionNotes() {
-  const dispatch = useDispatch();
-  const notes = useSelector((state) => state.charsheet.notes);
-  const notesArray = [];
+  const dispatch: AppDispatch = useDispatch();
+  const notes = useSelector((state: RootState) => state.charsheet.notes);
+  const notesArray: React.ReactNode[] = [];
   const [noteName, setNoteName] = useState("");
   const [noteSummary, setNoteSummary] = useState("");
   const [noteDescr, setNoteDescr] = useState("");
@@ -841,7 +894,6 @@ function CharSectionNotes() {
         key={key}
         blockType="notes"
         unitedBlockInfo={notes[key]}
-        dispFunction={removeUnitedBlock}
         title={key}
       />
     );
@@ -869,7 +921,7 @@ function CharSectionNotes() {
       />
       <button
         className={`${styles.paramTitle} ${styles.chButton}`}
-        onClick={(e) =>
+        onClick={() =>
           addUnitedBlock("notes", noteName, noteSummary, noteDescr, dispatch)
         }
       >

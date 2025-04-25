@@ -5,14 +5,31 @@ import styles from "./DropDownMenu.module.css";
 import MenuItemButton from "./menu_items/MenuItemButton";
 import MenuItemSwitcher from "./menu_items/MenuItemSwitcher";
 import { useSelector } from "react-redux";
+import type { RootState } from "../app/store/store";
+
+export type MenuItemProps = {
+  itemName: string;
+  itemType: string;
+  itemHandling: (
+    e?: React.MouseEvent | React.PointerEvent
+  ) => Promise<void> | void;
+  startState?: boolean;
+};
+
+type MyProps = {
+  id: string;
+  title: string;
+  itemsList: MenuItemProps[];
+  addStyle?: string;
+};
 
 export default function DropDownMenu({
   id,
   title,
   itemsList = [],
   addStyle = "",
-}) {
-  const loginState = useSelector((state) => state.main.loginState);
+}: MyProps) {
+  const loginState = useSelector((state: RootState) => state.main.loginState);
   const [hasMouse, setHasMouse] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -45,7 +62,7 @@ export default function DropDownMenu({
             startState={startState}
           />
         );
-      if (loginState || itemName === "Game Map" || itemName == "Polydice")
+      if (loginState || itemName === "Game Map" || itemName === "Polydice")
         return currentItem;
     }
   );
@@ -54,9 +71,9 @@ export default function DropDownMenu({
     <div
       id={id}
       className={styles.dropDownMenu}
-      onMouseEnter={hasMouse ? handleMouseEnter : null}
-      onMouseLeave={hasMouse ? handleMouseLeave : null}
-      onClick={!hasMouse ? toggleMenu : null}
+      onMouseEnter={hasMouse ? handleMouseEnter : undefined}
+      onMouseLeave={hasMouse ? handleMouseLeave : undefined}
+      onClick={!hasMouse ? toggleMenu : undefined}
     >
       <div className={`${styles.dropDownMenuTitle} ${styles[addStyle]}`}>
         {title}

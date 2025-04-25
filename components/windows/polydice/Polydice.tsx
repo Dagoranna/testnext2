@@ -6,61 +6,70 @@ import { useSelector, useDispatch } from "react-redux";
 import * as actions from "../../../app/store/slices/polydiceSlice";
 import * as clientUtils from "../../../utils/clientUtils";
 import { manageWebsocket } from "../../../app/store/slices/websocketSlice";
-
-const diceClick = (dispatch, diceSize) => {
-  dispatch(actions.setActiveDice(diceSize));
-};
-
-function offlineRoll(dice) {
-  return Math.floor(Math.random() * dice) + 1;
-}
+import type { PayloadAction } from "@reduxjs/toolkit";
+import type { RootState, AppDispatch } from "../../../app/store/store";
+import type {
+  SectionName,
+  MessageForServer,
+} from "../../../app/store/slices/websocketSlice";
 
 export default function Polydice() {
-  const dispatch = useDispatch();
-  const numberOfRolls = useRef(1);
-  const polydiceLogs = useRef("");
-  const chatString = useRef("");
-  const activeDice = useSelector((state) => state.polydice.activeDice);
-
-  const loginState = useSelector((state) => state.main.loginState);
-  const connectionState = useSelector(
-    (state) => state.websocket.connectionState
+  const dispatch: AppDispatch = useDispatch();
+  const numberOfRolls = useRef<HTMLInputElement>(null);
+  const polydiceLogs = useRef<HTMLInputElement>(null);
+  const chatString = useRef<HTMLInputElement>(null);
+  const activeDice = useSelector(
+    (state: RootState) => state.polydice.activeDice
   );
 
-  const userRole = useSelector((state) => state.main.userRole);
-  const userName = useSelector((state) => state.main.userName);
-  const userColor = useSelector((state) => state.main.userColor);
-  const serverMessage = useSelector((state) => state.websocket.serverMessage);
-  const gameId = useSelector((state) => state.websocket.gameId);
+  const loginState = useSelector((state: RootState) => state.main.loginState);
+  const connectionState = useSelector(
+    (state: RootState) => state.websocket.connectionState
+  );
 
-  function makeRoll(dispatch, activeDice) {
-    let rollsCount = numberOfRolls.current?.value || 1;
+  const userRole = useSelector((state: RootState) => state.main.userRole);
+  const userName = useSelector((state: RootState) => state.main.userName);
+  const userColor = useSelector((state: RootState) => state.main.userColor);
+  const serverMessage = useSelector(
+    (state: RootState) => state.websocket.serverMessage
+  );
+  const gameId = useSelector((state: RootState) => state.websocket.gameId);
+
+  const diceClick = (diceSize: number) => {
+    dispatch(actions.setActiveDice(diceSize));
+  };
+
+  function offlineRoll(dice: number) {
+    return Math.floor(Math.random() * dice) + 1;
+  }
+
+  function makeRoll(activeDice: number) {
+    let rollsCount = parseInt(numberOfRolls.current?.value, 10) || 1;
     if (rollsCount < 1) rollsCount = 1;
     if (rollsCount > 100) rollsCount = 100;
 
     if (connectionState === 1) {
-      const messageForServer = {
+      const messageForServer: MessageForServer = {
         gameId: gameId,
         user: {
           userRole: userRole,
           userName: userName,
           userColor: userColor,
         },
-      };
-
-      messageForServer["sectionName"] = "polydice";
-      messageForServer["sectionInfo"] = {
-        source: "polydice",
-        rollNumbers: rollsCount,
-        dice: activeDice,
-        diceModifier: 0,
+        sectionName: "polydice",
+        sectionInfo: {
+          source: "polydice",
+          rollNumbers: rollsCount,
+          dice: activeDice || 20,
+          diceModifier: 0,
+        },
       };
 
       dispatch(
         manageWebsocket(
           "send",
           process.env.NEXT_PUBLIC_SERVER_URL,
-          JSON.stringify(messageForServer)
+          messageForServer
         )
       );
     } else {
@@ -88,22 +97,33 @@ export default function Polydice() {
       }
 
       polydiceLogs.current.innerHTML =
-        currentLog + "<br>" + polydiceLogs.current.innerHTML;
+        currentLog + "<br>" + polydiceLogs.current?.innerHTML;
     }
   }
 
   useEffect(() => {
     if (!clientUtils.isValidJSON(serverMessage)) return;
 
-    let messageJSON = JSON.parse(serverMessage);
+    const messageJSONUnknown: unknown = JSON.parse(serverMessage);
     let currentLog = "";
 
-    if (!messageJSON?.sectionName) return;
     if (
-      messageJSON.sectionName !== "polydice" &&
-      messageJSON.sectionName !== "chat"
+      typeof messageJSONUnknown !== "object" ||
+      messageJSONUnknown === null ||
+      !("sectionName" in messageJSONUnknown)
     )
       return;
+
+    if (
+      messageJSONUnknown.sectionName !== "polydice" &&
+      messageJSONUnknown.sectionName !== "chat"
+    )
+      return;
+
+    type MessageFromServer = MessageForServer & {
+      rollResults?: number[];
+    };
+
     /*{
     "gameId":0,
     "user":{
@@ -119,6 +139,7 @@ export default function Polydice() {
       "diceModifier":0
     },
     "rollResults":[6]}*/
+    const messageJSON = messageJSONUnknown as MessageFromServer;
     let userName = messageJSON.user.userName;
     let userColor = messageJSON.user.userColor;
 
@@ -141,46 +162,39 @@ export default function Polydice() {
         currentLog += messageJSON.sectionInfo.chatMessage;
       }
     } else if (messageJSON.sectionInfo.source === "charsheet") {
-      //{"gameId":"aaaa@aaaa.com","user":{"userRole":"Gamer","userName":"IcyWizard","userColor":"Aqua"},
-      // "sectionName":"polydice",
-      // "sectionInfo":{"source":"charsheet","diceModifier":"10","fieldName":"Attack"},
-      // "rollResults":[28]}
       currentLog = `<b style="color: ${userColor}"}>${userName}:</b> `;
       let rollResult = messageJSON.rollResults[0];
-      let diceModifier = parseInt(messageJSON.sectionInfo.diceModifier);
-      let clearRoll = parseInt(rollResult) - diceModifier;
+      let diceModifier = messageJSON.sectionInfo.diceModifier;
+      let clearRoll = rollResult - Number(diceModifier);
       currentLog += `<span class=${styles.rollResultText}>${rollResult}</span>`;
       currentLog += `<span class=${styles.rollResultText}> (${clearRoll} on d20 + ${diceModifier})</span>`;
       currentLog += ` on <b style="color: ${userColor}"}>${messageJSON.sectionInfo.fieldName}</b>`;
     }
 
     polydiceLogs.current.innerHTML =
-      currentLog + "<br>" + polydiceLogs.current.innerHTML;
+      currentLog + "<br>" + polydiceLogs.current?.innerHTML;
   }, [serverMessage]);
 
-  function sendChatMessage(dispatch) {
-    const messageForServer = {
+  function sendChatMessage() {
+    const messageForServer: MessageForServer = {
       gameId: gameId,
       user: {
         userRole: userRole,
         userName: userName,
         userColor: userColor,
       },
+      sectionName: "chat",
+      sectionInfo: {
+        source: "polydice",
+        chatMessage: chatString.current.innerHTML,
+      },
     };
 
-    messageForServer["sectionName"] = "chat";
-    messageForServer["sectionInfo"] = {
-      source: "polydice",
-      chatMessage: chatString.current.innerHTML,
-    };
-
-    //console.log("wwwww");
-    //console.log(messageForServer);
     dispatch(
       manageWebsocket(
         "send",
         process.env.NEXT_PUBLIC_SERVER_URL,
-        JSON.stringify(messageForServer)
+        messageForServer
       )
     );
     chatString.current.innerHTML = "";
@@ -195,7 +209,7 @@ export default function Polydice() {
             activeDice === 3 ? styles.switcherOn : styles.switcherOff
           } `}
           onMouseDown={(e) => e.stopPropagation()}
-          onClick={() => diceClick(dispatch, 3)}
+          onClick={() => diceClick(3)}
         >
           d3
         </button>
@@ -205,7 +219,7 @@ export default function Polydice() {
             activeDice === 4 ? styles.switcherOn : styles.switcherOff
           } `}
           onMouseDown={(e) => e.stopPropagation()}
-          onClick={() => diceClick(dispatch, 4)}
+          onClick={() => diceClick(4)}
         >
           d4
         </button>
@@ -215,7 +229,7 @@ export default function Polydice() {
             activeDice === 6 ? styles.switcherOn : styles.switcherOff
           } `}
           onMouseDown={(e) => e.stopPropagation()}
-          onClick={() => diceClick(dispatch, 6)}
+          onClick={() => diceClick(6)}
         >
           d6
         </button>
@@ -225,7 +239,7 @@ export default function Polydice() {
             activeDice === 8 ? styles.switcherOn : styles.switcherOff
           } `}
           onMouseDown={(e) => e.stopPropagation()}
-          onClick={() => diceClick(dispatch, 8)}
+          onClick={() => diceClick(8)}
         >
           d8
         </button>
@@ -235,7 +249,7 @@ export default function Polydice() {
             activeDice === 10 ? styles.switcherOn : styles.switcherOff
           } `}
           onMouseDown={(e) => e.stopPropagation()}
-          onClick={() => diceClick(dispatch, 10)}
+          onClick={() => diceClick(10)}
         >
           d10
         </button>
@@ -245,7 +259,7 @@ export default function Polydice() {
             activeDice === 12 ? styles.switcherOn : styles.switcherOff
           } `}
           onMouseDown={(e) => e.stopPropagation()}
-          onClick={() => diceClick(dispatch, 12)}
+          onClick={() => diceClick(12)}
         >
           d12
         </button>
@@ -255,7 +269,7 @@ export default function Polydice() {
             activeDice === 20 ? styles.switcherOn : styles.switcherOff
           } `}
           onMouseDown={(e) => e.stopPropagation()}
-          onClick={() => diceClick(dispatch, 20)}
+          onClick={() => diceClick(20)}
         >
           d20
         </button>
@@ -265,7 +279,7 @@ export default function Polydice() {
             activeDice === 100 ? styles.switcherOn : styles.switcherOff
           } `}
           onMouseDown={(e) => e.stopPropagation()}
-          onClick={() => diceClick(dispatch, 100)}
+          onClick={() => diceClick(100)}
         >
           d100
         </button>
@@ -274,7 +288,9 @@ export default function Polydice() {
       <div
         className={styles.logs}
         ref={polydiceLogs}
-        onMouseDown={(e) => e.stopPropagation()}
+        onMouseDown={(e: React.MouseEvent<HTMLDivElement>) =>
+          e.stopPropagation()
+        }
       ></div>
       {loginState && connectionState === 1 && (
         <div className={styles.chat} onMouseDown={(e) => e.stopPropagation()}>
@@ -283,18 +299,18 @@ export default function Polydice() {
             ref={chatString}
             contentEditable="true"
             onMouseDown={(e) => e.stopPropagation()}
-            onKeyDown={(e) => {
+            onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => {
               if (e.key === "Enter") {
                 e.preventDefault();
-                sendChatMessage(dispatch);
-                e.target.blur();
+                sendChatMessage();
+                (e.target as HTMLDivElement).blur();
               }
             }}
           ></div>
           <button
             className={styles.chatButton}
             onClick={() => {
-              sendChatMessage(dispatch);
+              sendChatMessage();
             }}
           >
             ⤶
@@ -309,7 +325,7 @@ export default function Polydice() {
           className={styles.rollButton}
           onMouseDown={(e) => e.stopPropagation()}
           onClick={() => {
-            makeRoll(dispatch, activeDice);
+            makeRoll(activeDice);
           }}
         >
           Roll!

@@ -1,6 +1,7 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+export type ActivePaletteAction = "brush" | "arrow" | "rotate" | "text" | null;
 
-const FORMS_LIST = {
+const FORMS_LIST: Record<string, Record<string, string | number>> = {
   elemForm_0: {
     borderRadius: "0",
     borderWidth: "2px",
@@ -96,31 +97,52 @@ const FORMS_LIST = {
   },
 };
 
+type PaletteForm = keyof typeof FORMS_LIST;
+
+export type Layer = "top" | "middle" | "bottom";
+
+interface ActivePaletteStyle {
+  color: string;
+  textColor: string;
+  form: string;
+  layer: Layer;
+  bindToGrid: boolean;
+}
+
+interface MapState {
+  mapContent: string[];
+  mapElemsCounter: number;
+  activePaletteAction: ActivePaletteAction;
+  activeElemId: string | null;
+  activePaletteStyle: ActivePaletteStyle;
+  selectedObjectsId: string[];
+  elemFromLib: string | null;
+}
+
+const initialState: MapState = {
+  mapContent: [],
+  mapElemsCounter: 0,
+  activePaletteAction: null,
+  activeElemId: null,
+  activePaletteStyle: {
+    color: "transparent",
+    textColor: "black",
+    form: "elemForm_0",
+    layer: "top",
+    bindToGrid: true,
+  },
+  selectedObjectsId: [],
+  elemFromLib: null,
+};
+
 const mapSlice = createSlice({
   name: "map",
-  initialState: {
-    mapContent: [],
-    mapElemsCounter: 0,
-    activePaletteAction: null,
-    activeElemId: null,
-    activePaletteStyle: {
-      color: "transparent",
-      textColor: "black",
-      form: "elemForm_0",
-      layer: "top",
-      bindToGrid: true,
-    },
-    selectedObjectsId: [],
-    elemFromLib: null,
-  },
+  initialState,
   reducers: {
-    setMapContent: (state, action) => {
-      state.mapContent = JSON.parse(JSON.stringify(action.payload));
-    },
-    addElemToMap: (state, action) => {
+    addElemToMap: (state, action: PayloadAction<string>) => {
       state.mapContent.push(action.payload);
     },
-    changeElemOnMap: (state, action) => {
+    changeElemOnMap: (state, action: PayloadAction<string>) => {
       const regex = /id="mapElem_([^"]*)"/;
       let match = action.payload.match(regex);
       let currentElemId = match ? `id="mapElem_${match[1]}"` : null;
@@ -131,7 +153,7 @@ const mapSlice = createSlice({
 
       state.mapContent[currentElemIndex] = action.payload;
     },
-    removeElemFromMap: (state, action) => {
+    removeElemFromMap: (state, action: PayloadAction<string>) => {
       const regex = /id="mapElem_([^"]*)"/;
       let match = action.payload.match(regex);
       let currentElemId = match ? `id="mapElem_${match[1]}"` : null;
@@ -145,49 +167,54 @@ const mapSlice = createSlice({
       }
     },
 
-    setMapElemsCounter: (state, action) => {
+    setMapElemsCounter: (state, action: PayloadAction<number>) => {
       state.mapElemsCounter = action.payload;
     },
     incMapElemsCounter: (state) => {
       state.mapElemsCounter++;
     },
 
-    setActivePaletteAction: (state, action) => {
+    setActivePaletteAction: (
+      state,
+      action: PayloadAction<ActivePaletteAction>
+    ) => {
       state.activePaletteAction = action.payload;
     },
-    setActiveElemId: (state, action) => {
+    setActiveElemId: (state, action: PayloadAction<string>) => {
       state.activeElemId = action.payload;
     },
-    setActivePaletteStyle: (state, action) => {
+    setActivePaletteStyle: (
+      state,
+      action: PayloadAction<ActivePaletteStyle>
+    ) => {
       state.activePaletteStyle = action.payload;
     },
-    setActivePaletteColor: (state, action) => {
+    setActivePaletteColor: (state, action: PayloadAction<string>) => {
       state.activePaletteStyle.color = action.payload;
     },
-    setActivePaletteLayer: (state, action) => {
+    setActivePaletteLayer: (state, action: PayloadAction<Layer>) => {
       state.activePaletteStyle.layer = action.payload;
     },
-    setActivePaletteForm: (state, action) => {
+    setActivePaletteForm: (state, action: PayloadAction<PaletteForm>) => {
       state.activePaletteStyle.form = action.payload;
     },
-    switchGridBinding: (state, action) => {
+    switchGridBinding: (state) => {
       state.activePaletteStyle.bindToGrid =
         !state.activePaletteStyle.bindToGrid;
     },
-    setSelectedObjectsId: (state, action) => {
+    setSelectedObjectsId: (state, action: PayloadAction<string[]>) => {
       state.selectedObjectsId = [...action.payload];
     },
-    setElemFromLib: (state, action) => {
+    setElemFromLib: (state, action: PayloadAction<string | null>) => {
       state.elemFromLib = action.payload;
     },
-    loadMapContent: (state, action) => {
-      state.mapContent = JSON.parse(action.payload);
+    loadMapContent: (state, action: PayloadAction<string[]>) => {
+      state.mapContent = action.payload;
     },
   },
 });
 
 export const {
-  setMapContent,
   addElemToMap,
   changeElemOnMap,
   removeElemFromMap,
@@ -197,7 +224,6 @@ export const {
   setActiveElemId,
   setActivePaletteStyle,
   setActivePaletteColor,
-  setActivePaletteTextColor,
   setActivePaletteLayer,
   setActivePaletteForm,
   switchGridBinding,
