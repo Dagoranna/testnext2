@@ -7,7 +7,6 @@ import { MenuItemProps } from "./DropDownMenu";
 import RoleSwitcher from "./RoleSwitcher";
 import { useState, useEffect } from "react";
 import FormWrapperFree from "./forms/FormWrapperFree";
-import { serverMessageHandling } from "../utils/generalUtils";
 import { parseJSON, isValidJSON } from "../utils/clientUtils";
 import { useSelector, useDispatch } from "react-redux";
 import * as actions from "../app/store/slices/mainSlice";
@@ -50,7 +49,7 @@ export default function TopPanel() {
   const gameState = useSelector((state: RootState) => state.gameTable);
   const mapState = useSelector((state: RootState) => state.map.mapContent);
 
-  const itemsListGamer = [
+  const itemsListGamer: MenuItemProps[] = [
     {
       itemName: "Change name",
       itemType: "button",
@@ -73,7 +72,7 @@ export default function TopPanel() {
     },
   ];
 
-  const itemsListMaster = [
+  const itemsListMaster: MenuItemProps[] = [
     {
       itemName: "Change name",
       itemType: "button",
@@ -109,7 +108,7 @@ export default function TopPanel() {
   const [colorsSet, setColorsSet] = useState<React.ReactNode>(null);
   const [addComps, setAddComps] = useState<React.ReactNode>(null);
   const [menuStyle, setMenuStyle] = useState("");
-  const [serverList, setServerList] = useState([]);
+  const [serverList, setServerList] = useState<MenuItemProps[]>([]);
 
   useEffect(() => {
     const gamerColor = localStorage.getItem("userColor");
@@ -168,6 +167,7 @@ export default function TopPanel() {
           itemType: "button",
           itemHandling: async (e) => handleServerConnection(),
         });
+        handleDMConnection(DMMail, DMName);
       } else {
         //DMs > 1
         dispatch(actions.setConnectionTitle("Choose DM"));
@@ -200,7 +200,7 @@ export default function TopPanel() {
     setServerList(tempServerList);
   }, [serverMessage]);
 
-  function handleDMConnection(DMMail, DMName) {
+  function handleDMConnection(DMMail: string, DMName: string) {
     switch (connectionState) {
       case 1:
         //sending message with new gameId
@@ -230,7 +230,7 @@ export default function TopPanel() {
     }
   }
 
-  function toggleWindow(item) {
+  function toggleWindow(item: string) {
     let currentWindowInfo: LayoutLine | null;
     const windowsList = layout.filter((window) => window.i !== item);
 
@@ -281,7 +281,7 @@ export default function TopPanel() {
       const hiddenLayout = localStorage.getItem("hiddenLayout");
       const parsedHiddenLayout = JSON.parse(hiddenLayout);
       const winInHidden = parsedHiddenLayout.find(
-        (window) => window.i === item
+        (window: LayoutLine) => window.i === item
       );
       if (!winInHidden) {
         parsedHiddenLayout.push(winForHide);
