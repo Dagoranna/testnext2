@@ -323,7 +323,14 @@ function MapField() {
     }
   }
 
-  function mapOnMouseUp(e: React.MouseEvent | React.PointerEvent) {
+  function mapOnMouseUp(
+    e: React.MouseEvent | React.PointerEvent,
+    fromLeave = false
+  ) {
+    if (fromLeave && activeAction !== "arrow") {
+      return;
+    }
+
     const gameMap = mapRef.current;
     const gameMapRect = gameMap.getBoundingClientRect();
     const eventTarget = e.target as HTMLElement;
@@ -697,7 +704,7 @@ function MapField() {
         onPointerUp={(e) => mapOnMouseUp(e)}
         onPointerDown={(e) => mapOnMouseDown(e)}
         onPointerMove={(e) => mapOnMouseMove(e)}
-        onPointerLeave={(e) => mapOnMouseUp(e)}
+        onPointerLeave={(e) => mapOnMouseUp(e, true)}
       >
         {mapContent.map((item, index) => (
           <React.Fragment key={index}>{parse(item)}</React.Fragment>
