@@ -16,6 +16,8 @@ import type {
 export default function Polydice() {
   const dispatch: AppDispatch = useDispatch();
   const numberOfRolls = useRef<HTMLInputElement>(null);
+  const rollStats = useRef<HTMLInputElement>(null);
+  const rollHP = useRef<HTMLInputElement>(null);
   const polydiceLogs = useRef<HTMLInputElement>(null);
   const chatString = useRef<HTMLInputElement>(null);
   const activeDice = useSelector(
@@ -43,6 +45,12 @@ export default function Polydice() {
     return Math.floor(Math.random() * dice) + 1;
   }
 
+  function stat3from4(...nums: number[]): number {
+    nums.sort((a, b) => b - a);
+    nums.pop();
+    return nums.reduce((acc, item) => acc + item, 0);
+  }
+
   function makeRoll(activeDice: number) {
     let rollsCount = parseInt(numberOfRolls.current?.value, 10) || 1;
     if (rollsCount < 1) rollsCount = 1;
@@ -65,6 +73,17 @@ export default function Polydice() {
         },
       };
 
+      if (rollHP.current.checked) {
+        messageForServer.sectionInfo["diceMode"] = "HP";
+        messageForServer.sectionInfo.rollNumbers = rollsCount * 2;
+      }
+
+      if (rollStats.current.checked) {
+        messageForServer.sectionInfo["diceMode"] = "stats";
+        messageForServer.sectionInfo.rollNumbers = rollsCount * 4;
+        messageForServer.sectionInfo["dice"] = 6;
+      }
+
       dispatch(
         manageWebsocket(
           "send",
@@ -80,20 +99,53 @@ export default function Polydice() {
       }
 
       let dice = activeDice;
+      if (rollHP.current.checked) {
+        rollsCount = rollsCount * 2;
+      }
+
+      if (rollStats.current.checked) {
+        rollsCount = rollsCount * 4;
+        dice = 6;
+      }
 
       let rollResults = [];
       for (let i = 0; i < rollsCount; i++) {
-        rollResults.push(offlineRoll(activeDice));
+        rollResults.push(offlineRoll(dice));
       }
 
-      currentLog += `<span class=${styles.rollResultText}>${rollResults.join(
-        ", "
-      )}</span> on <b style="color: ${userColor}"}>d${dice}</b>`;
-
-      if (Number(rollsCount) > 1) {
-        currentLog += ` (a total of <b>${rollResults.reduce(
+      if (rollStats.current.checked) {
+        for (let i = 0; i < rollResults.length; i = i + 4) {
+          currentLog += "<br>";
+          currentLog += `<span class=${styles.rollResultText}>${rollResults[0 + i]} ${rollResults[1 + i]} ${rollResults[2 + i]} ${rollResults[3 + i]}`;
+          currentLog += ` (${stat3from4(rollResults[0 + i], rollResults[1 + i], rollResults[2 + i], rollResults[3 + i])})</span>`;
+        }
+      } else if (rollHP.current.checked) {
+        currentLog += `<span class=${styles.rollResultText}>`;
+        const maxDuo = [];
+        for (let i = 0; i < rollResults.length; i = i + 2) {
+          if (rollResults[i] > rollResults[i + 1]) {
+            maxDuo.push(rollResults[i]);
+          } else {
+            maxDuo.push(rollResults[i + 1]);
+          }
+        }
+        for (let i = 0; i < rollResults.length; i = i + 2) {
+          currentLog += `${rollResults[i]}|${rollResults[i + 1]}, `;
+        }
+        currentLog += `</span> on <b style="color: ${userColor}"}>d${dice}</b>`;
+        currentLog += ` (a total of <b>${maxDuo.reduce(
           (item, sum) => sum + item
         )}</b>)`;
+      } else {
+        currentLog += `<span class=${styles.rollResultText}>${rollResults.join(
+          ", "
+        )}</span> on <b style="color: ${userColor}"}>d${dice}</b>`;
+
+        if (Number(rollsCount) > 1) {
+          currentLog += ` (a total of <b>${rollResults.reduce(
+            (item, sum) => sum + item
+          )}</b>)`;
+        }
       }
 
       polydiceLogs.current.innerHTML =
@@ -148,14 +200,42 @@ export default function Polydice() {
         currentLog = `<b style="color: ${userColor}"}>${userName}:</b> `;
         let dice = messageJSON.sectionInfo.dice;
         let rollResults = messageJSON.rollResults;
-        currentLog += `<span class=${styles.rollResultText}>${rollResults.join(
-          ", "
-        )}</span> on <b style="color: ${userColor}"}>d${dice}</b>`;
 
-        if (Number(messageJSON.sectionInfo.rollNumbers) > 1) {
-          currentLog += ` (a total of <b>${messageJSON.rollResults.reduce(
-            (item, sum) => sum + item
-          )}</b>)`;
+        if (messageJSON.sectionInfo?.diceMode) {
+          if (messageJSON.sectionInfo.diceMode === "stats") {
+            for (let i = 0; i < rollResults.length; i = i + 4) {
+              currentLog += "<br>";
+              currentLog += `<span class=${styles.rollResultText}>${rollResults[0 + i]} ${rollResults[1 + i]} ${rollResults[2 + i]} ${rollResults[3 + i]}`;
+              currentLog += ` (${stat3from4(rollResults[0 + i], rollResults[1 + i], rollResults[2 + i], rollResults[3 + i])})</span>`;
+            }
+          } else if (messageJSON.sectionInfo.diceMode === "HP") {
+            currentLog += `<span class=${styles.rollResultText}>`;
+            const maxDuo = [];
+            for (let i = 0; i < rollResults.length; i = i + 2) {
+              if (rollResults[i] > rollResults[i + 1]) {
+                maxDuo.push(rollResults[i]);
+              } else {
+                maxDuo.push(rollResults[i + 1]);
+              }
+            }
+            for (let i = 0; i < rollResults.length; i = i + 2) {
+              currentLog += `${rollResults[i]}|${rollResults[i + 1]}, `;
+            }
+            currentLog += `</span> on <b style="color: ${userColor}"}>d${dice}</b>`;
+            currentLog += ` (a total of <b>${maxDuo.reduce(
+              (item, sum) => sum + item
+            )}</b>)`;
+          }
+        } else {
+          currentLog += `<span class=${styles.rollResultText}>${rollResults.join(
+            ", "
+          )}</span> on <b style="color: ${userColor}"}>d${dice}</b>`;
+
+          if (Number(messageJSON.sectionInfo.rollNumbers) > 1) {
+            currentLog += ` (a total of <b>${messageJSON.rollResults.reduce(
+              (item, sum) => sum + item
+            )}</b>)`;
+          }
         }
       } else if (messageJSON.sectionName === "chat") {
         currentLog = `<b style="color: ${userColor}"}>${userName} says:</b> `;
@@ -338,6 +418,30 @@ export default function Polydice() {
             type="number"
             min="1"
             defaultValue={1}
+            onMouseDown={(e) => e.stopPropagation()}
+          ></input>
+        </div>
+        <div className={styles.numberOfRolls}>
+          <div className={styles.optionTitle}>Roll Stats</div>
+          <input
+            className={styles.rollStats}
+            ref={rollStats}
+            type="checkbox"
+            onChange={() => {
+              rollHP.current.checked = false;
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+          ></input>
+        </div>
+        <div className={styles.numberOfRolls}>
+          <div className={styles.optionTitle}>Roll HP</div>
+          <input
+            className={styles.rollHP}
+            ref={rollHP}
+            type="checkbox"
+            onChange={() => {
+              rollStats.current.checked = false;
+            }}
             onMouseDown={(e) => e.stopPropagation()}
           ></input>
         </div>
