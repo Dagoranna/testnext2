@@ -1,6 +1,13 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-export type Bookmark = "Main" | "Descr" | "Skills" | "Feats" | "Spells" | "Gear" | "Notes";
+export type Bookmark =
+  | "Main"
+  | "Descr"
+  | "Skills"
+  | "Feats"
+  | "Spells"
+  | "Gear"
+  | "Notes";
 export type Ability = "str" | "dex" | "con" | "int" | "wis" | "cha";
 export type AbilityCap = "Str" | "Dex" | "Con" | "Int" | "Wis" | "Cha";
 
@@ -10,7 +17,7 @@ export interface SaveObj {
   stat: Ability;
   magic: number;
   other: number;
-};
+}
 
 export interface SkillObj {
   res: number;
@@ -18,12 +25,12 @@ export interface SkillObj {
   other: number;
   isUntrained: boolean;
   statDependsOn: AbilityCap;
-};
+}
 
 export interface UnitedBlock {
   name: string;
   summary: string;
-  descr: string; 
+  descr: string;
 }
 
 export interface MyState {
@@ -39,7 +46,7 @@ export interface MyState {
     ac: number;
     hp: number;
     init: number;
-  };  
+  };
   descr: {
     player: string;
     race: string;
@@ -53,17 +60,17 @@ export interface MyState {
     eyes: string;
     hair: string;
     skin: string;
-  };  
+  };
   saves: {
     fort: SaveObj;
     ref: SaveObj;
     will: SaveObj;
-  };  
+  };
   skills: Record<string, SkillObj>;
   feats: Record<string, UnitedBlock>;
   spells: Record<string, UnitedBlock>;
   gear: Record<string, UnitedBlock>;
-  notes: Record<string, UnitedBlock>;  
+  notes: Record<string, UnitedBlock>;
 }
 
 const initialState: MyState = {
@@ -423,8 +430,8 @@ const initialState: MyState = {
   feats: {},
   spells: {},
   gear: {},
-  notes: {},  
-}
+  notes: {},
+};
 
 const charsheetSlice = createSlice({
   name: "charsheet",
@@ -436,7 +443,10 @@ const charsheetSlice = createSlice({
     setStatPart: (state, action: PayloadAction<[Ability, number]>) => {
       state.stats = { ...state.stats, [action.payload[0]]: action.payload[1] };
     },
-    setSavesPart: (state, action: PayloadAction<[string, number, Ability, number, number]>) => {
+    setSavesPart: (
+      state,
+      action: PayloadAction<[string, number, Ability, number, number]>
+    ) => {
       const resSave =
         action.payload[1] +
         Math.floor((state.stats[action.payload[2]] - 10) / 2) +
@@ -457,7 +467,10 @@ const charsheetSlice = createSlice({
     setDescrPart: (state, action: PayloadAction<[string, string]>) => {
       state.descr = { ...state.descr, [action.payload[0]]: action.payload[1] };
     },
-    setSkillPart: (state, action: PayloadAction<{skillName: string, rank: number, other: number}>) => {
+    setSkillPart: (
+      state,
+      action: PayloadAction<{ skillName: string; rank: number; other: number }>
+    ) => {
       const skillName = action.payload.skillName;
       const rank = action.payload.rank;
       const other = action.payload.other;
@@ -477,7 +490,10 @@ const charsheetSlice = createSlice({
         [skillName]: skill,
       };
     },
-    addSkill: (state, action: PayloadAction<{skillName: string, skillAbility: AbilityCap}>) => {
+    addSkill: (
+      state,
+      action: PayloadAction<{ skillName: string; skillAbility: AbilityCap }>
+    ) => {
       const skillName = action.payload.skillName;
       const newSkillObj: SkillObj = {
         res: 0,
@@ -492,7 +508,15 @@ const charsheetSlice = createSlice({
         [skillName]: newSkillObj,
       };
     },
-    addUnitedBlock: (state, action: PayloadAction<{blockType: string, name: string, summary: string, descr: string}>) => {
+    addUnitedBlock: (
+      state,
+      action: PayloadAction<{
+        blockType: string;
+        name: string;
+        summary: string;
+        descr: string;
+      }>
+    ) => {
       const blockType = action.payload.blockType;
       const blockName = action.payload.name.trim();
       const blockSummary = action.payload.summary.trim();
@@ -502,7 +526,10 @@ const charsheetSlice = createSlice({
         [blockName]: { summary: blockSummary, descr: blockDescr },
       };
     },
-    removeUnitedBlock: (state, action: PayloadAction<{blockType: string, name: string}>) => {
+    removeUnitedBlock: (
+      state,
+      action: PayloadAction<{ blockType: string; name: string }>
+    ) => {
       const blockName = action.payload.name.trim();
       const blockType = action.payload.blockType;
       const tempBlock = { ...state[blockType] };

@@ -586,6 +586,19 @@ const ParamLineSkills = React.memo(function ParamLineSkills({
             type="number"
           />
         </div>
+        <button
+          className={styles.deleteUnitedBlockButton}
+          onClick={() =>
+            dispatch(
+              charsheetSlice.removeUnitedBlock({
+                blockType: "skills",
+                name: title,
+              })
+            )
+          }
+        >
+          ✖
+        </button>
       </div>
     </div>
   );
@@ -594,23 +607,22 @@ const ParamLineSkills = React.memo(function ParamLineSkills({
 function CharSectionSkills() {
   const dispatch: AppDispatch = useDispatch();
   const skills = useSelector((state: RootState) => state.charsheet.skills);
-  const skillsArray = [];
 
-  for (var key in skills) {
-    skillsArray.push(
+  const skillsArray = Object.entries(skills)
+    .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+    .map(([key, value]) => (
       <ParamLineSkills
         key={key}
-        section={skills[key]}
+        section={value}
         dispFunction={charsheetSlice.setSkillPart}
         title={key}
       />
-    );
-  }
+    ));
 
   const [skillName, setSkillName] = useState("");
   const [skillAbility, setSkillAbility] = useState("str");
 
-  function addSkill(skillName, skillAbility) {
+  function addSkill(skillName: string, skillAbility) {
     dispatch(
       charsheetSlice.addSkill({
         skillName: skillName,

@@ -58,12 +58,16 @@
   cursor: pointer;
   width: fit-content;
   color: white;
-  box-shadow: 0.2em 0.2em 0.3em #d7c6b3 inset, 0.1em 0.1em 0.2em #4d3a25;
+  box-shadow:
+    0.2em 0.2em 0.3em #d7c6b3 inset,
+    0.1em 0.1em 0.2em #4d3a25;
   min-width: 40px;
 }
 
 .chButton:active {
-  box-shadow: 0.2em 0.2em 0.3em #d7c6b3 inset, 0 0 0.3rem 0.1rem white;
+  box-shadow:
+    0.2em 0.2em 0.3em #d7c6b3 inset,
+    0 0 0.3rem 0.1rem white;
 }
 
 .isActive {
@@ -103,6 +107,7 @@
 
 .oneSkillBlock {
   display: flex;
+  position: relative;
 }
 
 .skillPart {
@@ -151,7 +156,7 @@
 }
 
 .deleteUnitedBlockButton {
-  position: absolute;
+  position: relative;
   right: 0;
   top: 0;
   width: 1.3rem;
@@ -159,8 +164,7 @@
   color: black;
   background-color: transparent;
   text-shadow: 2px 2px 2px white;
-  border: none;
-  border-left: 1px solid #a9855d;
+  border: 1px solid #a9855d;
   cursor: pointer;
 }
 
@@ -182,6 +186,7 @@
   display: flex;
   flex: 0 1;
   text-align: center;
+  border: 1px solid #a9855d;
 }
 
 .paramTitle {
