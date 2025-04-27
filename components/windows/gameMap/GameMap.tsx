@@ -1484,6 +1484,60 @@ function PaletteActions() {
     dispatch(mapSlice.setMapElemsCounter(copyID));
   }
 
+  function reflectHItems() {
+    let selectedArray = mapContent.filter((item) =>
+      item.includes("outline: yellow dashed 3px")
+    );
+    if (selectedArray.length === 0) return;
+
+    selectedArray.forEach((item) => {
+      let parsedItem = parse(item) as ReactElement<any>;
+      parsedItem.props.style.transform = parsedItem.props.style.transform || "";
+
+      if (parsedItem.props.style.transform.indexOf("scaleX(-1)") > -1) {
+        parsedItem.props.style.transform =
+          parsedItem.props.style.transform.replace("scaleX(-1)", "scaleX(1)");
+      } else if (parsedItem.props.style.transform.indexOf("scaleX(1)") > -1) {
+        parsedItem.props.style.transform =
+          parsedItem.props.style.transform.replace("scaleX(1)", "scaleX(-1)");
+      } else {
+        parsedItem.props.style.transform += " scaleX(-1)";
+      }
+      dispatch(
+        mapSlice.changeElemOnMap(
+          ReactDOMServer.renderToStaticMarkup(parsedItem)
+        )
+      );
+    });
+  }
+
+  function reflectVItems() {
+    let selectedArray = mapContent.filter((item) =>
+      item.includes("outline: yellow dashed 3px")
+    );
+    if (selectedArray.length === 0) return;
+
+    selectedArray.forEach((item) => {
+      let parsedItem = parse(item) as ReactElement<any>;
+      parsedItem.props.style.transform = parsedItem.props.style.transform || "";
+
+      if (parsedItem.props.style.transform.indexOf("scaleY(-1)") > -1) {
+        parsedItem.props.style.transform =
+          parsedItem.props.style.transform.replace("scaleY(-1)", "scaleY(1)");
+      } else if (parsedItem.props.style.transform.indexOf("scaleY(1)") > -1) {
+        parsedItem.props.style.transform =
+          parsedItem.props.style.transform.replace("scaleY(1)", "scaleY(-1)");
+      } else {
+        parsedItem.props.style.transform += " scaleY(-1)";
+      }
+      dispatch(
+        mapSlice.changeElemOnMap(
+          ReactDOMServer.renderToStaticMarkup(parsedItem)
+        )
+      );
+    });
+  }
+
   return (
     <div className={styles.paletteActions}>
       <button
@@ -1507,6 +1561,12 @@ function PaletteActions() {
       >
         &#8635;
       </button>
+      <button
+        className={styles.paletteActionElem}
+        onClick={() => deleteItems()}
+      >
+        &#10006;
+      </button>
       <button className={styles.paletteActionElem} onClick={() => mergeItems()}>
         <img
           src="/images/link.bmp"
@@ -1518,12 +1578,6 @@ function PaletteActions() {
           src="/images/link_d.bmp"
           style={{ width: "100%", height: "100%" }}
         ></img>
-      </button>
-      <button
-        className={styles.paletteActionElem}
-        onClick={() => deleteItems()}
-      >
-        &#10006;
       </button>
       <button className={styles.paletteActionElem} onClick={() => copyItems()}>
         <img
@@ -1539,6 +1593,18 @@ function PaletteActions() {
         <span style={{ fontFamily: "Times New Roman", fontSize: "1.1rem" }}>
           T
         </span>
+      </button>
+      <button
+        className={styles.paletteActionElem}
+        onClick={() => reflectHItems()}
+      >
+        &#10231;
+      </button>
+      <button
+        className={styles.paletteActionElem}
+        onClick={() => reflectVItems()}
+      >
+        &#8597;
       </button>
     </div>
   );

@@ -71,7 +71,9 @@
   text-shadow: 0 -1px 1px #777;
   color: #fff;
   outline: none;
-  box-shadow: 0.2em 0.2em 0.3em #d7c6b3 inset, 0.2em 0.2em 0.2em #4d3a25;
+  box-shadow:
+    0.2em 0.2em 0.3em #d7c6b3 inset,
+    0.2em 0.2em 0.2em #4d3a25;
   border: 2px ridge #caa67e;
   border-radius: 5px;
 }
@@ -92,7 +94,7 @@
   border: 2px ridge #caa67e;
   padding: 2px;
   flex-wrap: wrap;
-  max-width: 80px;
+  max-width: 100px;
   margin: 2px;
   /*justify-content: space-between;*/
 }
@@ -107,7 +109,9 @@
   color: #fff;
   outline: none;
   min-width: 1rem;
-  box-shadow: 0.2em 0.2em 0.3em #d7c6b3 inset, 0.2em 0.2em 0.2em #4d3a25;
+  box-shadow:
+    0.2em 0.2em 0.3em #d7c6b3 inset,
+    0.2em 0.2em 0.2em #4d3a25;
   border: 2px ridge #caa67e;
   margin: 3px;
   grid-column: span 3;
@@ -116,7 +120,9 @@
 }
 
 .paletteButton:active {
-  box-shadow: 0.2em 0.2em 0.3em #d7c6b3 inset, 1px 1px 1px black;
+  box-shadow:
+    0.2em 0.2em 0.3em #d7c6b3 inset,
+    1px 1px 1px black;
 }
 
 .elemsInRow {
@@ -252,7 +258,9 @@
   cursor: pointer;
   margin: 1px;
   line-height: 1.5rem;
-  box-shadow: aliceblue 2px 2px 3px inset, black -2px -2px 3px inset,
+  box-shadow:
+    aliceblue 2px 2px 3px inset,
+    black -2px -2px 3px inset,
     2px 2px 2px black;
   font-weight: bold;
   color: black;
@@ -272,7 +280,9 @@
   border-radius: 5px;
   width: fit-content;
   align-self: center;
-  box-shadow: 0.2em 0.2em 0.3em #d7c6b3 inset, 0.1em 0.1em 0.2em #4d3a25;
+  box-shadow:
+    0.2em 0.2em 0.3em #d7c6b3 inset,
+    0.1em 0.1em 0.2em #4d3a25;
 }
 
 .formButton:active {
@@ -280,7 +290,9 @@
 }
 
 .paletteActionElem:active {
-  box-shadow: aliceblue 2px 2px 3px inset, black -2px -2px 3px inset;
+  box-shadow:
+    aliceblue 2px 2px 3px inset,
+    black -2px -2px 3px inset;
 }
 
 .divLibrary {
