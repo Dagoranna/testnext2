@@ -166,14 +166,31 @@ function MapField() {
         setIsDragging(true);
         setDraggingObject(eventTarget as HTMLDivElement);
 
-        let rect = eventTarget.getBoundingClientRect();
+        //let rect = eventTarget.getBoundingClientRect();
+        /*  traceItem.style.left = rect.left + window.scrollX + "px";
+        traceItem.style.top = rect.top + window.scrollY + "px";
+        traceItem.style.width = rect.width + "px";
+        traceItem.style.height = rect.height + "px";*/
+
+        const gameMap = mapRef.current;
+        const gameMapRect = gameMap.getBoundingClientRect();
 
         let traceItem = document.createElement("div");
         traceItem.className = styles.paletteTraceElem;
-        traceItem.style.left = rect.left + window.scrollX + "px";
-        traceItem.style.top = rect.top + window.scrollY + "px";
-        traceItem.style.width = rect.width + "px";
-        traceItem.style.height = rect.height + "px";
+
+        traceItem.style.left =
+          parseInt(eventTarget.style.left) +
+          gameMapRect.left +
+          window.scrollX +
+          "px";
+        traceItem.style.top =
+          parseInt(eventTarget.style.top) +
+          gameMapRect.top +
+          window.scrollY +
+          "px";
+        traceItem.style.width = eventTarget.style.width;
+        traceItem.style.height = eventTarget.style.height;
+        traceItem.style.transform = eventTarget.style.transform;
         traceItem.id = "traceItem";
 
         setStartPoint({
@@ -513,7 +530,6 @@ function MapField() {
       } else if (isDragging) {
         tempObj = draggingObject.cloneNode(true) as HTMLDivElement;
         let traceItem = document.getElementById("traceItem");
-
         if (!gridBinding) {
           tempObj.style.left =
             parseInt(traceItem.style.left) -
@@ -528,7 +544,7 @@ function MapField() {
             window.scrollY +
             "px";
         } else {
-          let mouseX, mouseY;
+          let mouseX: number, mouseY: number;
           mouseX =
             parseInt(traceItem.style.left) -
             gameMapRect.left +
@@ -1508,7 +1524,8 @@ function PaletteActions() {
         parsedItem.props.style.transform =
           parsedItem.props.style.transform.replace("scaleX(1)", "scaleX(-1)");
       } else {
-        parsedItem.props.style.transform += " scaleX(-1)";
+        parsedItem.props.style.transform =
+          "scaleX(-1) " + parsedItem.props.style.transform;
       }
       dispatch(
         mapSlice.changeElemOnMap(
@@ -1535,7 +1552,8 @@ function PaletteActions() {
         parsedItem.props.style.transform =
           parsedItem.props.style.transform.replace("scaleY(1)", "scaleY(-1)");
       } else {
-        parsedItem.props.style.transform += " scaleY(-1)";
+        parsedItem.props.style.transform =
+          "scaleY(-1) " + parsedItem.props.style.transform;
       }
       dispatch(
         mapSlice.changeElemOnMap(
