@@ -640,8 +640,15 @@ function MapField() {
       textField.style.position = "absolute";
       textField.style.top = e.pageY + "px";
       textField.style.left = e.pageX + "px";
+
+      /* const gameMap = mapRef.current;
+      const gameMapRect = gameMap.getBoundingClientRect();
+      textField.style.left = e.pageX + gameMapRect.left + window.scrollX + "px";
+      textField.style.top = e.pageY + gameMapRect.top + window.scrollY + "px";*/
+
       mapOuter.current.append(textField);
       textField.focus();
+
       textField.addEventListener("keyup", function (e) {
         if (e.code === "Enter" || e.key === "Enter") {
           //e.code failed for mobile

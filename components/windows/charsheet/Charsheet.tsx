@@ -169,18 +169,12 @@ function ParamLineSaves({ section, dispFunction, title }: ParamLineSavesProps) {
   const statInfo = useSelector(
     (state: RootState) => state.charsheet.stats[section.stat]
   );
-  const statMod = Math.floor((statInfo - 10) / 2);
-  const statRes = section.base + section.magic + section.other + statMod;
-  /*
-  saves: {
-    fort: {
-      res: 0,
-      base: 0,
-      stat: "con",
-      magic: 0,
-      other: 0,
-    },
-  */
+  const statMod = Math.floor((Number(statInfo) - 10) / 2);
+  const statRes =
+    Number(section.base) +
+    Number(section.magic) +
+    Number(section.other) +
+    Number(statMod);
 
   function makeRoll(modifier: number, fieldName: string) {
     if (connectionState === 1) {
