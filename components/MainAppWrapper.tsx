@@ -46,7 +46,7 @@ export default function MainAppWrapper({ children }) {
   }, []);
 
   //WinList
-  useEffect(() => {
+  /* useEffect(() => {
     const storedWinList = localStorage.getItem("winlist");
     if (storedWinList) {
       dispatch(actions.setWinList(JSON.parse(storedWinList)));
@@ -54,7 +54,7 @@ export default function MainAppWrapper({ children }) {
       localStorage.setItem("winlist", JSON.stringify(winList));
     }
   }, []);
-
+*/
   //storedLayout & hiddenLayout
   useEffect(() => {
     const storedLayout = localStorage.getItem("layout");

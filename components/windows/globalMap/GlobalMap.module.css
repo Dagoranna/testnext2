@@ -1,0 +1,14 @@
+.globalMapWrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.mapContainer {
+  flex: 1;
+}
+
+.buttonContainer {
+  display: flex;
+}

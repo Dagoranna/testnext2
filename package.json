@@ -14,6 +14,7 @@
     "@types/react-html-parser": "^2.0.7",
     "animejs": "^4.0.0",
     "html-react-parser": "^5.2.2",
+    "leaflet": "^1.9.4",
     "next": "15.0.4",
     "next-cookies": "^2.0.3",
     "nodemailer": "^6.9.16",
@@ -22,11 +23,13 @@
     "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^19.0.0",
     "react-grid-layout": "^1.5.0",
+    "react-leaflet": "^5.0.0",
     "react-redux": "^9.2.0",
     "sass": "^1.82.0",
     "typescript": "^5.8.3"
   },
   "devDependencies": {
+    "@types/leaflet": "^1.9.17",
     "@types/nodemailer": "^6.4.17",
     "@types/react": "19.1.2",
     "eslint-config-prettier": "^9.1.0",

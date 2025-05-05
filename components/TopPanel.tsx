@@ -33,6 +33,7 @@ export default function TopPanel() {
   const userRole = useSelector((state: RootState) => state.main.userRole);
   const layout = useSelector((state: RootState) => state.main.layout);
   const winList = useSelector((state: RootState) => state.main.winList);
+  //console.log(winList);
 
   const serverMessage = useSelector(
     (state: RootState) => state.websocket.serverMessage

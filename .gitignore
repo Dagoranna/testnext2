@@ -40,7 +40,7 @@ yarn-error.log*
 next-env.d.ts
 
 #hints for me
-MYHINTS.txt
+MYHINTS.*
 schemes.*
 
 #js files transfered to ts

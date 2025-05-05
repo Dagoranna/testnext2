@@ -29,8 +29,8 @@ const initialState: MyMainState = {
   userColor: "#8e5a1f",
   userRole: "Gamer",
   winList: {
-    Gamer: ["Game Map", "Polydice", "Charsheet"],
-    Master: ["Game Map", "Polydice", "Game Table"],
+    Gamer: ["Game Map", "Polydice", "Charsheet", "Global Map"],
+    Master: ["Game Map", "Polydice", "Game Table", "Global Map"],
   },
   layout: [
     { i: "Game Map", x: 0, y: 0, w: 5, h: 15, minH: 15 },
@@ -59,6 +59,8 @@ const mainSlice = createSlice({
       state.userRole = action.payload;
     },
     setWinList: (state, action: PayloadAction<Record<UserRole, string[]>>) => {
+      console.log("set");
+      console.log(action.payload);
       state.winList = action.payload;
     },
     setLayout: (state, action: PayloadAction<LayoutLine[]>) => {
