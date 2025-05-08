@@ -95,6 +95,18 @@ const FORMS_LIST: Record<string, Record<string, string | number>> = {
     borderRightWidth: 0,
     borderBottomWidth: 0,
   },
+  elemForm_18: {
+    borderWidth: "0",
+    background: "url('/images/mapforms/tree.webp')",
+    backgroundRepeat: "no-repeat",
+    backgroundSize: "100% 100%",
+  },
+  elemForm_19: {
+    borderWidth: "0",
+    background: "url('/images/mapforms/bush.webp')",
+    backgroundRepeat: "no-repeat",
+    backgroundSize: "100% 100%",
+  },
 };
 
 type PaletteForm = keyof typeof FORMS_LIST;

@@ -899,9 +899,10 @@ function PaletteForms() {
 }
 
 function PaletteFormsSimple() {
+  const formsCount = Object.keys(mapSlice.FORMS_LIST).length;
   return (
     <div className={styles.paletteFormsSimple}>
-      {Array.from({ length: 18 }, (_, i) => (
+      {Array.from({ length: formsCount }, (_, i) => (
         <PaletteElem key={i} id={`elemForm_${i}`} />
       ))}
     </div>
