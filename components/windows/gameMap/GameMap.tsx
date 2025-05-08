@@ -166,12 +166,6 @@ function MapField() {
         setIsDragging(true);
         setDraggingObject(eventTarget as HTMLDivElement);
 
-        //let rect = eventTarget.getBoundingClientRect();
-        /*  traceItem.style.left = rect.left + window.scrollX + "px";
-        traceItem.style.top = rect.top + window.scrollY + "px";
-        traceItem.style.width = rect.width + "px";
-        traceItem.style.height = rect.height + "px";*/
-
         const gameMap = mapRef.current;
         const gameMapRect = gameMap.getBoundingClientRect();
 
@@ -283,6 +277,10 @@ function MapField() {
       traceItemCircle.append(traceItemMarker2);
       document.body.append(traceItemMarker3);
       document.body.append(traceItem);
+    } else if (activeAction === "text") {
+      setIsWriting(false);
+      setWrittenObject(null);
+      document.querySelector("[data-name = 'textInput']")?.remove();
     }
   }
 
@@ -630,6 +628,11 @@ function MapField() {
     } else if (activeAction === "text") {
       e.preventDefault();
       e.stopPropagation();
+
+      const gameMap = mapRef.current;
+      const gameMapRect = gameMap.getBoundingClientRect();
+      const mapOuterRef = mapOuter.current;
+
       let elem = eventTarget.closest('[data-name="mapElem"]') as HTMLDivElement;
       if (!elem) return;
 
@@ -637,14 +640,12 @@ function MapField() {
       setWrittenObject(elem);
       let textField = document.createElement("input");
       setWrittenTextElem(textField);
-      textField.style.position = "absolute";
-      textField.style.top = e.pageY + "px";
-      textField.style.left = e.pageX + "px";
-
-      /* const gameMap = mapRef.current;
-      const gameMapRect = gameMap.getBoundingClientRect();
-      textField.style.left = e.pageX + gameMapRect.left + window.scrollX + "px";
-      textField.style.top = e.pageY + gameMapRect.top + window.scrollY + "px";*/
+      textField.style.left =
+        parseInt(elem.style.left) - mapOuterRef.scrollLeft + CELL_SIZE + "px";
+      textField.style.top =
+        parseInt(elem.style.top) - mapOuterRef.scrollTop + CELL_SIZE + "px";
+      textField.setAttribute("data-name", "textInput");
+      textField.className = styles.textInput;
 
       mapOuter.current.append(textField);
       textField.focus();

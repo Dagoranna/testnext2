@@ -167,6 +167,11 @@
   background-size: var(--cell) var(--cell);
 }
 
+.textInput {
+  position: absolute;
+  z-index: 1000;
+}
+
 .textField {
   user-select: none;
   pointer-events: none;
@@ -174,7 +179,11 @@
   font-size: 0.8rem;
   z-index: 25;
   position: relative;
-  text-shadow: 1px 1px 2px white;
+  text-shadow:
+    1px 1px 1px white,
+    -1px -1px 1px white,
+    1px -1px 1px white,
+    -1px 1px 1px white;
   font-weight: bold;
   background: radial-gradient(ellipse 50% 50%, white 0%, transparent 100%);
   border-radius: 50%;
