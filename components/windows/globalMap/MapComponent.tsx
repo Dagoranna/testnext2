@@ -11,6 +11,15 @@ import {
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import styles from "./MapComponent.module.css";
+import { useSelector, useDispatch } from "react-redux";
+import type {
+  SectionName,
+  MessageForServer,
+} from "../../../app/store/slices/websocketSlice";
+import { manageWebsocket } from "../../../app/store/slices/websocketSlice";
+import * as globalMapSlice from "../../../app/store/slices/globalMapSlice";
+import type { RootState, AppDispatch } from "../../../app/store/store";
+import * as clientUtils from "../../../utils/clientUtils";
 
 const customIcon = new L.Icon({
   iconUrl: "/images/marker2.webp",
@@ -25,15 +34,32 @@ function MapEventHandler({ handleClick }) {
 }
 
 const MapComponent: React.FC = () => {
-  const [points, setPoints] = useState<L.LatLng[]>([]);
-  const [routeLength, setRouteLength] = useState<number>(0);
   const globalmapRef = useRef(null);
   const mapContainerRef = useRef(null);
 
+  const dispatch: AppDispatch = useDispatch();
+  const points = useSelector((state: RootState) => state.globalMap.points);
+  const routeLength = useSelector(
+    (state: RootState) => state.globalMap.routeLength
+  );
+
+  const userRole = useSelector((state: RootState) => state.main.userRole);
+  const userName = useSelector((state: RootState) => state.main.userName);
+  const userColor = useSelector((state: RootState) => state.main.userColor);
+
+  const connectionState = useSelector(
+    (state: RootState) => state.websocket.connectionState
+  );
+  const serverMessage = useSelector(
+    (state: RootState) => state.websocket.serverMessage
+  );
+  const gameId = useSelector((state: RootState) => state.websocket.gameId);
+
   const handleClick = (latlng: L.LatLng) => {
-    setPoints([...points, latlng]);
+    dispatch(globalMapSlice.addPoint({ lat: latlng.lat, lng: latlng.lng }));
+
     const lastPoint = latlng;
-    let prevPoint: L.LatLng;
+    let prevPoint: globalMapSlice.LatLng;
 
     if (points.length > 0) {
       prevPoint = points[points.length - 1];
@@ -44,8 +70,11 @@ const MapComponent: React.FC = () => {
       (Math.abs(prevPoint.lat) - Math.abs(lastPoint.lat)) ** 2 +
         (Math.abs(prevPoint.lng) - Math.abs(lastPoint.lng)) ** 2
     );
-
-    setRouteLength(routeLength + Math.round(lastRouteLength * (120 / 9.4)));
+    dispatch(
+      globalMapSlice.setRouteLength(
+        routeLength + Math.round(lastRouteLength * (120 / 9.4))
+      )
+    );
   };
 
   useEffect(() => {
@@ -65,6 +94,47 @@ const MapComponent: React.FC = () => {
       }
     };
   }, []);
+
+  function shareRoute() {
+    console.log("share route");
+    if (connectionState !== 1 || userRole !== "Master") return;
+
+    const messageForServer: MessageForServer = {
+      gameId: gameId,
+      user: {
+        userRole: userRole,
+        userName: userName,
+        userColor: userColor,
+      },
+      sectionName: "globalMap",
+      sectionInfo: {
+        route: JSON.stringify(points),
+        routeLength: routeLength,
+      },
+    };
+
+    dispatch(
+      manageWebsocket(
+        "send",
+        process.env.NEXT_PUBLIC_SERVER_URL,
+        messageForServer
+      )
+    );
+  }
+
+  useEffect(() => {
+    if (!clientUtils.isValidJSON(serverMessage)) return;
+    let messageJSON = JSON.parse(serverMessage);
+    if (!messageJSON?.sectionName || messageJSON.sectionName !== "globalMap")
+      return;
+
+    let receivedPoints: globalMapSlice.LatLng[] = [];
+    receivedPoints = JSON.parse(messageJSON.sectionInfo.route);
+    dispatch(globalMapSlice.setPointsArray(receivedPoints));
+    dispatch(
+      globalMapSlice.setRouteLength(messageJSON.sectionInfo.routeLength)
+    );
+  }, [serverMessage]);
 
   return (
     <div className={styles.globalMapWrapper} ref={mapContainerRef}>
@@ -97,12 +167,17 @@ const MapComponent: React.FC = () => {
         <button
           className="mainButton"
           onClick={() => {
-            setPoints([]);
-            setRouteLength(0);
+            dispatch(globalMapSlice.setPointsArray([]));
+            dispatch(globalMapSlice.setRouteLength(0));
           }}
         >
-          Reset route
+          Reset Route
         </button>
+        {userRole === "Master" && (
+          <button className="mainButton" onClick={() => shareRoute()}>
+            Share Route
+          </button>
+        )}
       </div>
     </div>
   );

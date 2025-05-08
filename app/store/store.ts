@@ -5,6 +5,7 @@ import websocketReducer from "./slices/websocketSlice";
 import mapReducer from "./slices/mapSlice";
 import charsheetReducer from "./slices/charsheetSlice";
 import gameTableReducer from "./slices/gameTableSlice";
+import globalMapReducer from "./slices/globalMapSlice";
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ export const store = configureStore({
     map: mapReducer,
     charsheet: charsheetReducer,
     gameTable: gameTableReducer,
+    globalMap: globalMapReducer,
   },
 });
 

@@ -74,15 +74,12 @@ export const manageWebsocket =
         socket.onopen = () => {
           dispatch(setConnectionState(1));
           if (message) {
-            console.log("message on open connection");
             socket.send(JSON.stringify(message));
           } else {
             console.log("empty message error!");
           }
         };
         socket.onmessage = (event: MessageEvent) => {
-          console.log("message obtained");
-          console.log(event.data);
           dispatch(setServerMessage(event.data));
         };
         socket.onclose = () => {
@@ -112,8 +109,6 @@ export const manageWebsocket =
       case "send":
         const currentState = getState().websocket.connectionState;
         if (currentState === 1) {
-          console.log("message sent");
-          console.log(message);
           socket.send(JSON.stringify(message));
         } else {
           console.log("socket is not ready. State: " + currentState);
