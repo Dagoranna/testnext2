@@ -107,6 +107,30 @@ const FORMS_LIST: Record<string, Record<string, string | number>> = {
     backgroundRepeat: "no-repeat",
     backgroundSize: "100% 100%",
   },
+  elemForm_20: {
+    borderWidth: "0",
+    background: "url('/images/mapforms/rock1.webp')",
+    backgroundRepeat: "no-repeat",
+    backgroundSize: "100% 100%",
+  },
+  elemForm_21: {
+    borderWidth: "0",
+    background: "url('/images/mapforms/rock2.webp')",
+    backgroundRepeat: "no-repeat",
+    backgroundSize: "100% 100%",
+  },
+  elemForm_22: {
+    borderWidth: "0",
+    background: "url('/images/mapforms/rock3.webp')",
+    backgroundRepeat: "no-repeat",
+    backgroundSize: "100% 100%",
+  },
+  elemForm_23: {
+    borderWidth: "0",
+    background: "url('/images/mapforms/rock4.webp')",
+    backgroundRepeat: "no-repeat",
+    backgroundSize: "100% 100%",
+  },
 };
 
 type PaletteForm = keyof typeof FORMS_LIST;
