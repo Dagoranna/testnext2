@@ -28,7 +28,10 @@ export default function MainBlock() {
   );
   const winArray = layout.map((item: LayoutLine) => {
     if (
-      (loginState || item.i === "Game Map" || item.i === "Polydice") &&
+      (loginState ||
+        item.i === "Game Map" ||
+        item.i === "Polydice" ||
+        item.i === "Global Map") &&
       winListForRole.includes(item.i)
     ) {
       return (

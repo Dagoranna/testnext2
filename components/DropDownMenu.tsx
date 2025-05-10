@@ -62,7 +62,12 @@ export default function DropDownMenu({
             startState={startState}
           />
         );
-      if (loginState || itemName === "Game Map" || itemName === "Polydice")
+      if (
+        loginState ||
+        itemName === "Game Map" ||
+        itemName === "Polydice" ||
+        itemName === "Global Map"
+      )
         return currentItem;
     }
   );
