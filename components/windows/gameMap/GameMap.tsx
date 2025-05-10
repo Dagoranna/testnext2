@@ -798,7 +798,7 @@ function PaletteColors() {
   );
 
   return (
-    <div className={styles.paletteColors}>
+    <div className={`${styles.paletteColors} ${styles.paletteBlockBorder}`}>
       <PaletteColorElem
         elemClass={styles.paletteColorTransparent}
         elemText="transparent"
@@ -848,7 +848,7 @@ function PaletteLayers() {
   }
 
   return (
-    <div className={styles.paletteLayers}>
+    <div className={`${styles.paletteLayers} ${styles.paletteBlockBorder}`}>
       <div style={{ alignSelf: "flex-start" }}>Layers:</div>
       <div>
         <span>top:</span>
@@ -885,13 +885,19 @@ function PaletteLayers() {
           onChange={() => dispatch(mapSlice.switchGridBinding())}
         />
       </div>
+      <button
+        className="mainButton"
+        onClick={() => dispatch(mapSlice.loadMapContent([]))}
+      >
+        Clear All
+      </button>
     </div>
   );
 }
 
 function PaletteForms() {
   return (
-    <div className={styles.paletteForms}>
+    <div className={`${styles.paletteForms} ${styles.paletteBlockBorder}`}>
       <PaletteFormsSimple />
       <PaletteFormsButtons />
     </div>
@@ -927,7 +933,7 @@ function PaletteFormsButtons() {
 
   const addButtonStyle = {
     minWidth: "1rem",
-    borderWidth: "2px",
+    borderWidth: "1px",
     margin: "3px",
     width: "fit-content",
     alignSelf: "center",
@@ -1199,16 +1205,10 @@ function PaletteFormsButtons() {
         >
           <div className={styles.libraryGrid}>{parse(elemForSaving)}</div>
           <div className={styles.libButtonBlock}>
-            <button
-              className={styles.paletteButton}
-              onClick={() => captureElem()}
-            >
+            <button className="mainButton" onClick={() => captureElem()}>
               Capture element
             </button>
-            <button
-              className={styles.paletteButton}
-              onClick={async () => saveElem()}
-            >
+            <button className="mainButton" onClick={async () => saveElem()}>
               Save element
             </button>
           </div>
@@ -1234,14 +1234,14 @@ function PaletteFormsButtons() {
         <div className={styles.libButtonBlock}>
           {loginState && (
             <button
-              className={styles.paletteButton}
+              className="mainButton"
               onClick={async (e) => loadLocalLibrary(e)}
             >
               Local library
             </button>
           )}
           <button
-            className={styles.paletteButton}
+            className="mainButton"
             onClick={async (e) => loadGlobalLibrary(e)}
           >
             Global library
@@ -1573,7 +1573,7 @@ function PaletteActions() {
   }
 
   return (
-    <div className={styles.paletteActions}>
+    <div className={`${styles.paletteActions} ${styles.paletteBlockBorder}`}>
       <button
         className={styles.paletteActionElem}
         style={activeAction === "arrow" ? { background: "yellow" } : {}}

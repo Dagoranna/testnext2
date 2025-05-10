@@ -99,6 +99,7 @@
   /*justify-content: space-between;*/
 }
 
+/*
 .paletteButton {
   background: linear-gradient(#dac1a5, #a9855d);
   cursor: pointer;
@@ -124,6 +125,7 @@
     0.2em 0.2em 0.3em #d7c6b3 inset,
     1px 1px 1px black;
 }
+*/
 
 .elemsInRow {
   display: flex;
@@ -359,6 +361,13 @@
   /*border-right: 2px solid black;
   border-bottom: 2px solid black;*/
   cursor: se-resize;
+}
+
+.paletteBlockBorder {
+  box-shadow:
+    2px 2px 2px #f9f6f4 inset,
+    2px 2px 2px #b5a187;
+  border-radius: 5px;
 }
 
 .square {
