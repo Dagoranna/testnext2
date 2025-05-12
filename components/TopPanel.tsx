@@ -114,6 +114,29 @@ export default function TopPanel() {
   useEffect(() => {
     const gamerColor = localStorage.getItem("userColor");
     if (gamerColor) dispatch(actions.setUserColor(gamerColor));
+
+    const setStartMap = async () => {
+      let response = await fetch("/api/gamedata/loadMap", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: 4,
+        }),
+      });
+
+      let baseResponse = await response.json();
+      if (!response.ok) {
+        console.log(baseResponse.message);
+        return;
+        //throw new Error("error in database response");
+      }
+
+      dispatch(gameMapActions.loadMapContent(baseResponse.message.map_content));
+    };
+
+    setStartMap();
   }, []);
 
   type MessageFromServer = MessageForServer & {
@@ -402,7 +425,6 @@ export default function TopPanel() {
     );
   }
 
-  /** start */
   async function handleSaveMap() {
     setAddComps(
       <FormWrapperFree formName="Save nap" clearForm={setAddComps}>
@@ -444,7 +466,7 @@ export default function TopPanel() {
   }
 
   async function handleLoadMap() {
-    let response = await fetch("/api/gamedata/loadMap", {
+    let response = await fetch("/api/gamedata/loadMapList", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -462,29 +484,48 @@ export default function TopPanel() {
     }
 
     let maps: React.ReactNode = <option>...</option>;
-    const mapsTitles = Object.keys(baseResponse.message);
-    if (mapsTitles.length > 0) {
-      maps = mapsTitles.map((item) => (
-        <option key={item} value={item}>
-          {item}
-        </option>
-      ));
+
+    if (baseResponse.message.length > 0) {
+      maps = baseResponse.message.map((item) => {
+        return (
+          <option key={item.id} value={item.id}>
+            {item.map_name}
+          </option>
+        );
+      });
     }
 
-    function loadMap(e: React.FormEvent<HTMLFormElement>) {
+    async function loadMap(e: React.FormEvent<HTMLFormElement>) {
       e.preventDefault();
       const form = e.target as HTMLFormElement;
       const formInput = form.elements.namedItem("mapName") as HTMLInputElement;
-      const mapName = formInput.value;
-      const map = baseResponse.message[mapName];
-      dispatch(gameMapActions.loadMapContent(map));
+      const mapId = formInput.value;
+
+      let response = await fetch("/api/gamedata/loadMap", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: mapId,
+        }),
+      });
+
+      let baseResponse = await response.json();
+      if (!response.ok) {
+        console.log(baseResponse.message);
+        return;
+        //throw new Error("error in database response");
+      }
+
+      dispatch(gameMapActions.loadMapContent(baseResponse.message.map_content));
       setAddComps(null);
     }
 
     setAddComps(
       <FormWrapperFree formName="Load map" clearForm={setAddComps}>
         <div className="tableTitle">Choose map</div>
-        <form onSubmit={(e) => loadMap(e)}>
+        <form onSubmit={async (e) => await loadMap(e)}>
           <select id="mapName" className="mainInput">
             {maps}
           </select>
@@ -495,8 +536,6 @@ export default function TopPanel() {
       </FormWrapperFree>
     );
   }
-
-  /** end */
 
   async function handleSaveGame() {
     setAddComps(

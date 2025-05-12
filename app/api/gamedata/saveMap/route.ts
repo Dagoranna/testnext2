@@ -17,16 +17,18 @@ export async function POST(req: Request) {
   const { email, title, mapdata } = body;
 
   const store = await getMapsList(email);
-  let parsedStore: Record<string, string> = {};
-
-  try {
-    parsedStore = JSON.parse(store);
-  } catch {
-    parsedStore = {};
+  let mapId: number | null = null;
+  if (store.length !== 0) {
+    mapId = store.find((item) => item.map_name === title)?.id || null;
   }
-  parsedStore[title] = mapdata;
-  const newStore = JSON.stringify(parsedStore);
-  let resSaving = await setMapsList(email, newStore);
+
+  let resSaving: boolean;
+
+  if (mapId !== null) {
+    resSaving = await updateMap(mapId, mapdata);
+  } else {
+    resSaving = await addMap(email, title, mapdata);
+  }
 
   if (resSaving) {
     return NextResponse.json(
@@ -41,11 +43,26 @@ export async function POST(req: Request) {
   }
 }
 
-async function setMapsList(email: string, newStore: string) {
+async function addMap(email: string, title: string, mapContent: string) {
+  const { error } = await supabase
+    .from("maps")
+    .insert([
+      { author_email: email, map_name: title, map_content: mapContent },
+    ]);
+
+  if (error) {
+    console.error("Error:", error);
+    return false;
+  } else {
+    return true;
+  }
+}
+
+async function updateMap(id: number, mapContent: string) {
   const { data, error } = await supabase
-    .from("players")
-    .update({ master_map: newStore })
-    .eq("gamer_mail", email);
+    .from("maps")
+    .update({ map_content: mapContent })
+    .eq("id", id);
 
   if (error) {
     console.error("Error:", error);
@@ -57,15 +74,14 @@ async function setMapsList(email: string, newStore: string) {
 
 async function getMapsList(email: string) {
   const { data, error } = await supabase
-    .from("players")
-    .select("master_map")
-    .eq("gamer_mail", email);
+    .from("maps")
+    .select("map_name, id")
+    .eq("author_email", email);
 
   if (error) {
     console.error("Error:", error);
-    return false;
+    return [];
   }
 
-  if (!data || !data[0]) return {};
-  return data[0].master_map ?? {};
+  return data;
 }

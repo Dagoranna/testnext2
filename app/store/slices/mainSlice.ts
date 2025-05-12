@@ -33,8 +33,9 @@ const initialState: MyMainState = {
     Master: ["Game Map", "Polydice", "Game Table", "Global Map"],
   },
   layout: [
-    { i: "Game Map", x: 0, y: 0, w: 5, h: 15, minH: 15 },
-    { i: "Polydice", x: 0, y: 0, w: 5, h: 15, minH: 15 },
+    { i: "Game Map", x: 0, y: 0, w: 4, h: 34, minH: 15 },
+    { i: "Polydice", x: 4, y: 0, w: 2, h: 17, minH: 15 },
+    { i: "Global Map", x: 4, y: 17, w: 2, h: 17, minH: 15 },
   ],
   connectionTitle: "Connect",
 };

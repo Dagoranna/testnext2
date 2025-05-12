@@ -7,26 +7,25 @@ const supabase = createClient(
 );
 
 interface bodyRequest {
-  id: number;
+  email: string;
 }
 
 export async function POST(req: Request) {
   const body: bodyRequest = await req.json();
-  const { id } = body;
+  const { email } = body;
 
-  const store = await getMap(id);
-
+  const mapList = await getMapsList(email);
   return NextResponse.json(
-    { message: store[0], getState: true },
+    { message: mapList, getState: true },
     { status: 200 }
   );
 }
 
-async function getMap(id: number) {
+async function getMapsList(email: string) {
   const { data, error } = await supabase
     .from("maps")
-    .select("map_content")
-    .eq("id", id);
+    .select("map_name, id")
+    .eq("author_email", email);
 
   if (error) {
     console.error("Error:", error);
