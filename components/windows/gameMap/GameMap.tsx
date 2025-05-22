@@ -431,11 +431,11 @@ function MapField() {
         formClone.style.backgroundColor = mainBGColor;
         formClone.style.backgroundImage = `
             linear-gradient( transparent ${CELL_SIZE - 1}px, gray ${
-              CELL_SIZE - 1
-            }px),
+          CELL_SIZE - 1
+        }px),
             linear-gradient(90deg, transparent ${CELL_SIZE - 1}px, gray ${
-              CELL_SIZE - 1
-            }px)
+          CELL_SIZE - 1
+        }px)
           `;
         formClone.style.backgroundSize = `${CELL_SIZE}px ${CELL_SIZE}px`;
         formClone.style.backgroundPosition = `0 0, 0 0`;
@@ -495,28 +495,70 @@ function MapField() {
 
         const oldWidth: string = tempObj.style.width;
         const oldHeight: string = tempObj.style.height;
-        const newWidth = mouseX - parseInt(tempObj.style.left);
-        const newHeight = mouseY - parseInt(tempObj.style.top);
+        console.log("oldWidth = " + oldWidth + " oldHeight = " + oldHeight);
+        const newWidth = mouseX - parseFloat(tempObj.style.left);
+        const newHeight = mouseY - parseFloat(tempObj.style.top);
+        console.log("newWidth = " + newWidth + " newHeight = " + newHeight);
         tempObj.style.width = newWidth > 0 ? newWidth + "px" : "2px";
         tempObj.style.height = newHeight > 0 ? newHeight + "px" : "2px";
 
-        const coefX = newWidth / parseInt(oldWidth);
-        const coefY = newHeight / parseInt(oldHeight);
+        const coefX = newWidth / parseFloat(oldWidth);
+        const coefY = newHeight / parseFloat(oldHeight);
 
+        /*     console.log(tempObj.style.transform);
+
+        if (!tempObj.style.transform) {
+          console.log("start");
+          tempObj.style.transform = `scaleX(${coefX}) scaleY(${coefY})`;
+        } else {
+          let regex = /scaleX\(([-\d.]+)\)/;
+          let oldCoefX = tempObj.style.transform.match(regex)
+            ? parseFloat(tempObj.style.transform.match(regex)[1])
+            : 1;
+          regex = /scaleY\(([-\d.]+)\)/;
+          let oldCoefY = tempObj.style.transform.match(regex)
+            ? parseFloat(tempObj.style.transform.match(regex)[1])
+            : 1;
+
+          let newCoefX = coefX * oldCoefX;
+          let newCoefY = coefY * oldCoefY;
+
+          console.log("newCoefX = " + newCoefX);
+          console.log(`scaleX(${oldCoefX})`);
+
+          tempObj.style.transform = tempObj.style.transform.replace(
+            `scaleX(${oldCoefX})`,
+            `scaleX(${newCoefX})`
+          );
+          tempObj.style.transform = tempObj.style.transform.replace(
+            `scaleY(${oldCoefY})`,
+            `scaleY(${newCoefY})`
+          );
+
+          console.log(tempObj.style.transform);
+        }
+*/
         for (let elem of tempObj.children as HTMLCollectionOf<HTMLElement>) {
           if (elem.getAttribute("data-name") === "elemResizer") continue;
           if (elem.getAttribute("data-name") === "textField") continue;
 
-          let elemWidth = parseInt(elem.style?.width)
-            ? parseInt(elem.style?.width)
+          let elemWidth = parseFloat(elem.style?.width)
+            ? parseFloat(elem.style?.width)
             : CELL_SIZE;
           elem.style.width = elemWidth * coefX + "px";
-          elem.style.left = (parseInt(elem.style.left) + 1) * coefX - 1 + "px";
+          elem.style.left =
+            (parseFloat(elem.style.left) + 1) * coefX - 1 + "px";
+          let elemHeight = parseFloat(elem.style?.height)
+            ? parseFloat(elem.style?.height)
+            : CELL_SIZE;
+          elem.style.height = elemHeight * coefY + "px";
+          elem.style.top = (parseFloat(elem.style.top) + 1) * coefY - 1 + "px";
+          /*   elem.style.left = parseInt(elem.style.left) * coefX + "px";
           let elemHeight = parseInt(elem.style?.height)
             ? parseInt(elem.style?.height)
             : CELL_SIZE;
           elem.style.height = elemHeight * coefY + "px";
-          elem.style.top = (parseInt(elem.style.top) + 1) * coefY - 1 + "px";
+          elem.style.top = parseInt(elem.style.top) * coefY + "px";*/
         }
 
         dispatch(mapSlice.changeElemOnMap(tempObj.outerHTML));
