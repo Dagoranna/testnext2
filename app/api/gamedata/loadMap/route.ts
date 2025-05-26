@@ -25,7 +25,7 @@ export async function POST(req: Request) {
 async function getMap(id: number) {
   const { data, error } = await supabase
     .from("maps")
-    .select("map_content")
+    .select("map_content, map_elems_counter")
     .eq("id", id);
 
   if (error) {

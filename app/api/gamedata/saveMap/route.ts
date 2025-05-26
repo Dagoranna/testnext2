@@ -10,11 +10,12 @@ interface bodyRequest {
   email: string;
   title: string;
   mapdata: string;
+  mapElemsCounter: number;
 }
 
 export async function POST(req: Request) {
   const body: bodyRequest = await req.json();
-  const { email, title, mapdata } = body;
+  const { email, title, mapdata, mapElemsCounter } = body;
 
   const store = await getMapsList(email);
   let mapId: number | null = null;
@@ -25,9 +26,9 @@ export async function POST(req: Request) {
   let resSaving: boolean;
 
   if (mapId !== null) {
-    resSaving = await updateMap(mapId, mapdata);
+    resSaving = await updateMap(mapId, mapdata, mapElemsCounter);
   } else {
-    resSaving = await addMap(email, title, mapdata);
+    resSaving = await addMap(email, title, mapdata, mapElemsCounter);
   }
 
   if (resSaving) {
@@ -43,11 +44,21 @@ export async function POST(req: Request) {
   }
 }
 
-async function addMap(email: string, title: string, mapContent: string) {
+async function addMap(
+  email: string,
+  title: string,
+  mapContent: string,
+  mapElemsCounter: number
+) {
   const { error } = await supabase
     .from("maps")
     .insert([
-      { author_email: email, map_name: title, map_content: mapContent },
+      {
+        author_email: email,
+        map_name: title,
+        map_content: mapContent,
+        map_elems_counter: mapElemsCounter,
+      },
     ]);
 
   if (error) {
@@ -58,10 +69,14 @@ async function addMap(email: string, title: string, mapContent: string) {
   }
 }
 
-async function updateMap(id: number, mapContent: string) {
+async function updateMap(
+  id: number,
+  mapContent: string,
+  mapElemsCounter: number
+) {
   const { data, error } = await supabase
     .from("maps")
-    .update({ map_content: mapContent })
+    .update({ map_content: mapContent, map_elems_counter: mapElemsCounter })
     .eq("id", id);
 
   if (error) {
