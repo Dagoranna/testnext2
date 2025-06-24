@@ -9,6 +9,9 @@ import MainAppWrapper from "../components/MainAppWrapper";
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href="favicon1.png" type="image/x-icon"></link>
+      </head>
       <body>
         <Provider store={store}>
           <MainAppWrapper>{children}</MainAppWrapper>
