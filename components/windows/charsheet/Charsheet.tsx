@@ -177,6 +177,14 @@ function ParamLineSaves({ section, dispFunction, title }: ParamLineSavesProps) {
     Number(statMod);
 
   function makeRoll(modifier: number, fieldName: string) {
+    console.log("modifier");
+    console.log(modifier);
+    console.log("fieldName");
+    console.log(fieldName);
+    console.log("section");
+    console.log(section);
+    console.log("statres");
+    console.log(statRes);
     if (connectionState === 1) {
       const messageForServer = {
         gameId: gameId,
@@ -215,11 +223,13 @@ function ParamLineSaves({ section, dispFunction, title }: ParamLineSavesProps) {
     ]);
   }, [statInfo]);
 
+  //onClick={(e) => makeRoll(section.res, title)}
+
   return (
     <div className={styles.paramLine}>
       <button
         className={`${styles.paramTitle} ${styles.chButton}`}
-        onClick={(e) => makeRoll(section.res, title)}
+        onClick={(e) => makeRoll(statRes, title)}
       >{`${title}:`}</button>
       <div className={styles.oneSaveBlock}>
         <div className={styles.savePart}>
