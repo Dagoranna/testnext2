@@ -126,6 +126,24 @@ function MapField() {
     setScreenSize([window.innerWidth, window.innerHeight]);
   }, []);
 
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Delete") {
+        if (activeAction !== "arrow") return;
+
+        let selectedArray = mapContent.filter((item) =>
+          item.includes("outline: yellow dashed 3px")
+        );
+
+        if (selectedArray.length === 0) return;
+        selectedArray.map((item) => dispatch(mapSlice.removeElemFromMap(item)));
+      }
+    };
+
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [activeAction, mapContent, dispatch]);
+
   function mapOnMouseDown(e: React.MouseEvent | React.PointerEvent) {
     const gameMap = mapRef.current;
 
@@ -692,9 +710,9 @@ function MapField() {
       mapOuter.current.append(textField);
       textField.focus();
 
-      textField.addEventListener("keyup", function (e) {
+      function handleTextKey(e: KeyboardEvent) {
         if (e.code === "Enter" || e.key === "Enter") {
-          //e.code failed for mobile
+          //2 variants because e.code failed for mobile
           e.preventDefault();
 
           let elemCopy = elem.cloneNode(true) as HTMLElement;
@@ -710,9 +728,35 @@ function MapField() {
           setIsWriting(false);
           setWrittenObject(null);
           setWrittenTextElem(null);
+          textField.removeEventListener("keyup", handleTextKey);
         }
-      });
+      }
+
+      textField.addEventListener("keyup", handleTextKey);
     }
+  }
+
+  function mapOnDoubleClick(e: React.MouseEvent | React.PointerEvent) {
+    e.stopPropagation();
+    if (activeAction !== "arrow") {
+      return;
+    }
+
+    const eventTarget = e.target as HTMLElement;
+    const eventTargetName = eventTarget.getAttribute("data-name");
+
+    if (eventTargetName === "mapElem") {
+      console.log(eventTarget.id);
+      eventTarget.style.outline = "3px dashed yellow";
+      dispatch(mapSlice.changeElemOnMap(eventTarget.outerHTML));
+      dispatch(mapSlice.setSelectedObjectsId([eventTarget.id]));
+    }
+  }
+
+  function mapKeyControl(e: React.KeyboardEvent) {
+    // e.stopPropagation();
+    console.log("key pressed");
+    console.log(e.key);
   }
 
   useEffect(() => {
@@ -771,6 +815,7 @@ function MapField() {
         onPointerDown={(e) => mapOnMouseDown(e)}
         onPointerMove={(e) => mapOnMouseMove(e)}
         onPointerLeave={(e) => mapOnMouseUp(e, true)}
+        onDoubleClick={(e) => mapOnDoubleClick(e)}
       >
         {mapContent.map((item, index) => (
           <React.Fragment key={index}>{parse(item)}</React.Fragment>
