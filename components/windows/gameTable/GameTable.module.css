@@ -35,3 +35,19 @@
   cursor: pointer;
   padding: 0.3rem;
 }
+
+.noticeArea {
+  width: 100%;
+  align-self: end;
+  margin-top: 5px;
+  min-height: 5rem;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.combatTable {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}

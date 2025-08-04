@@ -48,6 +48,9 @@ export default function TopPanel() {
 
   const charsheetState = useSelector((state: RootState) => state.charsheet);
   const gameState = useSelector((state: RootState) => state.gameTable);
+  const gameNotices = useSelector(
+    (state: RootState) => state.gameTable.gameNotices
+  );
   const mapState = useSelector((state: RootState) => state.map.mapContent);
   const mapElemsCounter = useSelector(
     (state: RootState) => state.map.mapElemsCounter

@@ -68,4 +68,3 @@ async function getGamesList(email: string) {
   if (!data || !data[0]) return {};
   return data[0].master_game ?? {};
 }
-

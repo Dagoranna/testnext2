@@ -11,11 +11,13 @@ export interface Combatant {
 export interface TableState {
   combatants: Combatant[];
   mobId: number;
+  gameNotices: String;
 }
 
 const initialState: TableState = {
   combatants: [],
   mobId: 0,
+  gameNotices: "Game notices: \n",
 };
 
 const gameTableSlice = createSlice({
@@ -50,6 +52,9 @@ const gameTableSlice = createSlice({
     incMobId: (state) => {
       state.mobId = state.mobId + 1;
     },
+    changeGameNotices: (state, action: PayloadAction<string>) => {
+      state.gameNotices = action.payload;
+    },
   },
 });
 
@@ -61,6 +66,7 @@ export const {
   loadCombatants,
   setMobId,
   incMobId,
+  changeGameNotices,
 } = gameTableSlice.actions;
 
 export default gameTableSlice.reducer;

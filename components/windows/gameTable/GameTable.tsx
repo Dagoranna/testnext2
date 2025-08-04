@@ -69,6 +69,9 @@ export default function GameTable() {
   const combatants = useSelector(
     (state: RootState) => state.gameTable.combatants
   );
+  const gameNotices = useSelector(
+    (state: RootState) => state.gameTable.gameNotices
+  );
 
   const combatantsGrid = combatants.map((item) => {
     return <Combatant key={item.id} mob={item} />;
@@ -119,6 +122,11 @@ export default function GameTable() {
     dispatch(gameTableSlice.sortCombatants());
   }
 
+  function changeNotices(e: React.ChangeEvent) {
+    const eventTarget = e.target as HTMLInputElement;
+    dispatch(gameTableSlice.changeGameNotices(eventTarget.value));
+  }
+
   return (
     <div className={styles.combatTable}>
       <div className={styles.mobLine}>
@@ -156,6 +164,12 @@ export default function GameTable() {
         </button>
       </div>
       {combatantsGrid}
+      <textarea
+        className={styles.noticeArea}
+        value={gameNotices as string}
+        onChange={(e) => changeNotices(e)}
+        spellCheck={false}
+      ></textarea>
     </div>
   );
 }
