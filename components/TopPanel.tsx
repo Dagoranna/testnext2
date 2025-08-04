@@ -452,63 +452,7 @@ export default function TopPanel() {
       </FormWrapperFree>
     );
   }
-  /*
-  async function handleLoadCharsheet() {
-    let response = await fetch("/api/gamedata/getCharsheets", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        email: userEmail,
-      }),
-    });
 
-    let baseResponse = await response.json();
-    if (!response.ok) {
-      console.log(baseResponse.message);
-      return;
-      //throw new Error("error in database response");
-    }
-
-    let charsheets: React.ReactNode = <option>...</option>;
-    const charsheetsTitles = Object.keys(baseResponse.message);
-    if (charsheetsTitles.length > 0) {
-      charsheets = charsheetsTitles.map((item) => (
-        <option key={item} value={item}>
-          {item}
-        </option>
-      ));
-    }
-
-    function loadCharsheet(e: React.FormEvent<HTMLFormElement>) {
-      e.preventDefault();
-      const form = e.target as HTMLFormElement;
-      const formInput = form.elements.namedItem(
-        "charsheetName"
-      ) as HTMLInputElement;
-      const charsheetName = formInput.value;
-
-      const charsheet = baseResponse.message[charsheetName];
-      dispatch(charsheetActions.loadCharsheet(charsheet));
-      setAddComps(null);
-    }
-
-    setAddComps(
-      <FormWrapperFree formName="Load charsheet" clearForm={setAddComps}>
-        <div className="tableTitle">Choose charsheet</div>
-        <form onSubmit={(e) => loadCharsheet(e)}>
-          <select id="charsheetName" className="mainInput">
-            {charsheets}
-          </select>
-          <button className="mainButton" type="submit">
-            Load charsheet
-          </button>
-        </form>
-      </FormWrapperFree>
-    );
-  }
-*/
   async function handleSaveMap() {
     setAddComps(
       <FormWrapperFree formName="Save nap" clearForm={setAddComps}>
