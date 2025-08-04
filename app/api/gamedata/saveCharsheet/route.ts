@@ -17,17 +17,20 @@ export async function POST(req: Request) {
   const { email, title, chardata } = body;
 
   const store = await getCharsheetsList(email);
-  let parsedStore: Record<string, string> = {};
 
-  try {
-    parsedStore = JSON.parse(store);
-  } catch {
-    parsedStore = {};
+  let charsheetId: number | null = null;
+  if (store.length !== 0) {
+    charsheetId =
+      store.find((item) => item.charsheet_name === title)?.id || null;
   }
 
-  parsedStore[title] = chardata;
-  const newStore = JSON.stringify(parsedStore);
-  let resSaving = await setCharsheetsList(email, newStore);
+  let resSaving: boolean;
+
+  if (charsheetId !== null) {
+    resSaving = await updateCharsheet(charsheetId, chardata);
+  } else {
+    resSaving = await addCharsheet(email, title, chardata);
+  }
 
   if (resSaving) {
     return NextResponse.json(
@@ -42,11 +45,32 @@ export async function POST(req: Request) {
   }
 }
 
-async function setCharsheetsList(email: string, newStore: string) {
+async function addCharsheet(
+  email: string,
+  title: string,
+  charsheetContent: string
+) {
+  const { error } = await supabase.from("charsheets").insert([
+    {
+      author_email: email,
+      charsheet_name: title,
+      charsheet_content: charsheetContent,
+    },
+  ]);
+
+  if (error) {
+    console.error("Error:", error);
+    return false;
+  } else {
+    return true;
+  }
+}
+
+async function updateCharsheet(id: number, charsheetContent: string) {
   const { data, error } = await supabase
-    .from("players")
-    .update({ gamer_charsheet: newStore })
-    .eq("gamer_mail", email);
+    .from("charsheets")
+    .update({ charsheet_content: charsheetContent })
+    .eq("id", id);
 
   if (error) {
     console.error("Error:", error);
@@ -58,16 +82,14 @@ async function setCharsheetsList(email: string, newStore: string) {
 
 async function getCharsheetsList(email: string) {
   const { data, error } = await supabase
-    .from("players")
-    .select("gamer_charsheet")
-    .eq("gamer_mail", email);
+    .from("charsheets")
+    .select("charsheet_name, id")
+    .eq("author_email", email);
 
   if (error) {
     console.error("Error:", error);
-    return false;
+    return [];
   }
 
-  if (!data || !data[0]) return {};
-  return data[0].gamer_charsheet ?? {};
+  return data;
 }
-

@@ -363,7 +363,7 @@ export default function TopPanel() {
       body: JSON.stringify({
         email: userEmail,
         title: charsheetName,
-        chardata: JSON.stringify(charsheetState),
+        chardata: charsheetState,
       }),
     });
 
@@ -375,6 +375,84 @@ export default function TopPanel() {
     setAddComps(null);
   }
 
+  async function handleLoadCharsheet() {
+    let response = await fetch("/api/gamedata/loadCharsheetList", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: userEmail,
+      }),
+    });
+
+    let baseResponse = await response.json();
+    if (!response.ok) {
+      console.log(baseResponse.message);
+      return;
+      //throw new Error("error in database response");
+    }
+
+    let charsheets: React.ReactNode = <option>...</option>;
+
+    if (baseResponse.message.length > 0) {
+      charsheets = baseResponse.message.map((item) => {
+        return (
+          <option key={item.id} value={item.id}>
+            {item.charsheet_name}
+          </option>
+        );
+      });
+    }
+
+    async function loadCharsheet(e: React.FormEvent<HTMLFormElement>) {
+      e.preventDefault();
+      const form = e.target as HTMLFormElement;
+      const formInput = form.elements.namedItem(
+        "charsheetName"
+      ) as HTMLInputElement;
+      const charsheetId = formInput.value;
+
+      let response = await fetch("/api/gamedata/loadCharsheet", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: charsheetId,
+        }),
+      });
+
+      let baseResponse = await response.json();
+      if (!response.ok) {
+        console.log(baseResponse.message);
+        return;
+        //throw new Error("error in database response");
+      }
+
+      dispatch(
+        charsheetActions.loadCharsheetContent(
+          baseResponse.message.charsheet_content
+        )
+      );
+      setAddComps(null);
+    }
+
+    setAddComps(
+      <FormWrapperFree formName="Load charsheet" clearForm={setAddComps}>
+        <div className="tableTitle">Choose charsheet</div>
+        <form onSubmit={async (e) => await loadCharsheet(e)}>
+          <select id="charsheetName" className="mainInput">
+            {charsheets}
+          </select>
+          <button className="mainButton" type="submit">
+            Load charsheet
+          </button>
+        </form>
+      </FormWrapperFree>
+    );
+  }
+  /*
   async function handleLoadCharsheet() {
     let response = await fetch("/api/gamedata/getCharsheets", {
       method: "POST",
@@ -430,7 +508,7 @@ export default function TopPanel() {
       </FormWrapperFree>
     );
   }
-
+*/
   async function handleSaveMap() {
     setAddComps(
       <FormWrapperFree formName="Save nap" clearForm={setAddComps}>
