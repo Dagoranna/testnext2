@@ -14,24 +14,22 @@ export async function POST(req: Request) {
   const body: bodyRequest = await req.json();
   const { id } = body;
 
-  const store = await getGame(id);
+  const result = await deleteMap(id);
 
-  return NextResponse.json(
-    { message: store[0], getState: true },
-    { status: 200 }
-  );
+  if (result) {
+    return NextResponse.json({ result: true }, { status: 200 });
+  } else {
+    return NextResponse.json({ result: false }, { status: 500 });
+  }
 }
 
-async function getGame(id: number) {
-  const { data, error } = await supabase
-    .from("games")
-    .select("game_content")
-    .eq("id", id);
+async function deleteMap(id: number) {
+  const { error } = await supabase.from("maps").delete().eq("id", id);
 
   if (error) {
     console.error("Error:", error);
-    return [];
+    return false;
   }
 
-  return data;
+  return true;
 }

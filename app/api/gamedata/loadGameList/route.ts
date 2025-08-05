@@ -7,26 +7,25 @@ const supabase = createClient(
 );
 
 interface bodyRequest {
-  id: number;
+  email: string;
 }
 
 export async function POST(req: Request) {
   const body: bodyRequest = await req.json();
-  const { id } = body;
+  const { email } = body;
 
-  const store = await getGame(id);
-
+  const gamesList = await getGamesList(email);
   return NextResponse.json(
-    { message: store[0], getState: true },
+    { message: gamesList, getState: true },
     { status: 200 }
   );
 }
 
-async function getGame(id: number) {
+async function getGamesList(email: string) {
   const { data, error } = await supabase
     .from("games")
-    .select("game_content")
-    .eq("id", id);
+    .select("game_name, id")
+    .eq("author_email", email);
 
   if (error) {
     console.error("Error:", error);

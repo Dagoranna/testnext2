@@ -96,6 +96,11 @@ export default function TopPanel() {
       itemHandling: async () => await handleLoadMap(),
     },
     {
+      itemName: "Delete map",
+      itemType: "button",
+      itemHandling: async () => await handleDeleteMap(),
+    },
+    {
       itemName: "Save game",
       itemType: "button",
       itemHandling: async () => await handleSaveGame(),
@@ -571,6 +576,77 @@ export default function TopPanel() {
     );
   }
 
+  async function handleDeleteMap() {
+    let response = await fetch("/api/gamedata/loadMapList", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: userEmail,
+      }),
+    });
+
+    let baseResponse = await response.json();
+    if (!response.ok) {
+      console.log(baseResponse.message);
+      return;
+      //throw new Error("error in database response");
+    }
+
+    let maps: React.ReactNode = <option>...</option>;
+
+    if (baseResponse.message.length > 0) {
+      maps = baseResponse.message.map((item) => {
+        return (
+          <option key={item.id} value={item.id}>
+            {item.map_name}
+          </option>
+        );
+      });
+    }
+
+    async function deleteMap(e: React.FormEvent<HTMLFormElement>) {
+      e.preventDefault();
+      const form = e.target as HTMLFormElement;
+      const formInput = form.elements.namedItem("mapName") as HTMLInputElement;
+      const mapId = formInput.value;
+
+      let response = await fetch("/api/gamedata/deleteMap", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: mapId,
+        }),
+      });
+
+      let baseResponse = await response.json();
+      if (!response.ok) {
+        console.log(baseResponse.message);
+        return;
+        //throw new Error("error in database response");
+      }
+
+      setAddComps(null);
+    }
+
+    setAddComps(
+      <FormWrapperFree formName="Delete map" clearForm={setAddComps}>
+        <div className="tableTitle">Choose map</div>
+        <form onSubmit={async (e) => await deleteMap(e)}>
+          <select id="mapName" className="mainInput">
+            {maps}
+          </select>
+          <button className="mainButton" type="submit">
+            Delete map
+          </button>
+        </form>
+      </FormWrapperFree>
+    );
+  }
+
   async function handleSaveGame() {
     setAddComps(
       <FormWrapperFree formName="Save game" clearForm={setAddComps}>
@@ -599,7 +675,7 @@ export default function TopPanel() {
       body: JSON.stringify({
         email: userEmail,
         title: gameName,
-        gamedata: JSON.stringify(gameState),
+        gamedata: gameState,
       }),
     });
 
@@ -612,7 +688,7 @@ export default function TopPanel() {
   }
 
   async function handleLoadGame() {
-    let response = await fetch("/api/gamedata/loadGame", {
+    let response = await fetch("/api/gamedata/loadGameList", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -623,6 +699,7 @@ export default function TopPanel() {
     });
 
     let baseResponse = await response.json();
+
     if (!response.ok) {
       console.log(baseResponse.message);
       return;
@@ -630,29 +707,50 @@ export default function TopPanel() {
     }
 
     let games: React.ReactNode = <option>...</option>;
-    const gamesTitles = Object.keys(baseResponse.message);
-    if (gamesTitles.length > 0) {
-      games = gamesTitles.map((item) => (
-        <option key={item} value={item}>
-          {item}
-        </option>
-      ));
+
+    if (baseResponse.message.length > 0) {
+      games = baseResponse.message.map((item) => {
+        return (
+          <option key={item.id} value={item.id}>
+            {item.game_name}
+          </option>
+        );
+      });
     }
 
-    function loadGame(e: React.FormEvent<HTMLFormElement>) {
+    async function loadGame(e: React.FormEvent<HTMLFormElement>) {
       e.preventDefault();
       const form = e.target as HTMLFormElement;
       const formInput = form.elements.namedItem("gameName") as HTMLInputElement;
-      const gameName = formInput.value;
-      const game = baseResponse.message[gameName];
-      dispatch(gameTableActions.loadCombatants(game));
+      const gameId = formInput.value;
+
+      let response = await fetch("/api/gamedata/loadGame", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: gameId,
+        }),
+      });
+
+      let baseResponse = await response.json();
+      if (!response.ok) {
+        console.log(baseResponse.message);
+        return;
+        //throw new Error("error in database response");
+      }
+
+      dispatch(
+        gameTableActions.loadGameContent(baseResponse.message.game_content)
+      );
       setAddComps(null);
     }
 
     setAddComps(
       <FormWrapperFree formName="Load game" clearForm={setAddComps}>
         <div className="tableTitle">Choose game</div>
-        <form onSubmit={(e) => loadGame(e)}>
+        <form onSubmit={async (e) => await loadGame(e)}>
           <select id="gameName" className="mainInput">
             {games}
           </select>

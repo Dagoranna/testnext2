@@ -55,6 +55,9 @@ const gameTableSlice = createSlice({
     changeGameNotices: (state, action: PayloadAction<string>) => {
       state.gameNotices = action.payload;
     },
+    loadGameContent: (state, action: PayloadAction<TableState>) => {
+      return action.payload;
+    },
   },
 });
 
@@ -67,6 +70,7 @@ export const {
   setMobId,
   incMobId,
   changeGameNotices,
+  loadGameContent,
 } = gameTableSlice.actions;
 
 export default gameTableSlice.reducer;

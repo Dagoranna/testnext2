@@ -842,8 +842,10 @@ function PaletteColorElem({
     if (selectedObjects.length > 0) {
       selectedObjects.map((itemId) => {
         let elem = document.getElementById(itemId);
-        elem.style.backgroundColor = newBGColor;
-        dispatch(mapSlice.changeElemOnMap(elem.outerHTML));
+        if (elem) {
+          elem.style.backgroundColor = newBGColor;
+          dispatch(mapSlice.changeElemOnMap(elem.outerHTML));
+        }
       });
     }
   }

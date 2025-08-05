@@ -17,15 +17,19 @@ export async function POST(req: Request) {
   const { email, title, gamedata } = body;
 
   const store = await getGamesList(email);
-  let parsedStore: Record<string, string> = {};
-  try {
-    parsedStore = JSON.parse(store);
-  } catch {
-    parsedStore = {};
+
+  let gameId: number | null = null;
+  if (store.length !== 0) {
+    gameId = store.find((item) => item.game_name === title)?.id || null;
   }
-  parsedStore[title] = gamedata;
-  const newStore = JSON.stringify(parsedStore);
-  let resSaving = await setGamesList(email, newStore);
+
+  let resSaving: boolean;
+
+  if (gameId !== null) {
+    resSaving = await updateGame(gameId, gamedata);
+  } else {
+    resSaving = await addGame(email, title, gamedata);
+  }
 
   if (resSaving) {
     return NextResponse.json(
@@ -40,11 +44,28 @@ export async function POST(req: Request) {
   }
 }
 
-async function setGamesList(email: string, newStore: string) {
+async function addGame(email: string, title: string, gameContent: string) {
+  const { error } = await supabase.from("games").insert([
+    {
+      author_email: email,
+      game_name: title,
+      game_content: gameContent,
+    },
+  ]);
+
+  if (error) {
+    console.error("Error:", error);
+    return false;
+  } else {
+    return true;
+  }
+}
+
+async function updateGame(id: number, gameContent: string) {
   const { data, error } = await supabase
-    .from("players")
-    .update({ master_game: newStore })
-    .eq("gamer_mail", email);
+    .from("games")
+    .update({ game_content: gameContent })
+    .eq("id", id);
 
   if (error) {
     console.error("Error:", error);
@@ -56,15 +77,14 @@ async function setGamesList(email: string, newStore: string) {
 
 async function getGamesList(email: string) {
   const { data, error } = await supabase
-    .from("players")
-    .select("master_game")
-    .eq("gamer_mail", email);
+    .from("gamets")
+    .select("game_name, id")
+    .eq("author_email", email);
 
   if (error) {
     console.error("Error:", error);
-    return false;
+    return [];
   }
 
-  if (!data || !data[0]) return {};
-  return data[0].master_game ?? {};
+  return data;
 }
