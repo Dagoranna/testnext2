@@ -147,6 +147,7 @@ interface ActivePaletteStyle {
 
 interface MapState {
   mapContent: string[];
+  mapContentPrev: string[];
   mapElemsCounter: number;
   activePaletteAction: ActivePaletteAction;
   activeElemId: string | null;
@@ -157,6 +158,7 @@ interface MapState {
 
 const initialState: MapState = {
   mapContent: [],
+  mapContentPrev: [],
   mapElemsCounter: 0,
   activePaletteAction: null,
   activeElemId: null,
@@ -176,6 +178,7 @@ const mapSlice = createSlice({
   initialState,
   reducers: {
     addElemToMap: (state, action: PayloadAction<string>) => {
+      state.mapContentPrev = JSON.parse(JSON.stringify(state.mapContent));
       state.mapContent.push(action.payload);
     },
     changeElemOnMap: (state, action: PayloadAction<string>) => {
@@ -187,6 +190,7 @@ const mapSlice = createSlice({
         item.includes(currentElemId)
       );
 
+      state.mapContentPrev = JSON.parse(JSON.stringify(state.mapContent));
       state.mapContent[currentElemIndex] = action.payload;
     },
     removeElemFromMap: (state, action: PayloadAction<string>) => {
@@ -247,6 +251,12 @@ const mapSlice = createSlice({
     loadMapContent: (state, action: PayloadAction<string[]>) => {
       state.mapContent = action.payload;
     },
+    setMapContentPrev: (state, action: PayloadAction<string[]>) => {
+      state.mapContentPrev = action.payload;
+    },
+    undoContentChanges: (state) => {
+      state.mapContent = JSON.parse(JSON.stringify(state.mapContentPrev));
+    },
   },
 });
 
@@ -266,6 +276,8 @@ export const {
   setSelectedObjectsId,
   setElemFromLib,
   loadMapContent,
+  undoContentChanges,
+  setMapContentPrev,
 } = mapSlice.actions;
 
 export { FORMS_LIST };

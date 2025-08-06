@@ -129,6 +129,7 @@ function MapField() {
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === "Delete") {
+        e.preventDefault();
         if (activeAction !== "arrow") return;
 
         let selectedArray = mapContent.filter((item) =>
@@ -137,6 +138,11 @@ function MapField() {
 
         if (selectedArray.length === 0) return;
         selectedArray.map((item) => dispatch(mapSlice.removeElemFromMap(item)));
+      }
+
+      if ((e.ctrlKey || e.metaKey) && e.key === "z") {
+        e.preventDefault();
+        dispatch(mapSlice.undoContentChanges());
       }
     };
 
@@ -296,8 +302,32 @@ function MapField() {
       document.body.append(traceItemMarker3);
       document.body.append(traceItem);
     } else if (activeAction === "text") {
+      if (writtenObject) {
+        const currentTextInput = document.querySelector(
+          "[data-name = 'textInput']"
+        ) as HTMLInputElement;
+        const currentTextElem = writtenObject.querySelector(
+          "[data-name = 'textField']"
+        ) as HTMLDivElement;
+        if (currentTextElem) {
+          currentTextElem.innerText = currentTextInput.value;
+        } else if (currentTextInput.value) {
+          const oldText = writtenObject.querySelector(
+            "[data-name='textField']"
+          );
+          if (oldText) oldText.remove();
+          const clone = writtenObject.cloneNode(true) as HTMLElement;
+          const newText = document.createElement("div");
+          newText.innerText = currentTextInput.value;
+          newText.setAttribute("data-name", "textField");
+          newText.setAttribute("class", styles.textField);
+          clone.appendChild(newText);
+          dispatch(mapSlice.changeElemOnMap(clone.outerHTML));
+        }
+      }
       setIsWriting(false);
       setWrittenObject(null);
+
       document.querySelector("[data-name = 'textInput']")?.remove();
     }
   }
@@ -513,10 +543,10 @@ function MapField() {
 
         const oldWidth: string = tempObj.style.width;
         const oldHeight: string = tempObj.style.height;
-        console.log("oldWidth = " + oldWidth + " oldHeight = " + oldHeight);
+        //console.log("oldWidth = " + oldWidth + " oldHeight = " + oldHeight);
         const newWidth = mouseX - parseFloat(tempObj.style.left);
         const newHeight = mouseY - parseFloat(tempObj.style.top);
-        console.log("newWidth = " + newWidth + " newHeight = " + newHeight);
+        //console.log("newWidth = " + newWidth + " newHeight = " + newHeight);
         tempObj.style.width = newWidth > 0 ? newWidth + "px" : "2px";
         tempObj.style.height = newHeight > 0 ? newHeight + "px" : "2px";
 
@@ -698,6 +728,11 @@ function MapField() {
 
       setIsWriting(true);
       setWrittenObject(elem);
+
+      const startTextElem = elem.querySelector(
+        '[data-name="textField"]'
+      ) as HTMLDivElement;
+
       let textField = document.createElement("input");
       setWrittenTextElem(textField);
       textField.style.left =
@@ -706,6 +741,9 @@ function MapField() {
         parseInt(elem.style.top) - mapOuterRef.scrollTop + CELL_SIZE + "px";
       textField.setAttribute("data-name", "textInput");
       textField.className = styles.textInput;
+      if (startTextElem) {
+        textField.value = startTextElem.innerText;
+      }
 
       mapOuter.current.append(textField);
       textField.focus();
@@ -746,17 +784,10 @@ function MapField() {
     const eventTargetName = eventTarget.getAttribute("data-name");
 
     if (eventTargetName === "mapElem") {
-      console.log(eventTarget.id);
       eventTarget.style.outline = "3px dashed yellow";
       dispatch(mapSlice.changeElemOnMap(eventTarget.outerHTML));
       dispatch(mapSlice.setSelectedObjectsId([eventTarget.id]));
     }
-  }
-
-  function mapKeyControl(e: React.KeyboardEvent) {
-    // e.stopPropagation();
-    console.log("key pressed");
-    console.log(e.key);
   }
 
   useEffect(() => {
@@ -1406,6 +1437,8 @@ function PaletteActions() {
     );
     if (selectedArray.length === 0) return;
 
+    const oldState = mapContent;
+
     selectedArray.map((item) => dispatch(mapSlice.removeElemFromMap(item)));
 
     let itemArray: string[] = selectedArray.map((item) =>
@@ -1510,8 +1543,9 @@ function PaletteActions() {
     formClone.appendChild(formCloneResizer);
 
     dispatch(mapSlice.addElemToMap(formClone.outerHTML));
+    dispatch(mapSlice.setMapContentPrev(oldState));
   }
-
+  //////
   function splitItems() {
     if (activeAction !== "arrow") return;
 
@@ -1519,6 +1553,9 @@ function PaletteActions() {
       item.includes("outline: yellow dashed 3px")
     );
     if (selectedArray.length === 0) return;
+
+    const oldState = mapContent;
+
     selectedArray.map((item) => dispatch(mapSlice.removeElemFromMap(item)));
     let parsedArray = selectedArray.map(
       (item) => parse(item) as ReactElement<any>
@@ -1566,6 +1603,7 @@ function PaletteActions() {
         dispatch(mapSlice.addElemToMap(tempItem));
       }
     });
+    dispatch(mapSlice.setMapContentPrev(oldState));
   }
 
   function deleteItems() {
@@ -1583,6 +1621,7 @@ function PaletteActions() {
       item.includes("outline: yellow dashed 3px")
     );
     if (selectedArray.length === 0) return;
+    const oldState = mapContent;
 
     let copyID = mapElemsCounter + 1;
 
@@ -1606,6 +1645,7 @@ function PaletteActions() {
       dispatch(mapSlice.addElemToMap(textElemCopy));
     });
     dispatch(mapSlice.setMapElemsCounter(copyID));
+    dispatch(mapSlice.setMapContentPrev(oldState));
   }
 
   function reflectHItems() {
