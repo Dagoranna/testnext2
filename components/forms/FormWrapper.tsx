@@ -10,8 +10,8 @@ type MyProps = {
   isFormOpen?: boolean;
   addButtonStyle?: Record<string, string>;
   addFormStyle?: Record<string, string>;
-  addOnClose?: (...args: any[]) => void | null;
-  addButtonFunc?: (...args: any[]) => void | null;
+  addOnClose?: ((...args: any[]) => void) | null;
+  addButtonFunc?: ((...args: any[]) => void) | null;
 };
 
 export default function FormWrapper({

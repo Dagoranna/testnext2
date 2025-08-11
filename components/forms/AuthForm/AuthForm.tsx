@@ -1,6 +1,5 @@
 "use client";
 import { useState, useEffect } from "react";
-import { removeItemFromArray } from "../../../utils/generalUtils";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "../../../app/store/store";
 import * as actions from "../../../app/store/slices/mainSlice";
@@ -13,20 +12,21 @@ export default function AuthForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
+  const [userName, setUserName] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [formMode, setFormMode] = useState<
     "Login" | "Register" | "Reset password"
   >("Login");
-  const [formLoginErrors, setFormLoginErrors] = useState<string[]>([]);
-  const [formRegisterErrors, setFormRegisterErrors] = useState<string[]>([]);
-  const [formResetPassErrors, setFormResetPassErrors] = useState<string[]>([]);
+  const [formAuthErrors, setFormAuthErrors] = useState<Set<string>>(new Set());
   const [actionResult, setActionResult] = useState(false);
   const [actionMessage, setActionMessage] = useState("");
 
+  function toggleError(set: Set<string>, condition: boolean, msg: string) {
+    condition ? set.add(msg) : set.delete(msg);
+  }
+
   useEffect(() => {
-    setFormLoginErrors([]);
-    setFormRegisterErrors([]);
-    setFormResetPassErrors([]);
+    setFormAuthErrors(new Set());
     setActionMessage("");
     setEmail("");
     setPassword("");
@@ -35,89 +35,40 @@ export default function AuthForm() {
   }, [formMode]);
 
   useEffect(() => {
-    let errors = [];
-    switch (formMode) {
-      case "Login":
-        errors = [...formLoginErrors];
-        break;
-      case "Register":
-        errors = [...formRegisterErrors];
-        break;
-      case "Reset password":
-        errors = [...formResetPassErrors];
-        break;
-    }
+    let errors: Set<string> = new Set();
 
     //email checks
-    if (email.trim() === "" && !errors.includes("Email is empty")) {
-      errors.push("Email is empty");
-    }
-    if (email.trim() !== "" && errors.includes("Email is empty")) {
-      errors = removeItemFromArray(errors, "Email is empty");
-    }
+    toggleError(errors, email.trim() === "", "Email is empty");
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (
-      !emailRegex.test(email) &&
-      email.trim() !== "" &&
-      !errors.includes("Invalid email")
-    ) {
-      errors.push("Invalid email");
-    }
-    if (
-      errors.includes("Invalid email") &&
-      (emailRegex.test(email) || email.trim() === "")
-    ) {
-      errors = removeItemFromArray(errors, "Invalid email");
-    }
+    toggleError(
+      errors,
+      !emailRegex.test(email) && email.trim() !== "",
+      "Invalid email"
+    );
 
     if (formMode !== "Reset password") {
       //password checks
-      if (password.trim() === "" && !errors.includes("Password is empty")) {
-        errors.push("Password is empty");
-      }
-      if (password.trim() !== "" && errors.includes("Password is empty")) {
-        errors = removeItemFromArray(errors, "Password is empty");
-      }
+      toggleError(errors, password.trim() === "", "Password is empty");
     }
 
     //second password checks
     if (formMode === "Register") {
-      if (
-        password2.trim() !== password.trim() &&
-        !errors.includes("Passwords do not match")
-      ) {
-        errors.push("Passwords do not match");
-      }
-      if (
-        password2.trim() === password.trim() &&
-        errors.includes("Passwords do not match")
-      ) {
-        errors = removeItemFromArray(errors, "Passwords do not match");
-      }
+      toggleError(
+        errors,
+        password2.trim() !== password.trim(),
+        "Passwords do not match"
+      );
     }
 
-    switch (formMode) {
-      case "Login":
-        setFormLoginErrors(errors);
-        break;
-      case "Register":
-        setFormRegisterErrors(errors);
-        break;
-      case "Reset password":
-        setFormResetPassErrors(errors);
-        break;
-    }
+    setFormAuthErrors(errors);
   }, [email, password, password2, formMode]);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (formAuthErrors.size !== 0) return;
+
     switch (formMode) {
       case "Login": {
-        if (formLoginErrors.length !== 0) {
-          console.log(formLoginErrors);
-          break;
-        }
-
         let response = await fetch("/api/auth/login", {
           method: "POST",
           headers: {
@@ -134,28 +85,20 @@ export default function AuthForm() {
         let baseResponse = await response.json();
 
         if (response.ok) {
+          dispatch(actions.setLoginState(baseResponse.loginState));
+          setActionMessage(baseResponse.message);
           if (baseResponse.loginState === true) {
-            dispatch(actions.setLoginState(true));
-            console.log(baseResponse.message);
-            setActionMessage(baseResponse.message);
-            console.log("email = " + email);
             dispatch(actions.setUserEmail(email));
-            setActionResult(true);
-          } else {
-            dispatch(actions.setLoginState(false));
-            console.log(baseResponse.message);
-            setActionMessage(baseResponse.message);
-            setActionResult(false);
+            dispatch(actions.setUserName(baseResponse.name));
           }
+          setActionResult(baseResponse.loginState);
         } else {
-          throw new Error("error in database response");
+          setActionMessage("error in database response");
         }
 
         break;
       }
       case "Register": {
-        if (formRegisterErrors.length !== 0) break;
-
         const response = await fetch("/api/auth/register", {
           method: "POST",
           headers: {
@@ -163,6 +106,7 @@ export default function AuthForm() {
           },
           body: JSON.stringify({
             callbackUrl: "/",
+            name: userName,
             email: email,
             password: password,
           }),
@@ -170,26 +114,16 @@ export default function AuthForm() {
 
         const baseResponse = await response.json();
 
-        if (response.ok) {
-          if (baseResponse.registerState === true) {
-            //TODO: register successful logic
-            setActionMessage(baseResponse.message);
-            setActionResult(true);
-          } else {
-            setActionMessage(baseResponse.message);
-            setActionResult(false);
-          }
+        if (response.status === 200 || response.status === 409) {
+          setActionMessage(baseResponse.message);
+          setActionResult(baseResponse.registerState);
         } else {
-          throw new Error("error in database response");
+          setActionMessage("error in database response");
         }
+
         break;
       }
       case "Reset password": {
-        if (formResetPassErrors.length !== 0) {
-          console.log(formResetPassErrors);
-          break;
-        }
-
         let response = await fetch("/api/auth/resetpass", {
           method: "POST",
           headers: {
@@ -204,18 +138,10 @@ export default function AuthForm() {
         let baseResponse = await response.json();
 
         if (response.ok) {
-          if (baseResponse.resetPassState === true) {
-            //TODO: reset mail sent
-            console.log(baseResponse.message);
-            setActionMessage(baseResponse.message);
-            setActionResult(true);
-          } else {
-            console.log(baseResponse.message);
-            setActionMessage(baseResponse.message);
-            setActionResult(false);
-          }
+          setActionMessage(baseResponse.message);
+          setActionResult(baseResponse.resetPassState);
         } else {
-          throw new Error("error in database response");
+          setActionMessage("error in database response");
         }
 
         break;
@@ -242,6 +168,15 @@ export default function AuthForm() {
         >
           {actionMessage}
         </div>
+        {formMode === "Register" && (
+          <input
+            type="text"
+            placeholder="nickname"
+            value={userName}
+            onChange={(e) => setUserName(e.target.value)}
+            className="mainInput"
+          />
+        )}
         <input
           type="email"
           placeholder="Email"
@@ -260,7 +195,7 @@ export default function AuthForm() {
           />
         )}
 
-        {formMode == "Register" && (
+        {formMode === "Register" && (
           <input
             type="password"
             placeholder="confirm password"
@@ -269,7 +204,7 @@ export default function AuthForm() {
             className="mainInput"
           />
         )}
-        {formMode == "Login" && (
+        {formMode === "Login" && (
           <div>
             <label>
               <input
@@ -282,13 +217,7 @@ export default function AuthForm() {
           </div>
         )}
 
-        {formMode == "Login" && <FormErrors formErrors={formLoginErrors} />}
-        {formMode == "Register" && (
-          <FormErrors formErrors={formRegisterErrors} />
-        )}
-        {formMode == "Reset password" && (
-          <FormErrors formErrors={formResetPassErrors} />
-        )}
+        <FormErrors formErrors={formAuthErrors} />
 
         <button id="authButton" className="mainButton" type="submit">
           {formMode}

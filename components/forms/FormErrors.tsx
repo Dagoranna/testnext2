@@ -2,8 +2,16 @@
 
 import styles from "./FormErrors.module.css";
 
-export default function FormErrors({ formErrors }) {
-  const listItems = formErrors.map((errorText: string, id: string | number) => (
+type FormErrorsProps = {
+  formErrors: Set<string>;
+};
+
+export default function FormErrors({
+  formErrors,
+}: FormErrorsProps): React.ReactElement {
+  const formErrorsArray = [...formErrors];
+
+  const listItems = formErrorsArray.map((errorText: string, id: number) => (
     <li key={id}>{errorText}</li>
   ));
 
