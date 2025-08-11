@@ -29,18 +29,10 @@ export async function POST(req: Request) {
       { status: 200 }
     );
   } else {
-    /*const transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST as string,
-      port: process.env.EMAIL_PORT,
-      auth: {
-        user: process.env.EMAIL_LOGIN,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-    });*/
     const transporter = nodemailer.createTransport({
       host: process.env.EMAIL_HOST as string,
       port: Number(process.env.EMAIL_PORT),
-      secure: true,
+      secure: false,
       auth: {
         user: process.env.EMAIL_LOGIN as string,
         pass: process.env.EMAIL_PASSWORD as string,
@@ -104,7 +96,11 @@ async function getUser(email: string) {
   }
 }
 
-async function writeResetTokenToBase(email: string, resettoken: string, expireTime: Date) {
+async function writeResetTokenToBase(
+  email: string,
+  resettoken: string,
+  expireTime: Date
+) {
   const { error } = await supabase
     .from("advancedauth")
     .update({ resettoken: resettoken, resettokentime: expireTime })
