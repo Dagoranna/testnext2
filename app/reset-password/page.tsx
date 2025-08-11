@@ -3,7 +3,6 @@ import { Suspense, FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
 import FormWrapper from "../../components/forms/FormWrapper";
 import { useState, useEffect } from "react";
-import { removeItemFromArray } from "../../utils/generalUtils";
 import FormErrors from "../../components/forms/FormErrors";
 import stylesFormWrapper from "../../components/forms/FormWrapper.module.css";
 
@@ -14,10 +13,14 @@ function ResetPasswordPage() {
   const [isTokenValid, setIsTokenValid] = useState(0);
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
-  const [formPassErrors, setPassErrors] = useState<string[]>([]);
+  const [formAuthErrors, setAuthErrors] = useState<Set<string>>(new Set());
 
   const [actionResult, setActionResult] = useState(false);
   const [actionMessage, setActionMessage] = useState("");
+
+  function toggleError(set: Set<string>, condition: boolean, msg: string) {
+    condition ? set.add(msg) : set.delete(msg);
+  }
 
   useEffect(() => {
     async function checkToken() {
@@ -62,38 +65,22 @@ function ResetPasswordPage() {
   }, [actionResult]);
 
   useEffect(() => {
-    let errors = [...formPassErrors];
+    let errors: Set<string> = new Set();
 
-    if (password.trim() === "" && !errors.includes("Password is empty")) {
-      errors.push("Password is empty");
-    }
-    if (password.trim() !== "" && errors.includes("Password is empty")) {
-      errors = removeItemFromArray(errors, "Password is empty");
-    }
+    toggleError(errors, password.trim() === "", "Password is empty");
+    toggleError(
+      errors,
+      password2.trim() !== password.trim(),
+      "Passwords do not match"
+    );
 
-    if (
-      password2.trim() !== password.trim() &&
-      !errors.includes("Passwords do not match")
-    ) {
-      errors.push("Passwords do not match");
-    }
-    if (
-      password2.trim() === password.trim() &&
-      errors.includes("Passwords do not match")
-    ) {
-      errors = removeItemFromArray(errors, "Passwords do not match");
-    }
-
-    setPassErrors(errors);
+    setAuthErrors(errors);
   }, [password, password2]);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    if (formPassErrors.length !== 0) {
-      console.log(formPassErrors);
-      return;
-    }
+    if (formAuthErrors.size !== 0) return;
 
     if (isTokenValid !== 1) {
       console.log("bad token");
@@ -115,17 +102,10 @@ function ResetPasswordPage() {
     let baseResponse = await response.json();
 
     if (response.ok) {
-      if (baseResponse.resetHandlingState === true) {
-        console.log(baseResponse.message);
-        setActionMessage(baseResponse.message);
-        setActionResult(true);
-      } else {
-        console.log(baseResponse.message);
-        setActionMessage(baseResponse.message);
-        setActionResult(false);
-      }
+      setActionMessage(baseResponse.message);
+      setActionResult(baseResponse.resetHandlingState);
     } else {
-      throw new Error("error in database response");
+      setActionMessage("error in database response");
     }
   }
 
@@ -173,7 +153,7 @@ function ResetPasswordPage() {
               onChange={(e) => setPassword2(e.target.value)}
               className="mainInput"
             />
-            <FormErrors formErrors={formPassErrors} />
+            <FormErrors formErrors={formAuthErrors} />
             <button id="resetButton" className="mainButton" type="submit">
               Set new password
             </button>
