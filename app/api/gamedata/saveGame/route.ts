@@ -17,7 +17,6 @@ export async function POST(req: Request) {
   const { email, title, gamedata } = body;
 
   const store = await getGamesList(email);
-
   let gameId: number | null = null;
   if (store.length !== 0) {
     gameId = store.find((item) => item.game_name === title)?.id || null;
@@ -77,7 +76,7 @@ async function updateGame(id: number, gameContent: string) {
 
 async function getGamesList(email: string) {
   const { data, error } = await supabase
-    .from("gamets")
+    .from("games")
     .select("game_name, id")
     .eq("author_email", email);
 
