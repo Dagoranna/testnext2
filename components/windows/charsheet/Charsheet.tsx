@@ -3,6 +3,7 @@
 import styles from "./Charsheet.module.css";
 import React from "react";
 import { useRef, useEffect, useState, useMemo, cloneElement } from "react";
+import { createPortal } from "react-dom";
 import { useSelector, useDispatch } from "react-redux";
 import * as charsheetSlice from "../../../app/store/slices/charsheetSlice";
 import { manageWebsocket } from "../../../app/store/slices/websocketSlice";
@@ -530,83 +531,123 @@ const ParamLineSkills = React.memo(function ParamLineSkills({
   }, [stat]);
 
   return (
-    <div className={styles.paramLine}>
-      <button
-        className={`${styles.paramTitleSkill} ${
-          (skillInfo.isUntrained || skillInfo.rank > 0) && styles.chButton
-        }`}
-        onClick={(e) => makeRoll(section.res, title)}
-      >{`${title}`}</button>
-      <div className={styles.oneSkillBlock}>
-        <div className={styles.skillPart}>
-          <div className={styles.saveResFiled}>Result</div>
-          <input
-            className={`${styles.paramInput} ${styles.paramInputResult}`}
-            value={section.res || 0}
-            readOnly
-            type="number"
-          />
-        </div>
-        <div className={styles.skillPart}>
-          <div className={styles.saveResFiled}>Ranks</div>
-          <input
-            className={styles.paramInput}
-            onChange={(e) => {
-              dispatch(
-                dispFunction({
-                  skillName: title,
-                  rank: parseInt(e.target.value, 10) || 0,
-                  other: skillInfo.other,
-                })
-              );
-            }}
-            value={section.rank || 0}
-            type="number"
-          />
-        </div>
-        <div className={styles.skillPart}>
-          <div className={styles.saveResFiled}>Ab.Mod.</div>
-          <input
-            className={`${styles.paramInput} ${styles.paramInputReadonly}`}
-            value={statMod || 0}
-            readOnly
-            type="number"
-          />
-        </div>
-        <div className={styles.skillPart}>
-          <div className={styles.saveResFiled}>Other</div>
-          <input
-            className={styles.paramInput}
-            onChange={(e) => {
-              dispatch(
-                dispFunction({
-                  skillName: title,
-                  rank: skillInfo.rank,
-                  other: parseInt(e.target.value, 10) || 0,
-                })
-              );
-            }}
-            value={section.other || 0}
-            type="number"
-          />
-        </div>
+    <>
+      <div className={styles.paramLine}>
         <button
-          className={styles.deleteUnitedBlockButton}
-          onClick={() =>
-            dispatch(
-              charsheetSlice.removeUnitedBlock({
-                blockType: "skills",
-                name: title,
-              })
-            )
-          }
-        >
-          ✖
-        </button>
+          className={`${styles.paramTitleSkill} ${
+            (skillInfo.isUntrained || skillInfo.rank > 0) && styles.chButton
+          }`}
+          onClick={(e) => makeRoll(section.res, title)}
+        >{`${title}`}</button>
+        <div className={styles.oneSkillBlock}>
+          <div className={styles.skillPart}>
+            <div className={styles.saveResFiled}>Result</div>
+            <input
+              className={`${styles.paramInput} ${styles.paramInputResult}`}
+              value={section.res || 0}
+              readOnly
+              type="number"
+            />
+          </div>
+          <div className={styles.skillPart}>
+            <div className={styles.saveResFiled}>Ranks</div>
+            <input
+              className={styles.paramInput}
+              onChange={(e) => {
+                dispatch(
+                  dispFunction({
+                    skillName: title,
+                    rank: parseInt(e.target.value, 10) || 0,
+                    other: skillInfo.other,
+                  })
+                );
+              }}
+              value={section.rank || 0}
+              type="number"
+            />
+          </div>
+          <div className={styles.skillPart}>
+            <div className={styles.saveResFiled}>Ab.Mod.</div>
+            <input
+              className={`${styles.paramInput} ${styles.paramInputReadonly}`}
+              value={statMod || 0}
+              readOnly
+              type="number"
+            />
+          </div>
+          <div className={styles.skillPart}>
+            <div className={styles.saveResFiled}>Other</div>
+            <input
+              className={styles.paramInput}
+              onChange={(e) => {
+                dispatch(
+                  dispFunction({
+                    skillName: title,
+                    rank: skillInfo.rank,
+                    other: parseInt(e.target.value, 10) || 0,
+                  })
+                );
+              }}
+              value={section.other || 0}
+              type="number"
+            />
+          </div>
+          <div className="verticalForm">
+            <button
+              className={`${styles.chainButton} ${
+                skillInfo.isChained && styles.chainButtonOn
+              }`}
+              onClick={() =>
+                dispatch(
+                  charsheetSlice.setIsChained({
+                    skillName: title,
+                  })
+                )
+              }
+            >
+              🔗
+            </button>
+            <button
+              className={styles.deleteUnitedBlockButton}
+              onClick={() =>
+                dispatch(
+                  charsheetSlice.removeUnitedBlock({
+                    blockType: "skills",
+                    name: title,
+                  })
+                )
+              }
+            >
+              ✖
+            </button>
+          </div>
+        </div>
       </div>
-    </div>
+      {skillInfo?.isChained &&
+        createPortal(
+          <button
+            className={`${styles.paramTitleSkill} ${
+              (skillInfo.isUntrained || skillInfo.rank > 0) && styles.chButton
+            }`}
+            onClick={(e) => makeRoll(section.res, title)}
+          >{`${title}`}</button>,
+          document.getElementById("diceSet")
+        )}
+    </>
   );
 });
+/*
+  return createPortal(
+    <div className={`glass modalWindow`} style={{ ...addFormStyle }}>
+      <Paw width={pawMini ? 30 : 60} />
+      <button className={styles.closeButton} onClick={() => onClose?.()}>
+        &#x2716;
+      </button>
+      {children}
+    </div>,
+    document.getElementById('diceWrapper')
+  );
+*/
 
 function CharSectionSkills() {
   const dispatch: AppDispatch = useDispatch();

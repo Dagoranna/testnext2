@@ -25,6 +25,7 @@ export interface SkillObj {
   other: number;
   isUntrained: boolean;
   statDependsOn: AbilityCap;
+  isChained?: boolean;
 }
 
 export interface UnitedBlock {
@@ -469,7 +470,12 @@ const charsheetSlice = createSlice({
     },
     setSkillPart: (
       state,
-      action: PayloadAction<{ skillName: string; rank: number; other: number }>
+      action: PayloadAction<{
+        skillName: string;
+        rank: number;
+        other: number;
+        isChained?: boolean;
+      }>
     ) => {
       const skillName = action.payload.skillName;
       const rank = action.payload.rank;
@@ -507,6 +513,11 @@ const charsheetSlice = createSlice({
         ...state.skills,
         [skillName]: newSkillObj,
       };
+    },
+    setIsChained: (state, action: PayloadAction<{ skillName: string }>) => {
+      const skillName = action.payload.skillName;
+      const isChained = state.skills[skillName]?.isChained;
+      state.skills[skillName].isChained = !isChained;
     },
     addUnitedBlock: (
       state,
@@ -551,6 +562,7 @@ export const {
   setDescrPart,
   setSkillPart,
   addSkill,
+  setIsChained,
   addUnitedBlock,
   removeUnitedBlock,
   loadCharsheetContent,

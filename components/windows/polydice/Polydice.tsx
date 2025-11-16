@@ -281,8 +281,8 @@ export default function Polydice() {
   }
 
   return (
-    <div className={styles.diceWrapper}>
-      <div className={styles.diceSet}>
+    <div id="diceWrapper" className={styles.diceWrapper}>
+      <div id="diceSet" className={styles.diceSet}>
         <button
           name="dice"
           className={`${styles.dice} ${

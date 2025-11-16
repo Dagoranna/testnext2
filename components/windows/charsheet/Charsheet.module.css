@@ -168,6 +168,41 @@
   cursor: pointer;
 }
 
+.chainButton {
+  position: relative;
+  right: 0;
+  top: 0;
+  width: 1.3rem;
+  height: 100%;
+  color: black;
+  background-color: transparent;
+  text-shadow: 2px 2px 2px white;
+  border: 1px solid #a9855d;
+  cursor: pointer;
+}
+
+.chainButtonOn {
+  position: relative;
+  right: 0;
+  top: 0;
+  width: 1.3rem;
+  height: 100%;
+  cursor: pointer;
+  color: yellow;
+  box-shadow:
+    0 0 0.5em yellow inset,
+    0.1em 0.1em 0.2em #4d3a25;
+  background: linear-gradient(
+    rgb(247, 247, 101) 0%,
+    #8e5a1f 50%,
+    rgb(247, 247, 101) 100%
+  );
+  text-shadow:
+    1px 1px 1px #0d240a,
+    1px 0 1px #0d240a;
+  border: 1px solid #8e5a1f;
+}
+
 .mobileBreak {
   display: none;
 }
