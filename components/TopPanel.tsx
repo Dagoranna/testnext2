@@ -36,24 +36,24 @@ export default function TopPanel() {
   //console.log(winList);
 
   const serverMessage = useSelector(
-    (state: RootState) => state.websocket.serverMessage
+    (state: RootState) => state.websocket.serverMessage,
   );
   const connectionState = useSelector(
-    (state: RootState) => state.websocket.connectionState
+    (state: RootState) => state.websocket.connectionState,
   );
   const connectionTitle = useSelector(
-    (state: RootState) => state.main.connectionTitle
+    (state: RootState) => state.main.connectionTitle,
   );
   const gameId = useSelector((state: RootState) => state.websocket.gameId);
 
   const charsheetState = useSelector((state: RootState) => state.charsheet);
   const gameState = useSelector((state: RootState) => state.gameTable);
   const gameNotices = useSelector(
-    (state: RootState) => state.gameTable.gameNotices
+    (state: RootState) => state.gameTable.gameNotices,
   );
   const mapState = useSelector((state: RootState) => state.map.mapContent);
   const mapElemsCounter = useSelector(
-    (state: RootState) => state.map.mapElemsCounter
+    (state: RootState) => state.map.mapElemsCounter,
   );
 
   const itemsListGamer: MenuItemProps[] = [
@@ -187,7 +187,7 @@ export default function TopPanel() {
         });
         dispatch(actions.setConnectionTitle("Connect"));
         dispatch(
-          manageWebsocket("disconnect", process.env.NEXT_PUBLIC_SERVER_URL)
+          manageWebsocket("disconnect", process.env.NEXT_PUBLIC_SERVER_URL),
         );
       } else if (Object.keys(messageJSON.list).length === 1) {
         //1 DM => autoconnect
@@ -255,8 +255,8 @@ export default function TopPanel() {
           manageWebsocket(
             "send",
             process.env.NEXT_PUBLIC_SERVER_URL,
-            messageForServer
-          )
+            messageForServer,
+          ),
         );
         break;
       case 3:
@@ -285,7 +285,7 @@ export default function TopPanel() {
         if (hiddenLayout) {
           const parsedHiddenLayout = JSON.parse(hiddenLayout);
           currentWindowInfo = parsedHiddenLayout.find(
-            (l: LayoutLine) => l.i === item
+            (l: LayoutLine) => l.i === item,
           );
           if (currentWindowInfo) {
             windowsList.push(currentWindowInfo);
@@ -316,7 +316,7 @@ export default function TopPanel() {
       const hiddenLayout = localStorage.getItem("hiddenLayout");
       const parsedHiddenLayout = JSON.parse(hiddenLayout);
       const winInHidden = parsedHiddenLayout.find(
-        (window: LayoutLine) => window.i === item
+        (window: LayoutLine) => window.i === item,
       );
       if (!winInHidden) {
         parsedHiddenLayout.push(winForHide);
@@ -324,7 +324,7 @@ export default function TopPanel() {
         parsedHiddenLayout.splice(
           parsedHiddenLayout.indexOf(winInHidden),
           1,
-          winForHide
+          winForHide,
         );
       }
       localStorage.setItem("hiddenLayout", JSON.stringify(parsedHiddenLayout));
@@ -348,7 +348,7 @@ export default function TopPanel() {
             Save charsheet
           </button>
         </form>
-      </FormWrapperFree>
+      </FormWrapperFree>,
     );
   }
 
@@ -356,7 +356,7 @@ export default function TopPanel() {
     e.preventDefault();
     const form = e.target as HTMLFormElement;
     const formInput = form.elements.namedItem(
-      "charsheetName"
+      "charsheetName",
     ) as HTMLInputElement;
     const charsheetName = formInput.value;
 
@@ -414,7 +414,7 @@ export default function TopPanel() {
       e.preventDefault();
       const form = e.target as HTMLFormElement;
       const formInput = form.elements.namedItem(
-        "charsheetName"
+        "charsheetName",
       ) as HTMLInputElement;
       const charsheetId = formInput.value;
 
@@ -437,10 +437,50 @@ export default function TopPanel() {
 
       dispatch(
         charsheetActions.loadCharsheetContent(
-          baseResponse.message.charsheet_content
-        )
+          baseResponse.message.charsheet_content,
+        ),
       );
       setAddComps(null);
+    }
+
+    async function deleteCharsheet(e: React.MouseEvent<HTMLButtonElement>) {
+      e.preventDefault();
+      const charsheetSelect = document.getElementById(
+        "charsheetName",
+      ) as HTMLSelectElement;
+      const charsheetId = charsheetSelect.value;
+      if (!confirm("Are you really want to delete charsheet?")) return;
+      let response = await fetch("/api/gamedata/deleteCharsheet", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: charsheetId,
+        }),
+      });
+
+      //let baseResponse = await response.json();
+      if (!response.ok) {
+        return;
+        //throw new Error("error in database response");
+      } else {
+        const option = charsheetSelect.querySelector(
+          `option[value="${charsheetId}"]`,
+        ) as HTMLOptionElement | null;
+
+        if (option) {
+          option.style.display = "none";
+          charsheetSelect.value = null;
+        }
+      }
+
+      /* dispatch(
+        charsheetActions.loadCharsheetContent(
+          baseResponse.message.charsheet_content,
+        ),
+      );
+      setAddComps(null);*/
     }
 
     setAddComps(
@@ -450,11 +490,21 @@ export default function TopPanel() {
           <select id="charsheetName" className="mainInput">
             {charsheets}
           </select>
-          <button className="mainButton" type="submit">
-            Load charsheet
-          </button>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            <button className="mainButton" type="submit">
+              Load charsheet
+            </button>
+            <button
+              className="mainButton"
+              id="delCharButton"
+              type="button"
+              onClick={async (e) => await deleteCharsheet(e)}
+            >
+              Delete charsheet
+            </button>
+          </div>
         </form>
-      </FormWrapperFree>
+      </FormWrapperFree>,
     );
   }
 
@@ -468,7 +518,7 @@ export default function TopPanel() {
             Save map
           </button>
         </form>
-      </FormWrapperFree>
+      </FormWrapperFree>,
     );
   }
 
@@ -555,8 +605,8 @@ export default function TopPanel() {
       dispatch(gameMapActions.loadMapContent(baseResponse.message.map_content));
       dispatch(
         gameMapActions.setMapElemsCounter(
-          baseResponse.message.map_elems_counter
-        )
+          baseResponse.message.map_elems_counter,
+        ),
       );
       setAddComps(null);
     }
@@ -572,7 +622,7 @@ export default function TopPanel() {
             Load map
           </button>
         </form>
-      </FormWrapperFree>
+      </FormWrapperFree>,
     );
   }
 
@@ -643,7 +693,7 @@ export default function TopPanel() {
             Delete map
           </button>
         </form>
-      </FormWrapperFree>
+      </FormWrapperFree>,
     );
   }
 
@@ -657,7 +707,7 @@ export default function TopPanel() {
             Save game
           </button>
         </form>
-      </FormWrapperFree>
+      </FormWrapperFree>,
     );
   }
 
@@ -742,7 +792,7 @@ export default function TopPanel() {
       }
 
       dispatch(
-        gameTableActions.loadGameContent(baseResponse.message.game_content)
+        gameTableActions.loadGameContent(baseResponse.message.game_content),
       );
       setAddComps(null);
     }
@@ -758,7 +808,7 @@ export default function TopPanel() {
             Load game
           </button>
         </form>
-      </FormWrapperFree>
+      </FormWrapperFree>,
     );
   }
 
@@ -778,7 +828,7 @@ export default function TopPanel() {
             Save name
           </button>
         </form>
-      </FormWrapperFree>
+      </FormWrapperFree>,
     );
   }
 
@@ -844,7 +894,7 @@ export default function TopPanel() {
     setColorsSet(
       <ul className={styles.colorsBlock} onClick={(e) => setColor(e)}>
         {tempColorsSet}
-      </ul>
+      </ul>,
     );
 
     function setColor(e: React.MouseEvent | React.PointerEvent) {
@@ -933,14 +983,14 @@ export default function TopPanel() {
           manageWebsocket(
             "connect",
             process.env.NEXT_PUBLIC_SERVER_URL,
-            messageForServer
-          )
+            messageForServer,
+          ),
         );
         break;
       case 1:
         //closing working connection
         dispatch(
-          manageWebsocket("disconnect", process.env.NEXT_PUBLIC_SERVER_URL)
+          manageWebsocket("disconnect", process.env.NEXT_PUBLIC_SERVER_URL),
         );
         if (userRole === "Gamer") dispatch(websocketActions.setGameId(null));
         dispatch(actions.setConnectionTitle("Connect"));

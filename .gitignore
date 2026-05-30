@@ -43,3 +43,5 @@ schemes.*
 
 #backup version
 *.bak
+
+.vscode/
